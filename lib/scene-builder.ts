@@ -1,8 +1,5 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { getKnowledgeForSystem } from './knowledge/index'
+import { geminiGenerate } from './gemini'
 import { getScriptsForPrompt } from './script-library'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export interface SceneAsset {
   name: string
@@ -19,19 +16,14 @@ export interface ScenePlan {
   sharedScripts: string[]
 }
 
-// Parse a complex scene description into individual assets
 export async function parseSceneDescription(prompt: string): Promise<ScenePlan> {
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 2000,
-    system: `You parse complex Roblox scene descriptions into individual asset generation tasks.
+  const text = await geminiGenerate(
+    `You parse complex Roblox scene descriptions into individual asset generation tasks.
 Break down the scene into separate assets, determine what type each is (builder/modeling/project),
-and identify dependencies between them (e.g. a police car needs the police station first for context).
-Position assets logically in 3D space (Y=0 is ground level, space assets realistically).
+and identify dependencies between them.
+Position assets logically in 3D space (Y=0 is ground level).
 Output ONLY JSON — no markdown.`,
-    messages: [{
-      role: 'user',
-      content: `Parse this scene into individual assets:
+    `Parse this scene into individual assets:
 "${prompt}"
 
 Output JSON:
@@ -48,41 +40,28 @@ Output JSON:
     }
   ],
   "sharedScripts": ["script system needed across all assets"]
-}`
-    }]
-  })
-
-  const text = response.content[0].type === 'text' ? response.content[0].text : ''
+}`,
+    2000
+  )
   const clean = text.replace(/```json|```/g, '').trim()
   return JSON.parse(clean)
 }
 
-// Detect what other systems a generation depends on and auto-generate them
-export async function resolveDependencies(
-  prompt: string,
-  systemType: string
-): Promise<string[]> {
+export async function resolveDependencies(prompt: string, systemType: string): Promise<string[]> {
   try {
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 400,
-      system: `You identify Roblox game system dependencies.
+    const text = await geminiGenerate(
+      `You identify Roblox game system dependencies.
 Given a generation request, identify what other systems MUST exist for this to work.
-Example: "booking system" depends on ["currency system", "datastore", "team system"]
 Output ONLY JSON array of dependency names. Empty array if no dependencies.`,
-      messages: [{
-        role: 'user',
-        content: `What systems does this depend on: "${prompt}" (system type: ${systemType})`
-      }]
-    })
-    const text = response.content[0].type === 'text' ? response.content[0].text : '[]'
+      `What systems does this depend on: "${prompt}" (system type: ${systemType})`,
+      400
+    )
     return JSON.parse(text.replace(/```json|```/g, '').trim())
   } catch {
     return []
   }
 }
 
-// Get missing dependencies from the script library and auto-generate them
 export async function autoResolveDependencies(
   prompt: string,
   systemType: string,
