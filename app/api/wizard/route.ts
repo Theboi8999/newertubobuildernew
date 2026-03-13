@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from '@/lib/supabase'
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { geminiGenerate } from '@/lib/gemini'
 
 export async function POST(req: NextRequest) {
   const supabase = createServerClient(cookies())
@@ -12,16 +10,11 @@ export async function POST(req: NextRequest) {
 
   const { answers, systemType } = await req.json()
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 300,
-    system: `Build optimised TurboBuilder prompts from wizard answers. Output ONLY the prompt string.`,
-    messages: [{
-      role: 'user',
-      content: `Build a ${systemType} prompt from: ${Object.entries(answers).map(([q,a]) => `${q}: ${a}`).join(' | ')}`
-    }]
-  })
+  const prompt = await geminiGenerate(
+    `Build optimised TurboBuilder prompts from wizard answers. Output ONLY the prompt string.`,
+    `Build a ${systemType} prompt from: ${Object.entries(answers).map(([q,a]) => `${q}: ${a}`).join(' | ')}`,
+    300
+  )
 
-  const prompt = response.content[0].type === 'text' ? response.content[0].text.trim() : ''
-  return NextResponse.json({ prompt })
+  return NextResponse.json({ prompt: prompt.trim() })
 }
