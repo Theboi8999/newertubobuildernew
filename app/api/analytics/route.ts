@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@/lib/supabase'
-import { cookies } from 'next/headers'
 import { getAnalytics } from '@/lib/analytics'
  
 export async function GET(req: NextRequest) {
