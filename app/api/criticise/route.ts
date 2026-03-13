@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerClient } from '@/lib/supabase'
-import { cookies } from 'next/headers'
  
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
  
@@ -26,3 +25,4 @@ export async function POST(req: NextRequest) {
   const improvedPrompt = response.content[0].type === 'text' ? response.content[0].text.trim() : originalPrompt
   return NextResponse.json({ improvedPrompt })
 }
+ 
