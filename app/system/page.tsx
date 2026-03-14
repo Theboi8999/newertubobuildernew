@@ -95,4 +95,179 @@ function WizardStep({ step, value, onChange }: {
       <div className="flex flex-wrap gap-2">
         {step.options.map(opt => (
           <button key={opt} onClick={() => toggle(opt)}
-            className={`px-3 py-1.5 rounded-lg t
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all ${isSelected(opt) ? 'bg-brand-purple border-brand-purple text-white' : 'bg-brand-card border-brand-border text-brand-text-muted hover:border-brand-purple hover:text-white'}`}>
+            {opt}
+          </button>
+        ))}
+        {step.allowOther && !showOther && (
+          <button onClick={() => setShowOther(true)}
+            className="px-3 py-1.5 rounded-lg text-sm font-medium border border-dashed border-brand-muted text-brand-text-dim hover:border-brand-cyan hover:text-brand-cyan transition-all">
+            + Other
+          </button>
+        )}
+        {step.allowOther && showOther && (
+          <div className="flex gap-2 items-center">
+            <input autoFocus value={otherText} onChange={e => setOtherText(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && commitOther()}
+              placeholder="Type anything…"
+              className="px-3 py-1.5 rounded-lg text-sm bg-brand-card border border-brand-cyan text-white placeholder-brand-text-dim outline-none w-44" />
+            <button onClick={commitOther} className="px-3 py-1.5 rounded-lg text-sm bg-brand-cyan text-brand-bg font-bold">Add</button>
+            <button onClick={() => setShowOther(false)} className="px-2 py-1.5 text-brand-text-dim hover:text-white text-sm">✕</button>
+          </div>
+        )}
+      </div>
+      {isMulti && (value as string[]).filter(v => !step.options.includes(v)).map(custom => (
+        <span key={custom} className="inline-flex items-center gap-1 mt-2 mr-2 px-3 py-1 rounded-full text-xs bg-brand-cyan/20 border border-brand-cyan text-brand-cyan">
+          {custom}
+          <button onClick={() => onChange((value as string[]).filter(x => x !== custom))} className="opacity-60 hover:opacity-100">✕</button>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function SystemPageInner() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const systemType = (searchParams.get('system') || 'builder') as 'builder' | 'modeling' | 'project'
+  const [tab, setTab] = useState<'prompt' | 'templates' | 'wizard'>('prompt')
+  const [prompt, setPrompt] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const wizardSteps = WIZARD_STEPS[systemType] || WIZARD_STEPS.builder
+  const [wizardValues, setWizardValues] = useState<Record<string, string | string[]>>(() => {
+    const init: Record<string, string | string[]> = {}
+    wizardSteps.forEach(s => { init[s.id] = s.multi ? [] : '' })
+    return init
+  })
+
+  const supabase = createClient()
+
+  function buildWizardPrompt() {
+    return wizardSteps
+      .map(step => {
+        const val = wizardValues[step.id]
+        if (!val || (Array.isArray(val) && val.length === 0)) return ''
+        return `${step.label}: ${Array.isArray(val) ? val.join(', ') : val}`
+      })
+      .filter(Boolean)
+      .join('. ')
+  }
+
+  async function handleGenerate(overridePrompt?: string) {
+    const finalPrompt = overridePrompt || (tab === 'wizard' ? buildWizardPrompt() : prompt)
+    if (!finalPrompt.trim()) { setError('Please enter a prompt or fill in the wizard.'); return }
+    setLoading(true)
+    setError('')
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
+      const { data: gen, error: genErr } = await supabase
+        .from('generations').insert({ user_id: user.id, system_type: systemType, prompt: finalPrompt }).select().single()
+      if (genErr || !gen) throw new Error(genErr?.message || 'Failed to create generation')
+      await fetch('/api/generate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ generationId: gen.id, prompt: finalPrompt, systemType }),
+      })
+      router.push(`/dashboard/generate/${gen.id}`)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Something went wrong')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const systemLabels = {
+    builder: { icon: '🏗️', label: 'Builder System', color: 'text-brand-purple' },
+    modeling: { icon: '🚗', label: 'Modeling & Asset System', color: 'text-brand-cyan' },
+    project: { icon: '🗺️', label: 'Project System', color: 'text-brand-green' },
+  }
+  const sys = systemLabels[systemType]
+  const templates = TEMPLATES[systemType] || []
+
+  return (
+    <div className="min-h-screen bg-brand-bg text-brand-text px-4 py-12">
+      <div className="max-w-3xl mx-auto">
+        <div className="mb-10">
+          <button onClick={() => router.push('/dashboard')} className="text-brand-text-dim hover:text-white text-sm mb-4 inline-flex items-center gap-1">← Back</button>
+          <h1 className="text-3xl font-bold"><span className="mr-2">{sys.icon}</span><span className={sys.color}>{sys.label}</span></h1>
+          <p className="text-brand-text-muted mt-1">Describe what you want to generate</p>
+        </div>
+
+        <div className="flex gap-1 p-1 bg-brand-card border border-brand-border rounded-xl mb-8 w-fit">
+          {(['prompt', 'templates', 'wizard'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t ? 'bg-brand-purple text-white shadow' : 'text-brand-text-muted hover:text-white'}`}>
+              {t === 'prompt' ? '✏️ Prompt' : t === 'templates' ? '⚡ Templates' : '🧙 Wizard'}
+            </button>
+          ))}
+        </div>
+
+        {tab === 'prompt' && (
+          <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
+            <label className="block text-sm font-semibold text-brand-text-muted mb-3">Describe your build</label>
+            <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
+              placeholder="e.g. A fully furnished UK police station with reception, 8 holding cells, briefing room, and vehicle garage..."
+              rows={5}
+              className="w-full bg-brand-surface border border-brand-border rounded-xl p-4 text-white placeholder-brand-text-dim resize-none outline-none focus:border-brand-purple transition-colors text-sm" />
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+            <button onClick={() => handleGenerate()} disabled={loading || !prompt.trim()}
+              className="mt-4 w-full py-3 rounded-xl bg-brand-purple hover:bg-brand-purple/80 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm transition-all">
+              {loading ? 'Starting…' : '⚡ Generate'}
+            </button>
+          </div>
+        )}
+
+        {tab === 'templates' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {templates.map(t => (
+              <div key={t.label} className="bg-brand-card border border-brand-border rounded-2xl p-5 hover:border-brand-purple transition-all">
+                <p className="font-bold text-white mb-2">{t.label}</p>
+                <p className="text-brand-text-dim text-xs leading-relaxed mb-4 line-clamp-3">{t.prompt}</p>
+                <div className="flex gap-2">
+                  <button onClick={() => { setPrompt(t.prompt); setTab('prompt') }}
+                    className="flex-1 py-2 rounded-lg border border-brand-border text-brand-text-muted hover:text-white hover:border-brand-purple text-xs font-medium transition-all">
+                    Edit first
+                  </button>
+                  <button onClick={() => handleGenerate(t.prompt)} disabled={loading}
+                    className="flex-1 py-2 rounded-lg bg-brand-purple text-white text-xs font-bold hover:bg-brand-purple/80 transition-all disabled:opacity-40">
+                    {loading ? '…' : '⚡ Generate'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {tab === 'wizard' && (
+          <div className="bg-brand-card border border-brand-border rounded-2xl p-6">
+            {wizardSteps.map(step => (
+              <WizardStep key={step.id} step={step} value={wizardValues[step.id]}
+                onChange={val => setWizardValues(prev => ({ ...prev, [step.id]: val }))} />
+            ))}
+            {buildWizardPrompt() && (
+              <div className="mt-4 p-4 bg-brand-surface rounded-xl border border-brand-border">
+                <p className="text-xs text-brand-text-dim uppercase tracking-wider mb-1">Generated Prompt</p>
+                <p className="text-sm text-white">{buildWizardPrompt()}</p>
+              </div>
+            )}
+            {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
+            <button onClick={() => handleGenerate()} disabled={loading || !buildWizardPrompt()}
+              className="mt-4 w-full py-3 rounded-xl bg-brand-purple hover:bg-brand-purple/80 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm transition-all">
+              {loading ? 'Starting…' : '⚡ Generate'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function SystemPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-brand-bg flex items-center justify-center text-white">Loading…</div>}>
+      <SystemPageInner />
+    </Suspense>
+  )
+}
