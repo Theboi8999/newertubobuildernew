@@ -1,17 +1,24 @@
-export async function groqChat(system: string, user: string, maxTokens = 8000): Promise<string> {
-  const apiKey = process.env.GROQ_API_KEY
-  if (!apiKey) throw new Error('GROQ_API_KEY not set')
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+// Groq API client - fast and free tier friendly
+
+const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+
+export async function geminiGenerate(system: string, prompt: string, maxTokens: number = 8000): Promise<string> {
+  const res = await fetch(GROQ_API_URL, {
     method: 'POST',
-    headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+    },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
-      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-      max_tokens: maxTokens,
-      temperature: 0.7,
+      max_tokens: Math.min(maxTokens, 8000),
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: prompt },
+      ],
     }),
   })
-  if (!res.ok) throw new Error(`Groq ${res.status}: ${await res.text()}`)
+  if (!res.ok) throw new Error(`Groq API error: ${res.status} ${await res.text()}`)
   const data = await res.json()
-  return data.choices?.[0]?.message?.content ?? ''
+  return data.choices?.[0]?.message?.content || ''
 }
