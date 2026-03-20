@@ -42,3 +42,35 @@ export const SYSTEMS = {
 } as const
 
 export type SystemType = keyof typeof SYSTEMS
+
+export function qualityColor(score: number): string {
+  if (score >= 90) return 'text-green-400'
+  if (score >= 75) return 'text-yellow-400'
+  if (score >= 60) return 'text-orange-400'
+  return 'text-red-400'
+}
+
+export function qualityLabel(score: number): string {
+  if (score >= 90) return 'Prestige'
+  if (score >= 75) return 'High'
+  if (score >= 60) return 'Medium'
+  return 'Low'
+}
+
+export const STYLES = [
+  { id: 'modern', label: 'Modern' },
+  { id: 'victorian', label: 'Victorian' },
+  { id: 'industrial', label: 'Industrial' },
+  { id: 'brutalist', label: 'Brutalist' },
+  { id: 'colonial', label: 'Colonial' },
+  { id: 'derelict', label: 'Derelict' },
+  { id: 'coastal', label: 'Coastal' },
+  { id: 'scandi', label: 'Scandi' },
+]
+
+export const SIZES = [
+  { id: 'small', label: 'Small', description: 'Studio/kiosk' },
+  { id: 'medium', label: 'Medium', description: 'House/truck' },
+  { id: 'large', label: 'Large', description: 'Block/truck' },
+  { id: 'massive', label: 'Massive', description: 'Stadium/map' },
+]
