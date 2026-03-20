@@ -239,3 +239,9 @@ Generate EXACTLY ${intent.quantity} instances of "${intent.subject}".
 Each as a separate Model. Arrange in a row with spacing.
 Give each slight variations so they don't look copy-pasted.`
 }
+
+// KB exports for admin panel
+export { BUILDING_KNOWLEDGE as BUILDING_KB } from './building'
+export { VEHICLE_KNOWLEDGE as VEHICLE_KB } from './vehicles'
+export { SCRIPTING_KNOWLEDGE as SCRIPTING_KB } from './scripting'
+export { MAP_KNOWLEDGE as MAP_KB } from './maps'
