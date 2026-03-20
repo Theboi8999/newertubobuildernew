@@ -6,7 +6,7 @@ export const inngest = new Inngest({
 })
 
 export const generateFunction = inngest.createFunction(
-  { id: 'generate-asset', name: 'Generate Roblox Asset', timeout: '10m' },
+  { id: 'generate-asset', name: 'Generate Roblox Asset', timeouts: { finish: '10m' } },
   { event: 'turbobuilder/generate' },
   async ({ event, step }) => {
     const { generationId, prompt, systemType } = event.data
@@ -15,7 +15,6 @@ export const generateFunction = inngest.createFunction(
     const { generateAsset } = await import('./generator')
     const supabase = createAdminClient()
 
-    // Update status: researching
     await step.run('update-researching', async () => {
       await supabase.from('generations').update({
         status: 'researching',
@@ -23,7 +22,6 @@ export const generateFunction = inngest.createFunction(
       }).eq('id', generationId)
     })
 
-    // Update status: generating
     await step.run('update-generating', async () => {
       await supabase.from('generations').update({
         status: 'generating',
@@ -31,16 +29,13 @@ export const generateFunction = inngest.createFunction(
       }).eq('id', generationId)
     })
 
-    // Run generation
     const result = await step.run('generate', async () => {
       return generateAsset(prompt, systemType)
     })
 
-    // Update status: complete
     await step.run('update-complete', async () => {
-      // Upload rbxmx to Supabase storage
       const fileName = `${generationId}.rbxmx`
-      const { data: uploadData } = await supabase.storage
+      await supabase.storage
         .from('generations')
         .upload(fileName, result.rbxmx, { contentType: 'text/xml' })
 
@@ -60,10 +55,9 @@ export const generateFunction = inngest.createFunction(
         completed_at: new Date().toISOString(),
       }).eq('id', generationId)
 
-      // Increment user's generation count
       const { data: gen } = await supabase.from('generations').select('user_id').eq('id', generationId).single()
       if (gen) {
-        await supabase.rpc('increment_generation_count', { user_id: gen.user_id })
+        try { await supabase.rpc('increment_generation_count', { user_id: gen.user_id }) } catch {}
       }
     })
 
