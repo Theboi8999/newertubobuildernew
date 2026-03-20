@@ -59,4 +59,9 @@ export function qualityLabel(score: number): string {
 
 export const STYLES = ['Modern', 'Victorian', 'Industrial', 'Brutalist', 'Colonial', 'Derelict', 'Coastal', 'Scandi']
 
-export const SIZES = ['Small', 'Medium', 'Large', 'Massive']
+export const SIZES = [
+  { label: 'Small', desc: 'Studio/kiosk' },
+  { label: 'Medium', desc: 'House/truck' },
+  { label: 'Large', desc: 'Block/truck' },
+  { label: 'Massive', desc: 'Stadium/map' },
+]
