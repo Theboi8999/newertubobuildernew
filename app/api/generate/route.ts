@@ -1,54 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient } from '@/lib/supabase'
-import { generateAsset } from '@/lib/generator'
-
-export const maxDuration = 60
+import { cookies } from 'next/headers'
+import { createServerClient, createAdminClient } from '@/lib/supabase'
+import { inngest } from '@/lib/inngest'
 
 export async function POST(req: NextRequest) {
-  const supabase = createAdminClient()
-  let generationId: string | undefined
-
   try {
-    const body = await req.json()
-    generationId = body.generationId
-    const { prompt, systemType, userId, style, size, variation } = body
+    const supabase = createServerClient(cookies())
+    const { data: { user } } = await supabase.auth.getUser()
 
-    if (!generationId || !prompt || !systemType)
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-
-    await supabase.from('generations').update({ status: 'researching', progress: 10 }).eq('id', generationId)
-    await supabase.from('generations').update({ status: 'enhancing', progress: 25 }).eq('id', generationId)
-    await supabase.from('generations').update({ status: 'generating', progress: 45 }).eq('id', generationId)
-
-    const result = await generateAsset(prompt, systemType, { style, size, variation }, userId, supabase)
-
-    await supabase.from('generations').update({ status: 'checking', progress: 85 }).eq('id', generationId)
-
-    const fileName = `${generationId}.rbxmx`
-    let outputUrl = null
-    const { error: uploadErr } = await supabase.storage.from('generations').upload(fileName, result.rbxmx, { contentType: 'text/xml', upsert: true })
-    if (!uploadErr) {
-      const { data: urlData } = supabase.storage.from('generations').getPublicUrl(fileName)
-      outputUrl = urlData.publicUrl
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    await supabase.from('generations').update({
-      status: 'complete', progress: 100,
-      spec_items: result.spec, output_url: outputUrl,
-      output_metadata: { qualityScore: result.qualityScore, qualityNotes: result.qualityNotes },
-      completed_at: new Date().toISOString(),
-    }).eq('id', generationId)
+    // Check if user is authorized
+    const admin = createAdminClient()
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('is_authorized')
+      .eq('id', user.id)
+      .single()
 
-    if (userId) await supabase.rpc('increment_generation_count', { uid: userId }).catch(() => {})
-
-    return NextResponse.json({ success: true, outputUrl, qualityScore: result.qualityScore })
-  } catch (e: any) {
-    if (generationId) {
-      await supabase.from('generations').update({
-        status: 'failed', progress: 0,
-        output_metadata: { error: e.message },
-      }).eq('id', generationId).catch(() => {})
+    if (!profile?.is_authorized) {
+      return NextResponse.json({ error: 'Not authorized. Contact the owner to get access.' }, { status: 403 })
     }
-    return NextResponse.json({ error: e.message }, { status: 500 })
+
+    const { prompt, systemType } = await req.json()
+
+    if (!prompt || !systemType) {
+      return NextResponse.json({ error: 'Missing prompt or systemType' }, { status: 400 })
+    }
+
+    // Create generation record
+    const { data: generation, error } = await admin
+      .from('generations')
+      .insert({
+        user_id: user.id,
+        system_type: systemType,
+        prompt,
+        status: 'queued',
+        progress: 0,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    // Trigger Inngest job
+    await inngest.send({
+      name: 'turbobuilder/generate',
+      data: {
+        generationId: generation.id,
+        prompt,
+        systemType,
+        userId: user.id,
+      },
+    })
+
+    return NextResponse.json({ generationId: generation.id })
+  } catch (err) {
+    console.error('Generate error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
