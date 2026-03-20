@@ -3,7 +3,7 @@ import { getKnowledgeForSystem, getQualityStandards, interpretPrompt, buildQuant
 import { filterPrompt } from './prompt-filter'
 import { validateRbxmx, watermarkRbxmx } from './output-validator'
 import { savePromptHistory } from './prompt-memory'
-import { geminiGenerate } from './gemini'
+import { geminiGenerate } from './groq'
 import type { StyleType, ScaleType } from './styles'
 import { STYLES, SCALES } from './styles'
 
