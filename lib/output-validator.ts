@@ -1,4 +1,4 @@
-import { geminiGenerate } from './gemini'
+import { geminiGenerate } from './groq'
 
 export interface ValidationResult {
   valid: boolean
