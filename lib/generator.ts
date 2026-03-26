@@ -33,16 +33,9 @@ export interface SpecItem {
 }
 
 const SYSTEM_PROMPTS = {
-  builder: `You are a prestige-tier Roblox Studio builder with 10 years of experience.
-Generate complete production-quality building specifications as JSON.
-Quality: top 1% of Roblox RP servers. Detailed, accurate, immersive.
-Output ONLY valid JSON. No markdown. No explanation.`,
-  modeling: `You are a prestige-tier Roblox vehicle builder and scripter with 10 years of experience.
-Generate complete production-quality vehicle specs as JSON.
-Output ONLY valid JSON. No markdown. No explanation.`,
-  project: `You are a prestige-tier Roblox world builder with 10 years of experience.
-Generate complete production-quality map and pack specifications as JSON.
-Output ONLY valid JSON. No markdown. No explanation.`,
+  builder: `You are a prestige-tier Roblox Studio builder. Generate complete building specifications as JSON. Output ONLY valid JSON. No markdown. No explanation.`,
+  modeling: `You are a prestige-tier Roblox vehicle builder. Generate complete vehicle specs as JSON. Output ONLY valid JSON. No markdown. No explanation.`,
+  project: `You are a prestige-tier Roblox world builder. Generate complete map specifications as JSON. Output ONLY valid JSON. No markdown. No explanation.`,
 }
 
 export async function generateAsset(
@@ -59,40 +52,26 @@ export async function generateAsset(
 
   onProgress?.('🔍 Preparing generation...', 10)
   const intent = interpretPrompt(prompt)
-  const knowledgeBase = getKnowledgeForSystem(systemType, prompt)
-  const qualityStandards = getQualityStandards(systemType)
 
-  const styleInstruction = options.style
-    ? `STYLE: "${STYLES[options.style].label}" — ${STYLES[options.style].description}. Materials: ${STYLES[options.style].materials}. Colors: ${STYLES[options.style].colors}.` : ''
-  const scaleInstruction = options.scale
-    ? `SCALE: "${SCALES[options.scale].label}" (${SCALES[options.scale].multiplier}x multiplier).` : ''
+  const styleInstruction = options.style ? `STYLE: ${options.style}` : ''
+  const scaleInstruction = options.scale ? `SCALE: ${options.scale}` : ''
   const extras = [styleInstruction, scaleInstruction].filter(Boolean).join('\n')
 
-  const genPrompt = `
-${knowledgeBase}
+  const genPrompt = `${extras ? extras + '\n\n' : ''}REQUEST: "${prompt}"
 
-${buildQuantityInstruction(intent)}
-${extras}
-
-REQUEST: "${prompt}"
-SYSTEM: ${systemType}
-
-QUALITY STANDARDS:
-${qualityStandards}
-
-Output JSON:
+Generate a detailed Roblox ${systemType} asset. Output ONLY valid JSON:
 {
   "models": [{
     "name": "string",
-    "parts": [{"name":"descriptive","size":{"x":0,"y":0,"z":0},"position":{"x":0,"y":0,"z":0},"color":"BrickColor","material":"brick|metal|wood|glass|plastic|concrete|fabric|neon","anchored":true,"transparency":0,"shape":"Block|Sphere|Cylinder|Wedge"}],
-    "scripts": [{"name":"string","type":"Script|LocalScript|ModuleScript","source":"COMPLETE Luau — zero placeholders"}],
+    "parts": [{"name":"string","size":{"x":1,"y":1,"z":1},"position":{"x":0,"y":0,"z":0},"color":"Medium stone grey","material":"brick","anchored":true,"transparency":0,"shape":"Block"}],
+    "scripts": [{"name":"string","type":"Script","source":"-- complete Luau code here"}],
     "children": []
   }],
-  "spec": [{"label":"string","category":"structure|script|vehicle|terrain|furniture","count":0}]
+  "spec": [{"label":"string","category":"structure","count":1}]
 }`
 
   onProgress?.('⚡ Generating at prestige quality...', 40)
-  const genText = await geminiGenerate(SYSTEM_PROMPTS[systemType], genPrompt, 8000)
+  const genText = await geminiGenerate(SYSTEM_PROMPTS[systemType], genPrompt, 6000)
 
   let genData: { models: RbxModel[]; spec: SpecItem[] }
   try {
