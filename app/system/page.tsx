@@ -570,9 +570,9 @@ function SystemPage() {
                 </div>
 
                 {generation.output_url&&(
-                  <a href={generation.output_url} download className="btn-primary w-full py-3 rounded-xl text-sm font-display font-semibold text-center block">
+                  <button onClick={async()=>{const r=await fetch(generation.output_url!);const b=await r.blob();const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download="generation.rbxmx";a.click();URL.revokeObjectURL(u)}} className="btn-primary w-full py-3 rounded-xl text-sm font-display font-semibold text-center block">
                     ⬇ Download .rbxmx →
-                  </a>
+                  </button>
                 )}
               </div>
             )}
