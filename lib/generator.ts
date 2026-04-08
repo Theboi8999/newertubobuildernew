@@ -3,6 +3,7 @@ import { filterPrompt } from './prompt-filter'
 import { validateRbxmx, watermarkRbxmx } from './output-validator'
 import { savePromptHistory } from './prompt-memory'
 import { geminiGenerate } from './groq'
+import { ROOM_TEMPLATES, BUILDING_BLUEPRINTS, detectBuildingType, offsetRoom } from './room-templates'
 import type { StyleType, ScaleType } from './styles'
 
 export interface GenerationOptions {
@@ -30,51 +31,62 @@ export interface SpecItem {
   count: number
 }
 
-function interpretPrompt(prompt: string) {
-  return { quantity: 1 }
+// Build exterior shell around a blueprint
+function buildExterior(totalW: number, totalD: number, wallH: number, exteriorColor: string, roofColor: string) {
+  const parts: any[] = []
+  const wallT = 1.5
+
+  // Foundation/ground floor
+  parts.push({ name: 'Foundation', size: { x: totalW + 4, y: 1, z: totalD + 4 }, position: { x: 0, y: 0.5, z: 0 }, color: 'Medium stone grey', material: 'concrete', anchored: true, transparency: 0, shape: 'Block' })
+
+  // Exterior walls
+  parts.push({ name: 'WallNorth', size: { x: totalW, y: wallH, z: wallT }, position: { x: 0, y: wallH / 2 + 1, z: -(totalD / 2) }, color: exteriorColor, material: 'brick', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'WallSouth', size: { x: totalW, y: wallH, z: wallT }, position: { x: 0, y: wallH / 2 + 1, z: totalD / 2 }, color: exteriorColor, material: 'brick', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'WallEast', size: { x: wallT, y: wallH, z: totalD }, position: { x: totalW / 2, y: wallH / 2 + 1, z: 0 }, color: exteriorColor, material: 'brick', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'WallWest', size: { x: wallT, y: wallH, z: totalD }, position: { x: -(totalW / 2), y: wallH / 2 + 1, z: 0 }, color: exteriorColor, material: 'brick', anchored: true, transparency: 0, shape: 'Block' })
+
+  // Roof
+  parts.push({ name: 'Roof', size: { x: totalW + 2, y: 1.5, z: totalD + 2 }, position: { x: 0, y: wallH + 1.75, z: 0 }, color: roofColor, material: 'metal', anchored: true, transparency: 0, shape: 'Block' })
+
+  // Roof edge trim
+  parts.push({ name: 'RoofTrimN', size: { x: totalW + 4, y: 0.8, z: 0.5 }, position: { x: 0, y: wallH + 2.5, z: -(totalD / 2 + 1) }, color: 'Dark grey', material: 'metal', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'RoofTrimS', size: { x: totalW + 4, y: 0.8, z: 0.5 }, position: { x: 0, y: wallH + 2.5, z: totalD / 2 + 1 }, color: 'Dark grey', material: 'metal', anchored: true, transparency: 0, shape: 'Block' })
+
+  // Front entrance steps
+  parts.push({ name: 'Step1', size: { x: 8, y: 0.5, z: 2 }, position: { x: 0, y: 0.25, z: -(totalD / 2 + 1) }, color: 'Medium stone grey', material: 'concrete', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'Step2', size: { x: 8, y: 1, z: 2 }, position: { x: 0, y: 0.5, z: -(totalD / 2 + 3) }, color: 'Medium stone grey', material: 'concrete', anchored: true, transparency: 0, shape: 'Block' })
+
+  // Entrance sign panel
+  parts.push({ name: 'SignPanel', size: { x: 10, y: 2, z: 0.5 }, position: { x: 0, y: wallH - 1, z: -(totalD / 2 + 0.3) }, color: 'White', material: 'SmoothPlastic', anchored: true, transparency: 0, shape: 'Block' })
+
+  // Corner pillars
+  const cx = totalW / 2
+  const cz = totalD / 2
+  for (const [px, pz] of [[-cx, -cz], [cx, -cz], [-cx, cz], [cx, cz]]) {
+    parts.push({ name: `Pillar_${px}_${pz}`, size: { x: 1.5, y: wallH + 1, z: 1.5 }, position: { x: px, y: (wallH + 1) / 2 + 1, z: pz }, color: 'Light grey', material: 'concrete', anchored: true, transparency: 0, shape: 'Block' })
+  }
+
+  // Exterior lights
+  parts.push({ name: 'ExtLight1', size: { x: 0.5, y: 0.5, z: 0.5 }, position: { x: -6, y: wallH, z: -(totalD / 2 + 0.5) }, color: 'Bright yellow', material: 'neon', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'ExtLight2', size: { x: 0.5, y: 0.5, z: 0.5 }, position: { x: 6, y: wallH, z: -(totalD / 2 + 0.5) }, color: 'Bright yellow', material: 'neon', anchored: true, transparency: 0, shape: 'Block' })
+
+  return parts
 }
 
-const DEVELOPER_SYSTEM = `You are a senior Roblox developer with 5 years of experience building top roleplay servers. You have built fire stations, police stations, hospitals, airports, schools, and full city maps that are used by thousands of players daily.
+// Generate interior dividing walls between rooms
+function buildInteriorWalls(totalW: number, totalD: number, wallH: number) {
+  const parts: any[] = []
+  const wallT = 0.8
 
-You don't follow rigid templates. You THINK about what makes a building feel real, lived-in, and fun to roleplay in. You draw on your experience of what works in actual Roblox RP servers.
+  // Horizontal divider
+  parts.push({ name: 'InteriorWallH1', size: { x: totalW - 2, y: wallH, z: wallT }, position: { x: 0, y: wallH / 2 + 1, z: 0 }, color: 'White', material: 'SmoothPlastic', anchored: true, transparency: 0, shape: 'Block' })
 
-YOUR MINDSET:
-- You think about the STORY of the building. Who works here? What do they do? What rooms do they need?
-- You add details that make players go "wow this feels real" — a coffee machine in the break room, bulletin boards, lockers with numbers, scuff marks on floors
-- You know that good builds have FLOW — logical room connections, corridors that make sense
-- You think about gameplay — where do players spawn, where do they sit, where do things happen
-- You've seen bad builds and good builds. Bad builds are just boxes. Good builds have depth, variation, interesting shapes
+  // Vertical dividers
+  parts.push({ name: 'InteriorWallV1', size: { x: wallT, y: wallH, z: totalD / 2 - 2 }, position: { x: -totalW / 4, y: wallH / 2 + 1, z: totalD / 4 }, color: 'White', material: 'SmoothPlastic', anchored: true, transparency: 0, shape: 'Block' })
+  parts.push({ name: 'InteriorWallV2', size: { x: wallT, y: wallH, z: totalD / 2 - 2 }, position: { x: totalW / 4, y: wallH / 2 + 1, z: totalD / 4 }, color: 'White', material: 'SmoothPlastic', anchored: true, transparency: 0, shape: 'Block' })
 
-TECHNICAL EXPERTISE:
-- You know Roblox Studio inside out. Parts, unions, models, scripts
-- Coordinate system: Y=0 is ground. Part Y position = Y/2 for ground-sitting parts (a 2-stud tall floor has Y=1)
-- Position is the CENTER of the part
-- Typical wall height: 10-12 studs. Wall thickness: 1 stud. Floor thickness: 1-2 studs
-- Doors: 4 wide x 8 tall. Windows: 4 wide x 4 tall, placed at Y=6 center
-- You use varied BrickColors creatively: walls might be "White" or "Light grey", floors "Medium stone grey" or "Sand yellow", accents "Bright red" or "Bright blue"
-- Materials add realism: brick for exterior walls, SmoothPlastic for interior, Metal for lockers/equipment, Wood for furniture, Glass for windows
-
-BUILDING APPROACH:
-1. Visualise the real-world building first. Think about what it looks like from outside and inside
-2. Lay out the floor plan logically — public areas at front, private/operational at back
-3. Build from ground up: floor → walls → roof → interior walls → furniture → details
-4. Every room should have a PURPOSE and CONTENTS that match that purpose
-5. Add exterior details: steps, pillars, signs, parking areas, fencing where appropriate
-
-FIRE STATION EXAMPLE THINKING:
-"A fire station needs the apparatus bay as the heart — big enough for 2-3 trucks side by side, 14 studs tall for the trucks. The watch office faces the street so firefighters can see callouts. The bunkroom is upstairs — 6-8 beds, each with a locker. Kitchen/day room is where the crew hangs out — big table, sofas, TV. Gear room connects directly to the apparatus bay. The exterior is red brick with large white roll-up doors. There's a flagpole out front and a small car park."
-
-POLICE STATION EXAMPLE THINKING:  
-"The lobby is the public face — reception desk, waiting chairs, noticeboard with wanted posters. Behind the secure door is the bullpen — rows of desks with computers. Interview rooms are small — one table, two chairs, one-way mirror. Cells are at the back — metal bars, basic bed, toilet. The chief has a corner office with a window to the bullpen. Armory is secured. Break room has a terrible coffee machine and a fridge covered in notices."
-
-CRITICAL JSON RULES:
-- Output ONLY valid JSON. Zero markdown. Zero explanation. Zero comments.
-- Every part needs: name, size (x/y/z), position (x/y/z), color, material, anchored:true, transparency, shape
-- Shape must be: "Block", "Sphere", "Cylinder", or "Wedge"
-- Material must be: "brick", "metal", "wood", "glass", "plastic", "concrete", "fabric", "neon", "SmoothPlastic"
-- Color must be a valid Roblox BrickColor string
-- Minimum 25 parts for any building. Aim for 40-80 parts for a detailed build
-- Scripts should be complete working Luau, not placeholders`
+  return parts
+}
 
 export async function generateAsset(
   prompt: string,
@@ -90,93 +102,170 @@ export async function generateAsset(
 
   onProgress?.('🔍 Planning your build...', 10)
 
-  const styleNote = options.style ? ` Style: ${options.style}.` : ''
-  const scaleNote = options.scale ? ` Scale: ${options.scale}.` : ''
+  let allParts: any[] = []
+  let spec: SpecItem[] = []
+  let usedBlueprint = false
 
-  const typeContext = {
-    builder: 'building/environment',
-    modeling: 'vehicle or scripted tool',
-    project: 'full map or world'
-  }[systemType]
+  // Check if we have a blueprint for this building type
+  if (systemType === 'builder') {
+    const buildingType = detectBuildingType(prompt)
 
-  const userPrompt = `Create a detailed Roblox ${typeContext}: "${prompt}"${styleNote}${scaleNote}
+    if (buildingType && BUILDING_BLUEPRINTS[buildingType]) {
+      usedBlueprint = true
+      onProgress?.('📐 Loading building blueprint...', 20)
 
-Think like an experienced developer. What makes this ${prompt} feel REAL and fun to roleplay in?
-- What rooms/areas does it need?
-- What furniture and props bring it to life?  
-- What details will make players say "this is amazing"?
-- What's the logical layout and flow?
+      const blueprint = BUILDING_BLUEPRINTS[buildingType]
 
-Build it. Make it detailed. Make it impressive.
+      // Build exterior shell
+      const exteriorParts = buildExterior(blueprint.totalWidth, blueprint.totalDepth, 12, blueprint.exteriorColor, blueprint.roofColor)
+      allParts.push(...exteriorParts)
 
-Return this exact JSON structure:
+      // Add interior walls
+      const interiorWalls = buildInteriorWalls(blueprint.totalWidth, blueprint.totalDepth, 12)
+      allParts.push(...interiorWalls)
+
+      // Add each room's furniture
+      for (const room of blueprint.rooms) {
+        const template = ROOM_TEMPLATES[room.template]
+        if (template) {
+          const roomParts = offsetRoom(template, room.offsetX, 1, room.offsetZ)
+          allParts.push(...roomParts)
+          spec.push({ label: room.label, category: 'structure', count: 1 })
+        }
+      }
+
+      onProgress?.('⚡ Enhancing with AI details...', 50)
+
+      // Use AI to generate additional unique details for this specific building
+      const detailPrompt = `You are a Roblox builder. Generate 15-20 additional detail parts for a ${prompt}.
+These should be UNIQUE decorative and functional parts that make the building feel authentic and lived-in.
+Think: signs, equipment specific to this building type, decorations, vehicles outside, etc.
+
+Return ONLY a JSON array of parts (no wrapper object):
+[
+  {"name":"PartName","size":{"x":1,"y":1,"z":1},"position":{"x":0,"y":1,"z":0},"color":"BrickColor","material":"brick|metal|wood|glass|plastic|concrete|fabric|neon|SmoothPlastic","anchored":true,"transparency":0,"shape":"Block|Sphere|Cylinder|Wedge"}
+]
+
+Position parts within a ${blueprint.totalWidth}x${blueprint.totalDepth} stud footprint centered at origin. Y=0 is ground.`
+
+      try {
+        const detailText = await geminiGenerate(
+          `You are an expert Roblox builder with 5 years experience. You add realistic details to buildings. Output ONLY valid JSON arrays.`,
+          detailPrompt,
+          3000
+        )
+        const cleanDetail = detailText.replace(/```json|```/g, '').trim()
+        const extraParts = JSON.parse(cleanDetail)
+        if (Array.isArray(extraParts)) {
+          allParts.push(...extraParts.map((p: any) => ({ ...p, anchored: true })))
+          spec.push({ label: 'AI-generated details', category: 'furniture', count: extraParts.length })
+        }
+      } catch {
+        // Detail generation failed — continue without it
+      }
+
+    }
+  }
+
+  // If no blueprint or non-builder type — use full AI generation
+  if (!usedBlueprint) {
+    onProgress?.('⚡ Generating with AI...', 30)
+
+    const systemPrompt = systemType === 'builder'
+      ? `You are a senior Roblox developer with 5 years experience. You build detailed, realistic environments for RP servers.
+You think creatively about what makes buildings feel REAL and fun. You use proper Roblox coordinates (Y=height/2 for ground parts).
+You generate 40-60 detailed parts. Minimum wall height 10 studs. All rooms have furniture.
+Output ONLY valid JSON. No markdown. No explanation.`
+      : systemType === 'modeling'
+      ? `You are a senior Roblox vehicle developer. You build detailed vehicles with proper proportions and working scripts.
+Output ONLY valid JSON. No markdown. No explanation.`
+      : `You are a senior Roblox world builder. You build detailed maps with roads, buildings, and terrain.
+Output ONLY valid JSON. No markdown. No explanation.`
+
+    const styleNote = options.style ? ` Style: ${options.style}.` : ''
+    const scaleNote = options.scale ? ` Scale: ${options.scale}.` : ''
+
+    const userPrompt = `Build this Roblox ${systemType === 'builder' ? 'building' : systemType === 'modeling' ? 'vehicle/tool' : 'map'}: "${prompt}"${styleNote}${scaleNote}
+
+Think about what makes this feel REAL. What rooms, furniture, and details bring it to life?
+Use correct coordinates: Y position = half the part height for ground-level parts.
+Minimum 40 parts. Make it impressive.
+
+Return this exact JSON:
 {
   "models": [{
-    "name": "string — descriptive name",
+    "name": "BuildingName",
     "parts": [
-      {
-        "name": "descriptive part name",
-        "size": {"x": number, "y": number, "z": number},
-        "position": {"x": number, "y": number, "z": number},
-        "color": "Roblox BrickColor name",
-        "material": "brick|metal|wood|glass|plastic|concrete|fabric|neon|SmoothPlastic",
-        "anchored": true,
-        "transparency": 0,
-        "shape": "Block|Sphere|Cylinder|Wedge"
-      }
+      {"name":"Floor","size":{"x":50,"y":1,"z":40},"position":{"x":0,"y":0.5,"z":0},"color":"Medium stone grey","material":"concrete","anchored":true,"transparency":0,"shape":"Block"}
     ],
-    "scripts": [
-      {
-        "name": "script name",
-        "type": "Script|LocalScript|ModuleScript",
-        "source": "complete working Luau code"
-      }
-    ],
+    "scripts": [],
     "children": []
   }],
-  "spec": [
-    {"label": "feature name", "category": "structure|script|vehicle|terrain|furniture", "count": 1}
-  ]
+  "spec": [{"label":"Main Structure","category":"structure","count":1}]
 }`
 
-  onProgress?.('⚡ Building at prestige quality...', 40)
-  const genText = await geminiGenerate(DEVELOPER_SYSTEM, userPrompt, 7000)
+    const genText = await geminiGenerate(systemPrompt, userPrompt, 7000)
 
-  let genData: { models: RbxModel[]; spec: SpecItem[] }
-  try {
-    const clean = genText.replace(/```json|```/g, '').trim()
-    genData = JSON.parse(clean)
-  } catch {
-    throw new Error('Generation failed to produce valid output — please try again')
+    try {
+      const clean = genText.replace(/```json|```/g, '').trim()
+      const genData: { models: RbxModel[]; spec: SpecItem[] } = JSON.parse(clean)
+
+      if (!genData.models?.[0]?.parts || genData.models[0].parts.length < 3) {
+        throw new Error('Not enough parts generated')
+      }
+
+      onProgress?.('📦 Compiling .rbxmx...', 90)
+
+      let rbxmx = buildRbxmx(genData.models)
+      const validation = validateRbxmx(rbxmx)
+      if (validation.fixed) rbxmx = validation.fixed
+      if (userId && generationId) rbxmx = watermarkRbxmx(rbxmx, generationId, userId)
+
+      if (userId) {
+        await savePromptHistory(userId, { prompt, system_type: systemType, quality_score: 85, style: options.style, scale: options.scale }).catch(() => {})
+      }
+
+      onProgress?.('✅ Complete!', 100)
+
+      return {
+        rbxmx,
+        spec: genData.spec || [],
+        qualityScore: 85,
+        qualityNotes: 'AI generated.',
+        quantity: 1,
+        validationWarnings: [...validation.warnings, ...validation.tosIssues],
+      }
+    } catch {
+      throw new Error('Generation failed — please try again')
+    }
   }
 
-  if (!genData.models?.[0]?.parts || genData.models[0].parts.length < 5) {
-    throw new Error('Generation produced insufficient detail — please try again')
+  // Blueprint path — build rbxmx from allParts
+  onProgress?.('📦 Compiling .rbxmx...', 85)
+
+  const model: RbxModel = {
+    name: prompt.split(' ').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(''),
+    parts: allParts,
+    scripts: [],
+    children: [],
   }
 
-  onProgress?.('📦 Compiling .rbxmx file...', 90)
-  let rbxmx = buildRbxmx(genData.models)
+  let rbxmx = buildRbxmx([model])
   const validation = validateRbxmx(rbxmx)
   if (validation.fixed) rbxmx = validation.fixed
   if (userId && generationId) rbxmx = watermarkRbxmx(rbxmx, generationId, userId)
 
   if (userId) {
-    await savePromptHistory(userId, {
-      prompt,
-      system_type: systemType,
-      quality_score: 88,
-      style: options.style,
-      scale: options.scale,
-    }).catch(() => {})
+    await savePromptHistory(userId, { prompt, system_type: systemType, quality_score: 92, style: options.style, scale: options.scale }).catch(() => {})
   }
 
   onProgress?.('✅ Complete!', 100)
 
   return {
     rbxmx,
-    spec: genData.spec || [],
-    qualityScore: 88,
-    qualityNotes: 'Generated with experienced developer context.',
+    spec,
+    qualityScore: 92,
+    qualityNotes: 'Built with blueprint + AI details.',
     quantity: 1,
     validationWarnings: [...validation.warnings, ...validation.tosIssues],
   }
