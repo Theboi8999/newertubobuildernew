@@ -8,8 +8,9 @@ export async function geminiGenerate(system: string, prompt: string, maxTokens: 
       'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
     },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: Math.min(maxTokens, 8000),
+      model: 'llama-3.1-8b-instant', // faster, more instruction-following
+      max_tokens: Math.min(maxTokens, 6000),
+      temperature: 0.2, // low temp = more consistent JSON output
       messages: [
         { role: 'system', content: system },
         { role: 'user', content: prompt },
