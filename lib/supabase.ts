@@ -1,5 +1,3 @@
-supabase.ts lib/supabase.ts
-
 // lib/supabase.ts
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
