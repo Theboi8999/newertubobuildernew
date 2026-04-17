@@ -1,5 +1,3 @@
-Auth-login-page.tsx app/auth/login/page.tsx 
-
 'use client'
 // app/auth/login/page.tsx
 import { Suspense, useState } from 'react'
@@ -27,10 +25,7 @@ function LoginForm() {
         if (error) throw error
         setSuccess('Account created! Check your email to confirm, then sign in.')
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        })
+        const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
         if (error) throw error
         router.push('/dashboard')
       }
@@ -96,11 +91,7 @@ function LoginForm() {
           disabled={loading || !email.trim() || !password}
           className="btn btn-primary w-full mt-5 py-3 text-sm"
         >
-          {loading
-            ? 'Please wait…'
-            : mode === 'login'
-            ? 'Sign In'
-            : 'Create Account'}
+          {loading ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
         </button>
 
         {mode === 'login' && (
@@ -127,4 +118,3 @@ export default function LoginPage() {
     </Suspense>
   )
 }
-

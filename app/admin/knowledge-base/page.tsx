@@ -1,5 +1,5 @@
 'use client'
-// app/admin/knowledge/page.tsx
+// app/admin/knowledge-base/page.tsx
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -12,7 +12,7 @@ const DEFAULT_SECTIONS = {
   map: MAP_KB,
 }
 
-export default function KnowledgePage() {
+export default function KnowledgeBasePage() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(true)
@@ -28,7 +28,6 @@ export default function KnowledgePage() {
       const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
       if (!profile?.is_admin) { router.push('/dashboard'); return }
 
-      // Load any saved overrides from DB
       const { data } = await supabase.from('knowledge_overrides').select('*')
       if (data?.length) {
         const overrides: any = {}

@@ -1,21 +1,14 @@
-— create folder)
-
-
-
 'use client'
-// app/admin/research-queue/page.tsx
+// app/admin/page.tsx
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-export default function ResearchQueuePage() {
+export default function AdminPage() {
   const router = useRouter()
   const supabase = createClient()
-  const [logs, setLogs] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [topic, setTopic] = useState('')
-  const [running, setRunning] = useState(false)
-  const [message, setMessage] = useState('')
+  const [stats, setStats] = useState<any>(null)
 
   useEffect(() => {
     async function init() {
@@ -23,109 +16,88 @@ export default function ResearchQueuePage() {
       if (!user) { router.push('/auth/login'); return }
       const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
       if (!profile?.is_admin) { router.push('/dashboard'); return }
-      loadLogs()
+
+      const [
+        { count: userCount },
+        { count: genCount },
+        { count: scriptCount },
+        { count: waitlistCount },
+        { count: knowledgeCount },
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('generations').select('*', { count: 'exact', head: true }),
+        supabase.from('script_library').select('*', { count: 'exact', head: true }),
+        supabase.from('waitlist').select('*', { count: 'exact', head: true }),
+        supabase.from('ai_knowledge').select('*', { count: 'exact', head: true }),
+      ])
+      setStats({ userCount, genCount, scriptCount, waitlistCount, knowledgeCount })
+      setLoading(false)
     }
     init()
   }, [])
 
-  async function loadLogs() {
-    setLoading(true)
-    const { data } = await supabase
-      .from('research_logs')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50)
-    setLogs(data || [])
-    setLoading(false)
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center">
+      <div className="w-10 h-10 rounded-full border-2 border-brand-purple border-t-transparent animate-spin" />
+    </div>
+  )
 
-  async function runResearch() {
-    if (!topic.trim()) return
-    setRunning(true)
-    setMessage('')
-    try {
-      const res = await fetch('/api/admin/research', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic }),
-      })
-      const data = await res.json()
-      if (data.success) {
-        setMessage(`✅ Learned ${data.entries} facts about "${topic}"`)
-        setTopic('')
-        loadLogs()
-      } else {
-        setMessage(`❌ ${data.error}`)
-      }
-    } catch {
-      setMessage('❌ Request failed')
-    }
-    setRunning(false)
-  }
+  const tiles = [
+    { href: '/admin/knowledge-base', icon: '📚', label: 'Knowledge Base', desc: 'Edit AI generation knowledge', badge: null },
+    { href: '/admin/research-queue', icon: '🔬', label: 'Research Queue', desc: 'Add new building/vehicle research', badge: stats?.knowledgeCount },
+    { href: '/admin/library', icon: '💾', label: 'Script Library', desc: 'View auto-generated scripts', badge: stats?.scriptCount },
+  ]
 
   return (
-    <main className="min-h-screen bg-brand-bg p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => router.push('/admin')} className="text-brand-text-muted hover:text-brand-text text-sm">← Admin</button>
-          <h1 className="font-display font-bold text-2xl text-brand-text">🔬 Research Queue</h1>
-          <span className="ml-auto font-mono text-xs text-brand-text-muted bg-brand-surface px-3 py-1 rounded-lg border border-brand-border">{logs.length} runs</span>
-        </div>
-
-        <div className="card p-4 flex gap-3 mb-6">
-          <input
-            value={topic}
-            onChange={e => setTopic(e.target.value)}
-            placeholder="Topic to research (e.g. 'UK ambulance station', 'fire engine ELS')"
-            className="input flex-1 px-4 py-2 rounded-xl text-sm"
-            onKeyDown={e => e.key === 'Enter' && runResearch()}
-          />
-          <button
-            onClick={runResearch}
-            disabled={running || !topic.trim()}
-            className="btn-primary px-6 py-2 rounded-xl text-sm font-display font-semibold"
-          >
-            {running ? '🔬 Researching...' : '🔬 Research'}
-          </button>
-          <button onClick={loadLogs} className="px-4 py-2 rounded-xl border border-brand-border text-brand-text-muted hover:text-brand-text text-sm">↻</button>
-        </div>
-
-        {message && (
-          <div className={`p-3 rounded-xl mb-4 font-body text-sm border ${message.startsWith('✅') ? 'bg-green-500/10 border-green-500/30 text-green-300' : 'bg-red-500/10 border-red-500/30 text-red-300'}`}>
-            {message}
+    <div className="min-h-screen bg-brand-bg">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-brand-border bg-brand-bg/90 backdrop-blur-xl">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <a href="/dashboard" className="text-brand-text-muted hover:text-white transition-colors text-sm">← Dashboard</a>
+            <span className="text-brand-border">|</span>
+            <span className="font-bold text-white">Admin Panel</span>
           </div>
-        )}
+        </div>
+      </nav>
 
-        {loading ? (
-          <div className="text-center text-brand-text-muted py-12">Loading...</div>
-        ) : logs.length === 0 ? (
-          <div className="card p-12 text-center">
-            <p className="text-4xl mb-3">🔬</p>
-            <p className="font-display font-bold text-brand-text mb-2">No research runs yet</p>
-            <p className="font-body text-sm text-brand-text-muted">Enter a topic above to start building the AI knowledge base</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {logs.map(log => (
-              <div key={log.id} className="card p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${log.status === 'complete' ? 'bg-green-400' : log.status === 'failed' ? 'bg-red-400' : 'bg-yellow-400 animate-pulse'}`} />
-                  <span className="font-display font-semibold text-brand-text">{log.topic}</span>
-                  <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${log.status === 'complete' ? 'text-green-300 bg-green-500/10' : log.status === 'failed' ? 'text-red-300 bg-red-500/10' : 'text-yellow-300 bg-yellow-500/10'}`}>
-                    {log.status}
-                  </span>
-                  <span className="font-mono text-xs text-brand-text-dim ml-auto">
-                    {new Date(log.created_at).toLocaleString()}
-                  </span>
-                </div>
-                {log.findings && (
-                  <p className="font-body text-xs text-brand-text-muted">{log.findings}</p>
-                )}
+      <div className="max-w-5xl mx-auto px-6 pt-28 pb-20">
+        <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
+        <p className="text-brand-text-muted mb-10">TurboBuilder management console</p>
+
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-10">
+            {[
+              { label: 'Users', value: stats.userCount },
+              { label: 'Generations', value: stats.genCount },
+              { label: 'Scripts', value: stats.scriptCount },
+              { label: 'Waitlist', value: stats.waitlistCount },
+              { label: 'KB Entries', value: stats.knowledgeCount },
+            ].map(s => (
+              <div key={s.label} className="card p-5 text-center">
+                <p className="text-3xl font-bold text-white">{s.value ?? '–'}</p>
+                <p className="text-xs text-brand-text-muted mt-1">{s.label}</p>
               </div>
             ))}
           </div>
         )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {tiles.map(t => (
+            <a key={t.href} href={t.href} className="card card-hover p-6">
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-3xl">{t.icon}</p>
+                {t.badge != null && (
+                  <span className="text-xs font-mono text-brand-text-muted bg-brand-surface px-2 py-0.5 rounded-lg border border-brand-border">
+                    {t.badge}
+                  </span>
+                )}
+              </div>
+              <p className="font-semibold text-white mb-1">{t.label}</p>
+              <p className="text-xs text-brand-text-muted">{t.desc}</p>
+            </a>
+          ))}
+        </div>
       </div>
-    </main>
+    </div>
   )
 }

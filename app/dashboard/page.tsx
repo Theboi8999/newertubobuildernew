@@ -19,24 +19,29 @@ export default function Dashboard() {
       setUser(user)
       const { data: prof } = await supabase.from('profiles').select('*').eq('id', user.id).single()
       setProfile(prof)
-      const { data: gens } = await supabase.from('generations').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20)
+      const { data: gens } = await supabase
+        .from('generations')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
       setGenerations(gens || [])
       setLoading(false)
     }
     load()
   }, [])
 
+  // FIX: regen only calls the API — does not create a duplicate DB record
   async function regen(gen: any) {
-    const { data: newGen } = await supabase.from('generations')
-      .insert({ user_id: user.id, system_type: gen.system_type, prompt: gen.prompt })
-      .select().single()
-    if (!newGen) return
-    fetch('/api/generate', {
+    const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ generationId: newGen.id, prompt: gen.prompt, systemType: gen.system_type, userId: user.id }),
+      body: JSON.stringify({ prompt: gen.prompt, systemType: gen.system_type }),
     })
-    router.push(`/system?system=${gen.system_type}&watch=${newGen.id}`)
+    const data = await res.json()
+    if (data.generationId) {
+      router.push(`/system?system=${gen.system_type}&generationId=${data.generationId}`)
+    }
   }
 
   async function rateGen(id: string, rating: number) {
@@ -51,9 +56,13 @@ export default function Dashboard() {
   )
 
   const statusBadge: Record<string, string> = {
-    queued: 'badge badge-orange', researching: 'badge badge-cyan',
-    enhancing: 'badge badge-cyan', generating: 'badge badge-purple',
-    checking: 'badge badge-purple', complete: 'badge badge-green', failed: 'badge badge-red',
+    queued: 'badge badge-orange',
+    researching: 'badge badge-cyan',
+    enhancing: 'badge badge-cyan',
+    generating: 'badge badge-purple',
+    checking: 'badge badge-purple',
+    complete: 'badge badge-green',
+    failed: 'badge badge-red',
   }
 
   return (
@@ -105,7 +114,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <>
-            {/* System cards */}
             <div className="mb-12">
               <h2 className="font-semibold text-lg text-white mb-4">New Generation</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -125,7 +133,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Generation history */}
             {generations.length > 0 && (
               <div>
                 <h2 className="font-semibold text-lg text-white mb-4">Generation History</h2>
@@ -146,10 +153,9 @@ export default function Dashboard() {
                                 <span className="text-xs text-brand-text-dim">{new Date(gen.created_at).toLocaleDateString('en-GB')}</span>
                                 {qs && <span className={`text-xs font-semibold ${qualityColor(qs)}`}>{qs}/100 — {qualityLabel(qs)}</span>}
                               </div>
-                              {/* Star rating */}
                               {gen.status === 'complete' && (
                                 <div className="flex gap-1 mt-2">
-                                  {[1,2,3,4,5].map(star => (
+                                  {[1, 2, 3, 4, 5].map(star => (
                                     <button key={star} onClick={() => rateGen(gen.id, star)}
                                       className={`text-sm transition-colors ${(gen.rating || 0) >= star ? 'text-brand-orange' : 'text-brand-border hover:text-brand-orange'}`}>
                                       ★
@@ -162,7 +168,7 @@ export default function Dashboard() {
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <span className={statusBadge[gen.status] || 'badge badge-orange'}>{gen.status}</span>
                             {gen.status !== 'complete' && gen.status !== 'failed' && (
-                              <a href={`/system?system=${gen.system_type}&watch=${gen.id}`}
+                              <a href={`/system?system=${gen.system_type}&generationId=${gen.id}`}
                                 className="btn btn-secondary text-xs px-3 py-1.5">Watch</a>
                             )}
                             {gen.output_url && (
@@ -173,7 +179,6 @@ export default function Dashboard() {
                               className="btn btn-secondary text-xs px-3 py-1.5">↺ Regen</button>
                           </div>
                         </div>
-                        {/* Progress bar for active generations */}
                         {gen.status !== 'complete' && gen.status !== 'failed' && gen.progress > 0 && (
                           <div className="mt-3 w-full bg-brand-surface rounded-full h-1.5 overflow-hidden">
                             <div className="progress-bar h-full" style={{ width: `${gen.progress}%` }} />
