@@ -1,3 +1,4 @@
+// lib/knowledge/index.ts
 import { BUILDING_KNOWLEDGE } from './building'
 import { SCRIPTING_KNOWLEDGE, ADVANCED_SCRIPTING_KNOWLEDGE, WEAPON_SCRIPTING_KNOWLEDGE, HELICOPTER_COPILOT_KNOWLEDGE, NAVY_SHIP_KNOWLEDGE, FIRE_TRUCK_KNOWLEDGE, FIRE_SYSTEM_KNOWLEDGE } from './scripting'
 import { VEHICLE_KNOWLEDGE } from './vehicles'
@@ -15,56 +16,32 @@ export type SystemType = 'builder' | 'modeling' | 'project'
 
 // ── Keyword → Module mapping ──────────────────────────────────────────────
 const KEYWORD_MODULES: Array<{ keywords: string[]; module: string; knowledge: string }> = [
-  // Vehicles
-  { keywords: ['helicopter','chopper','heli','rotor','aircraft'], module: 'helicopter', knowledge: HELICOPTER_COPILOT_KNOWLEDGE },
-  { keywords: ['ship','boat','navy','vessel','destroyer','frigate','carrier'], module: 'ship', knowledge: NAVY_SHIP_KNOWLEDGE },
-  { keywords: ['fire truck','ladder truck','pumper','appliance','apparatus'], module: 'firetruck', knowledge: FIRE_TRUCK_KNOWLEDGE },
-  { keywords: ['car','vehicle','van','suv','sedan','motorcycle','bike','train','tram','forklift'], module: 'vehicles', knowledge: VEHICLE_SCRIPTING_KNOWLEDGE },
-
-  // Weapons & combat
-  { keywords: ['missile','rocket','launcher','torpedo','mortar'], module: 'missile', knowledge: ADVANCED_SCRIPTING_KNOWLEDGE },
-  { keywords: ['gun','rifle','pistol','shotgun','weapon','firearm','m4','ak','mp5','glock'], module: 'weapons', knowledge: WEAPON_SCRIPTING_KNOWLEDGE },
-
-  // Medical
-  { keywords: ['injury','bleed','wound','medical','ambulance','paramedic','stretcher','defib','hospital','hurt','health'], module: 'medical', knowledge: MEDICAL_SCRIPTING_KNOWLEDGE },
-  { keywords: ['hunger','thirst','food','drink','stamina','fatigue','drug','alcohol','drunk'], module: 'needs', knowledge: MEDICAL_SCRIPTING_KNOWLEDGE },
-
-  // Law enforcement
-  { keywords: ['handcuff','arrest','detain','suspect','booking','charge','custody','prison','cell','jail'], module: 'arrest', knowledge: LAW_SCRIPTING_KNOWLEDGE },
-  { keywords: ['radio','dispatch','cad','wanted','warrant','evidence','breathalyser','speed camera'], module: 'law', knowledge: LAW_SCRIPTING_KNOWLEDGE },
-
-  // Fire system
-  { keywords: ['fire','flame','smoke','blaze','arson','burn','extinguish','hose','sprinkler'], module: 'fire', knowledge: FIRE_SYSTEM_KNOWLEDGE },
-
-  // Buildings
-  { keywords: ['door','keycard','lock','elevator','lift','garage door','alarm','camera feed','security camera','weather','rain','storm','destructible'], module: 'building_scripts', knowledge: BUILDING_SCRIPTING_KNOWLEDGE },
-
-  // Economy
-  { keywords: ['money','currency','cash','shop','buy','sell','inventory','locker','uniform','clothes','job','whitelist','paycheck','salary','economy'], module: 'economy', knowledge: ECONOMY_SCRIPTING_KNOWLEDGE },
-
-  // UI
-  { keywords: ['hud','speedometer','minimap','radar','compass','notification','toast','loading screen','admin panel','leaderboard','ui','gui'], module: 'ui', knowledge: UI_SCRIPTING_KNOWLEDGE },
-
-  // NPC
-  { keywords: ['npc','civilian','crowd','pedestrian','traffic','shopkeeper','criminal npc','ai','pathfinding'], module: 'npc', knowledge: NPC_SCRIPTING_KNOWLEDGE },
-
-  // Advanced
-  { keywords: ['datastore','save','data','profileservice','persistent','ragdoll','anti-cheat','team','cutscene','cinematic'], module: 'advanced', knowledge: ADVANCED_SYSTEM_KNOWLEDGE },
+  { keywords: ['helicopter', 'chopper', 'heli', 'rotor', 'aircraft'], module: 'helicopter', knowledge: HELICOPTER_COPILOT_KNOWLEDGE },
+  { keywords: ['ship', 'boat', 'navy', 'vessel', 'destroyer', 'frigate', 'carrier'], module: 'ship', knowledge: NAVY_SHIP_KNOWLEDGE },
+  { keywords: ['fire truck', 'ladder truck', 'pumper', 'appliance', 'apparatus'], module: 'firetruck', knowledge: FIRE_TRUCK_KNOWLEDGE },
+  { keywords: ['car', 'vehicle', 'van', 'suv', 'sedan', 'motorcycle', 'bike', 'train', 'tram', 'forklift'], module: 'vehicles', knowledge: VEHICLE_SCRIPTING_KNOWLEDGE },
+  { keywords: ['missile', 'rocket', 'launcher', 'torpedo', 'mortar'], module: 'missile', knowledge: ADVANCED_SCRIPTING_KNOWLEDGE },
+  { keywords: ['gun', 'rifle', 'pistol', 'shotgun', 'weapon', 'firearm', 'm4', 'ak', 'mp5', 'glock'], module: 'weapons', knowledge: WEAPON_SCRIPTING_KNOWLEDGE },
+  { keywords: ['injury', 'bleed', 'wound', 'medical', 'ambulance', 'paramedic', 'stretcher', 'defib', 'hospital', 'hurt', 'health'], module: 'medical', knowledge: MEDICAL_SCRIPTING_KNOWLEDGE },
+  { keywords: ['hunger', 'thirst', 'food', 'drink', 'stamina', 'fatigue', 'drug', 'alcohol', 'drunk'], module: 'needs', knowledge: MEDICAL_SCRIPTING_KNOWLEDGE },
+  { keywords: ['handcuff', 'arrest', 'detain', 'suspect', 'booking', 'charge', 'custody', 'prison', 'cell', 'jail'], module: 'arrest', knowledge: LAW_SCRIPTING_KNOWLEDGE },
+  { keywords: ['radio', 'dispatch', 'cad', 'wanted', 'warrant', 'evidence', 'breathalyser', 'speed camera'], module: 'law', knowledge: LAW_SCRIPTING_KNOWLEDGE },
+  { keywords: ['fire', 'flame', 'smoke', 'blaze', 'arson', 'burn', 'extinguish', 'hose', 'sprinkler'], module: 'fire', knowledge: FIRE_SYSTEM_KNOWLEDGE },
+  { keywords: ['door', 'keycard', 'lock', 'elevator', 'lift', 'garage door', 'alarm', 'camera feed', 'security camera', 'weather', 'rain', 'storm', 'destructible'], module: 'building_scripts', knowledge: BUILDING_SCRIPTING_KNOWLEDGE },
+  { keywords: ['money', 'currency', 'cash', 'shop', 'buy', 'sell', 'inventory', 'locker', 'uniform', 'clothes', 'job', 'whitelist', 'paycheck', 'salary', 'economy'], module: 'economy', knowledge: ECONOMY_SCRIPTING_KNOWLEDGE },
+  { keywords: ['hud', 'speedometer', 'minimap', 'radar', 'compass', 'notification', 'toast', 'loading screen', 'admin panel', 'leaderboard', 'ui', 'gui'], module: 'ui', knowledge: UI_SCRIPTING_KNOWLEDGE },
+  { keywords: ['npc', 'civilian', 'crowd', 'pedestrian', 'traffic', 'shopkeeper', 'criminal npc', 'ai', 'pathfinding'], module: 'npc', knowledge: NPC_SCRIPTING_KNOWLEDGE },
+  { keywords: ['datastore', 'save', 'data', 'profileservice', 'persistent', 'ragdoll', 'anti-cheat', 'team', 'cutscene', 'cinematic'], module: 'advanced', knowledge: ADVANCED_SYSTEM_KNOWLEDGE },
 ]
 
 function detectRequiredModules(prompt: string): string[] {
   const lower = prompt.toLowerCase()
   const modules: Set<string> = new Set()
-
   for (const entry of KEYWORD_MODULES) {
     for (const kw of entry.keywords) {
-      if (lower.includes(kw)) {
-        modules.add(entry.module)
-        break
-      }
+      if (lower.includes(kw)) { modules.add(entry.module); break }
     }
   }
-
   return Array.from(modules)
 }
 
@@ -84,12 +61,9 @@ function getScriptingKnowledge(prompt: string, systemType: SystemType): string {
     }
   }
 
-  // Always load vehicle scripting for modeling system
   if (systemType === 'modeling' && !loaded.has('vehicles')) {
     parts.push(VEHICLE_SCRIPTING_KNOWLEDGE)
   }
-
-  // Always load building scripts for builder system
   if (systemType === 'builder' && !loaded.has('building_scripts')) {
     parts.push(BUILDING_SCRIPTING_KNOWLEDGE)
   }
@@ -97,6 +71,8 @@ function getScriptingKnowledge(prompt: string, systemType: SystemType): string {
   return parts.join('\n\n')
 }
 
+// Synchronous version used by the generator — returns static knowledge only.
+// Dynamic DB knowledge is loaded separately via getKnowledgeForPrompt().
 export function getKnowledgeForSystem(systemType: SystemType, prompt?: string): string {
   const baseKnowledge = {
     builder: BUILDING_KNOWLEDGE,
@@ -181,14 +157,14 @@ export interface PromptIntent {
 }
 
 const COLLECTION_KEYWORDS = [
-  'block of','row of','set of','pack of','collection of',
-  'group of','street of','bunch of','fleet of','multiple',
-  'several','complex','district','estate','development',
+  'block of', 'row of', 'set of', 'pack of', 'collection of',
+  'group of', 'street of', 'bunch of', 'fleet of', 'multiple',
+  'several', 'complex', 'district', 'estate', 'development',
 ]
 
 const NUMBER_WORDS: Record<string, number> = {
-  one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,
-  a:1,an:1,single:1,double:2,pair:2,
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  a: 1, an: 1, single: 1, double: 2, pair: 2,
 }
 
 export function interpretPrompt(prompt: string): PromptIntent {
@@ -214,12 +190,12 @@ export function interpretPrompt(prompt: string): PromptIntent {
   }
 
   const modifierWords = [
-    'modern','victorian','derelict','destroyed','abandoned','luxury',
-    'uk','british','german','american','australian','french',
-    'small','large','tall','short','wide','narrow',
-    'urban','rural','coastal','industrial','residential',
-    'police','fire','medical','military','government',
-    'night','day','winter','summer',
+    'modern', 'victorian', 'derelict', 'destroyed', 'abandoned', 'luxury',
+    'uk', 'british', 'german', 'american', 'australian', 'french',
+    'small', 'large', 'tall', 'short', 'wide', 'narrow',
+    'urban', 'rural', 'coastal', 'industrial', 'residential',
+    'police', 'fire', 'medical', 'military', 'government',
+    'night', 'day', 'winter', 'summer',
   ]
   const modifiers = modifierWords.filter(m => lower.includes(m))
 
@@ -240,7 +216,7 @@ Each as a separate Model. Arrange in a row with spacing.
 Give each slight variations so they don't look copy-pasted.`
 }
 
-// KB exports for admin panel
+// ── Admin panel KB exports ────────────────────────────────────────────────
 export { BUILDING_KNOWLEDGE as BUILDING_KB } from './building'
 export { VEHICLE_KNOWLEDGE as VEHICLE_KB } from './vehicles'
 export { SCRIPTING_KNOWLEDGE as SCRIPTING_KB } from './scripting'
