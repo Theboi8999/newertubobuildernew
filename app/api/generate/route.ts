@@ -1,3 +1,4 @@
+// app/api/generate/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServerClient, createAdminClient } from '@/lib/supabase'
@@ -5,14 +6,14 @@ import { inngest } from '@/lib/inngest'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createServerClient(cookies())
+    const cookieStore = cookies()
+    const supabase = createServerClient(cookieStore)
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is authorized
     const admin = createAdminClient()
     const { data: profile } = await admin
       .from('profiles')
@@ -21,10 +22,14 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!profile?.is_authorized) {
-      return NextResponse.json({ error: 'Not authorized. Contact the owner to get access.' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Not authorized. Contact the owner to get access.' },
+        { status: 403 }
+      )
     }
 
-    const { prompt, systemType } = await req.json()
+    const body = await req.json()
+    const { prompt, systemType, style, scale, locationReference, variations } = body
 
     if (!prompt || !systemType) {
       return NextResponse.json({ error: 'Missing prompt or systemType' }, { status: 400 })
@@ -45,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error
 
-    // Trigger Inngest job
+    // Trigger Inngest job — pass all options through
     await inngest.send({
       name: 'turbobuilder/generate',
       data: {
@@ -53,11 +58,17 @@ export async function POST(req: NextRequest) {
         prompt,
         systemType,
         userId: user.id,
+        options: {
+          style: style || undefined,
+          scale: scale || 'medium',
+          locationReference: locationReference || undefined,
+          variations: variations || 1,
+        },
       },
     })
 
     return NextResponse.json({ generationId: generation.id })
-  } catch (err) {
+  } catch (err: any) {
     console.error('Generate error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
