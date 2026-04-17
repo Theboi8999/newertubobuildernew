@@ -1,3 +1,4 @@
+// lib/inngest.ts
 import { Inngest } from 'inngest'
 
 export const inngest = new Inngest({
@@ -6,61 +7,127 @@ export const inngest = new Inngest({
 })
 
 export const generateFunction = inngest.createFunction(
-  { id: 'generate-asset', name: 'Generate Roblox Asset', timeouts: { finish: '10m' } },
+  {
+    id: 'generate-asset',
+    name: 'Generate Roblox Asset',
+    timeouts: { finish: '10m' },
+    retries: 1,
+  },
   { event: 'turbobuilder/generate' },
   async ({ event, step }) => {
-    const { generationId, prompt, systemType } = event.data
+    const { generationId, prompt, systemType, userId, options } = event.data
 
     const { createAdminClient } = await import('./supabase')
-    const { generateAsset } = await import('./generator')
     const supabase = createAdminClient()
 
+    // Step 1: Mark as researching
     await step.run('update-researching', async () => {
-      await supabase.from('generations').update({
-        status: 'researching',
-        progress: 10,
-      }).eq('id', generationId)
-    })
-
-    await step.run('update-generating', async () => {
-      await supabase.from('generations').update({
-        status: 'generating',
-        progress: 40,
-      }).eq('id', generationId)
-    })
-
-    const result = await step.run('generate', async () => {
-      return generateAsset(prompt, systemType)
-    })
-
-    await step.run('update-complete', async () => {
-      const fileName = `${generationId}.rbxmx`
-      await supabase.storage
+      await supabase
         .from('generations')
-        .upload(fileName, result.rbxmx, { contentType: 'text/xml' })
+        .update({ status: 'researching', progress: 10 })
+        .eq('id', generationId)
+    })
+
+    // Step 2: Mark as generating
+    await step.run('update-generating', async () => {
+      await supabase
+        .from('generations')
+        .update({ status: 'generating', progress: 35 })
+        .eq('id', generationId)
+    })
+
+    // Step 3: Run the actual generation — with full error handling
+    let result: any = null
+    let generationError: string | null = null
+
+    try {
+      result = await step.run('generate', async () => {
+        const { generateAsset } = await import('./generator')
+        return generateAsset(
+          prompt,
+          systemType,
+          options || {},
+          userId,
+          generationId,
+          async (msg: string, percent: number) => {
+            // Fire-and-forget progress updates (don't await — keeps generation moving)
+            supabase
+              .from('generations')
+              .update({ status: 'generating', progress: percent })
+              .eq('id', generationId)
+              .then(() => {})
+              .catch(() => {})
+          }
+        )
+      })
+    } catch (err: any) {
+      generationError = err?.message || 'Unknown generation error'
+    }
+
+    // Step 4: Save result or record failure
+    await step.run('update-complete', async () => {
+      if (generationError || !result) {
+        await supabase
+          .from('generations')
+          .update({
+            status: 'failed',
+            progress: 0,
+            output_metadata: { error: generationError },
+          })
+          .eq('id', generationId)
+        return { success: false, error: generationError }
+      }
+
+      // Upload .rbxmx to Supabase Storage
+      const fileName = `${generationId}.rbxmx`
+      const { error: uploadError } = await supabase.storage
+        .from('generations')
+        .upload(fileName, result.rbxmx, {
+          contentType: 'text/xml',
+          upsert: true,
+        })
+
+      if (uploadError) {
+        await supabase
+          .from('generations')
+          .update({
+            status: 'failed',
+            progress: 0,
+            output_metadata: { error: `Upload failed: ${uploadError.message}` },
+          })
+          .eq('id', generationId)
+        return { success: false, error: uploadError.message }
+      }
 
       const { data: urlData } = supabase.storage
         .from('generations')
         .getPublicUrl(fileName)
 
-      await supabase.from('generations').update({
-        status: 'complete',
-        progress: 100,
-        spec_items: result.spec,
-        output_url: urlData.publicUrl,
-        output_metadata: {
-          qualityScore: result.qualityScore,
-          qualityNotes: result.qualityNotes,
-        },
-        completed_at: new Date().toISOString(),
-      }).eq('id', generationId)
+      await supabase
+        .from('generations')
+        .update({
+          status: 'complete',
+          progress: 100,
+          spec_items: result.spec || [],
+          output_url: urlData.publicUrl,
+          output_metadata: {
+            qualityScore: result.qualityScore,
+            qualityNotes: result.qualityNotes,
+            newScriptsGenerated: result.newScriptsGenerated || [],
+            validationWarnings: result.validationWarnings || [],
+          },
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', generationId)
 
-      const { data: gen } = await supabase.from('generations').select('user_id').eq('id', generationId).single()
-      if (gen) {
-        try { await supabase.rpc('increment_generation_count', { user_id: gen.user_id }) } catch {}
-      }
+      // Increment user generation count (non-fatal if it fails)
+      try {
+        await supabase.rpc('increment_generation_count', { uid: userId })
+      } catch { /* ignore */ }
+
+      return { success: true, generationId }
     })
 
-    return { success: true, generationId }
+    return { success: !generationError, generationId }
   }
 )
