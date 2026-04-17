@@ -1,4 +1,5 @@
 'use client'
+// app/admin/knowledge/page.tsx
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -26,6 +27,7 @@ export default function KnowledgePage() {
       if (!user) { router.push('/auth/login'); return }
       const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
       if (!profile?.is_admin) { router.push('/dashboard'); return }
+
       // Load any saved overrides from DB
       const { data } = await supabase.from('knowledge_overrides').select('*')
       if (data?.length) {
@@ -40,8 +42,11 @@ export default function KnowledgePage() {
 
   async function save() {
     setSaving(true)
-    await supabase.from('knowledge_overrides').upsert({ section: tab, content: values[tab] }, { onConflict: 'section' })
-    setSaving(false); setSaved(true)
+    await supabase
+      .from('knowledge_overrides')
+      .upsert({ section: tab, content: values[tab], updated_at: new Date().toISOString() }, { onConflict: 'section' })
+    setSaving(false)
+    setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
 
@@ -49,7 +54,9 @@ export default function KnowledgePage() {
     setValues(prev => ({ ...prev, [tab]: DEFAULT_SECTIONS[tab] }))
   }
 
-  if (loading) return <div className="min-h-screen bg-brand-bg flex items-center justify-center text-white">Loading…</div>
+  if (loading) return (
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center text-white">Loading…</div>
+  )
 
   const tabs = [
     { key: 'building', label: '🏗️ Buildings' },
@@ -76,6 +83,11 @@ export default function KnowledgePage() {
         </div>
       </nav>
       <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="mb-4 p-3 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30">
+          <p className="text-xs text-brand-cyan font-mono">
+            ℹ️ Edits saved here are stored in the <code>knowledge_overrides</code> database table and injected into every future generation. Changes take effect immediately on the next generation.
+          </p>
+        </div>
         <div className="mb-6">
           <p className="text-brand-text-muted text-sm">Edit the veteran knowledge that gets injected into every generation. Changes here immediately affect all future builds.</p>
         </div>
