@@ -1,3 +1,4 @@
+// lib/utils.ts
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -14,7 +15,12 @@ export const SYSTEMS = {
     icon: '🏗️',
     color: '#6C3AED',
     colorLight: '#9B6DFF',
-    examples: ['Police station with full interior', 'Downtown shopping district', 'Fire station with garage bays', 'City park with benches and trees'],
+    examples: [
+      'Police station with full interior',
+      'Downtown shopping district',
+      'Fire station with garage bays',
+      'City park with benches and trees',
+    ],
     badge: 'BUILDER',
   },
   modeling: {
@@ -25,7 +31,12 @@ export const SYSTEMS = {
     icon: '🚗',
     color: '#00D4FF',
     colorLight: '#66E5FF',
-    examples: ['Police car with ELS and prisoner transport', 'Fire engine with hose system', 'Helicopter with working rotors', 'Tactical gear set with animations'],
+    examples: [
+      'Police car with ELS and prisoner transport',
+      'Fire engine with hose system',
+      'Helicopter with working rotors',
+      'Tactical gear set with animations',
+    ],
     badge: 'MODELING',
   },
   project: {
@@ -36,7 +47,12 @@ export const SYSTEMS = {
     icon: '🗺️',
     color: '#00FF88',
     colorLight: '#66FFB2',
-    examples: ['Berlin city roleplay map', 'German Federal Police pack', 'UK Emergency Services map', 'Los Angeles roleplay world'],
+    examples: [
+      'Berlin city roleplay map',
+      'German Federal Police pack',
+      'UK Emergency Services map',
+      'Los Angeles roleplay world',
+    ],
     badge: 'PROJECT',
   },
 } as const
@@ -57,11 +73,22 @@ export function qualityLabel(score: number): string {
   return 'Low'
 }
 
-export const STYLES = ['Modern', 'Victorian', 'Industrial', 'Brutalist', 'Colonial', 'Derelict', 'Coastal', 'Scandi']
+// These match the local constants in system/page.tsx — exported here
+// so they can be reused elsewhere if needed
+export const STYLE_OPTIONS = [
+  { id: 'modern', label: 'Modern', color: '#00D4FF' },
+  { id: 'victorian', label: 'Victorian', color: '#C4A35A' },
+  { id: 'industrial', label: 'Industrial', color: '#8B7355' },
+  { id: 'brutalist', label: 'Brutalist', color: '#888888' },
+  { id: 'colonial', label: 'Colonial', color: '#7CB87C' },
+  { id: 'derelict', label: 'Derelict', color: '#FF6B35' },
+  { id: 'coastal', label: 'Coastal', color: '#00BFFF' },
+  { id: 'scandinavian', label: 'Scandi', color: '#DDDDDD' },
+]
 
-export const SIZES = [
-  { label: 'Small', desc: 'Studio/kiosk' },
-  { label: 'Medium', desc: 'House/truck' },
-  { label: 'Large', desc: 'Block/truck' },
-  { label: 'Massive', desc: 'Stadium/map' },
+export const SCALE_OPTIONS = [
+  { id: 'small', label: 'Small', desc: 'Studio/kiosk' },
+  { id: 'medium', label: 'Medium', desc: 'House/car' },
+  { id: 'large', label: 'Large', desc: 'Block/truck' },
+  { id: 'massive', label: 'Massive', desc: 'Stadium/map' },
 ]
