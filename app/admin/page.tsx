@@ -1,235 +1,109 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { qualityColor } from '@/lib/utils'
 
 export default function AdminPage() {
   const router = useRouter()
   const supabase = createClient()
-  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({ users: 0, generations: 0, avgQuality: 0, failed: 0, waitlist: 0, knowledge: 0, researchLogs: 0 })
   const [users, setUsers] = useState<any[]>([])
   const [generations, setGenerations] = useState<any[]>([])
   const [scripts, setScripts] = useState<any[]>([])
   const [waitlist, setWaitlist] = useState<any[]>([])
-  const [newEmail, setNewEmail] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [tab, setTab] = useState<'users' | 'generations' | 'failed' | 'scripts' | 'waitlist'>('users')
+  const [tab, setTab] = useState<'users'|'gens'|'failed'|'scripts'|'waitlist'>('users')
+  const [authorizeEmail, setAuthorizeEmail] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
-      const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
-      if (!profile?.is_admin) { router.push('/dashboard'); return }
-      const [{ data: u }, { data: g }, { data: s }, { data: w }] = await Promise.all([
-        supabase.from('profiles').select('*').order('created_at', { ascending: false }),
-        supabase.from('generations').select('*').order('created_at', { ascending: false }).limit(100),
-        supabase.from('script_library').select('*').order('usage_count', { ascending: false }).limit(50),
-        supabase.from('waitlist').select('*').order('created_at', { ascending: false }),
-      ])
-      setUsers(u || []); setGenerations(g || []); setScripts(s || []); setWaitlist(w || [])
-      setLoading(false)
-    }
-    load()
-  }, [])
+  useEffect(() => { checkAdmin(); loadData() }, [])
 
-  async function toggleAuth(id: string, current: boolean) {
-    await supabase.from('profiles').update({ is_authorized: !current }).eq('id', id)
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, is_authorized: !current } : u))
+  async function checkAdmin() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/auth/login'); return }
+    const { data } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+    if (!data?.is_admin) router.push('/dashboard')
   }
 
-  async function authorizeEmail() {
-    if (!newEmail.trim()) return
-    setSaving(true)
-    await supabase.from('profiles').update({ is_authorized: true }).eq('email', newEmail.trim())
-    setNewEmail('')
-    const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false })
-    setUsers(data || [])
-    setSaving(false)
+  async function loadData() {
+    setLoading(true)
+    const [{ data: u }, { data: g }, { data: s }, { data: w }, { data: k }, { data: rl }] = await Promise.all([
+      supabase.from('profiles').select('*').order('created_at', { ascending: false }),
+      supabase.from('generations').select('*').order('created_at', { ascending: false }).limit(50),
+      supabase.from('script_library').select('*').order('usage_count', { ascending: false }).limit(20),
+      supabase.from('authorized_emails').select('*').order('added_at', { ascending: false }),
+      supabase.from('ai_knowledge').select('id').limit(1000),
+      supabase.from('research_logs').select('id').limit(1000),
+    ])
+    setUsers(u || []); setGenerations(g || []); setScripts(s || []); setWaitlist(w || [])
+    const allGens = g || []
+    const failed = allGens.filter(g => g.status === 'failed').length
+    const avgQ = allGens.length ? Math.round(allGens.reduce((a, g) => a + (g.output_metadata?.qualityScore || 85), 0) / allGens.length) : 0
+    setStats({ users: u?.length || 0, generations: allGens.length, avgQuality: avgQ, failed, waitlist: w?.length || 0, knowledge: k?.length || 0, researchLogs: rl?.length || 0 })
+    setLoading(false)
   }
 
-  async function approveWaitlist(entry: any) {
-    await supabase.from('waitlist').update({ status: 'approved' }).eq('id', entry.id)
-    await supabase.from('profiles').update({ is_authorized: true }).eq('email', entry.email)
-    setWaitlist(prev => prev.map(w => w.id === entry.id ? { ...w, status: 'approved' } : w))
+  async function authorizeUser() {
+    if (!authorizeEmail.trim()) return
+    await supabase.from('authorized_emails').insert({ email: authorizeEmail })
+    await supabase.from('profiles').update({ is_authorized: true }).eq('email', authorizeEmail)
+    setAuthorizeEmail(''); loadData()
   }
 
-  if (loading) return <div className="min-h-screen bg-brand-bg flex items-center justify-center text-white">Loading…</div>
-
-  const failed = generations.filter(g => g.status === 'failed')
-  const completed = generations.filter(g => g.status === 'complete')
-  const avgQuality = completed.filter(g => g.output_metadata?.qualityScore).length
-    ? Math.round(completed.reduce((a, g) => a + (g.output_metadata?.qualityScore || 0), 0) / completed.filter(g => g.output_metadata?.qualityScore).length)
-    : 0
+  const navCards = [
+    { label: '📊 Analytics', desc: 'Live feed, charts, generation history', href: '/admin/analytics', color: 'from-purple-500/20 to-blue-500/20' },
+    { label: '🧠 Knowledge Base', desc: `${stats.knowledge} entries · Research & teach`, href: '/admin/knowledge-base', color: 'from-cyan-500/20 to-teal-500/20' },
+    { label: '🔬 Research Queue', desc: `${stats.researchLogs} runs · Bulk research`, href: '/admin/research-queue', color: 'from-orange-500/20 to-red-500/20' },
+    { label: '📚 Script Library', desc: `${scripts.length} scripts`, href: '/admin/library', color: 'from-green-500/20 to-emerald-500/20' },
+  ]
 
   return (
-    <div className="min-h-screen bg-brand-bg text-white">
-      <nav className="border-b border-brand-border bg-brand-bg/90 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <a href="/dashboard" className="text-brand-text-dim hover:text-white text-sm">← Dashboard</a>
-            <span className="text-brand-border">|</span>
-            <span className="font-bold">Admin Panel</span>
-          </div>
-          <div className="flex gap-3">
-            <a href="/admin/library" className="btn btn-secondary text-xs px-3 py-1.5">📚 Script Library</a>
-            <a href="/admin/knowledge" className="btn btn-secondary text-xs px-3 py-1.5">🧠 Knowledge Editor</a>
-          </div>
+    <main className="min-h-screen bg-brand-bg p-6">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => router.push('/dashboard')} className="text-brand-text-muted hover:text-brand-text text-sm">← Dashboard</button>
+          <h1 className="font-display font-bold text-2xl text-brand-text">Admin Panel</h1>
         </div>
-      </nav>
 
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+        <div className="grid grid-cols-5 gap-4 mb-8">
           {[
-            { label: 'Total Users', value: users.length, color: 'text-white' },
-            { label: 'Generations', value: generations.length, color: 'text-white' },
-            { label: 'Avg Quality', value: avgQuality ? `${avgQuality}/100` : '—', color: qualityColor(avgQuality) },
-            { label: 'Failed', value: failed.length, color: failed.length > 0 ? 'text-brand-red' : 'text-brand-green' },
-            { label: 'Waitlist', value: waitlist.length, color: 'text-brand-cyan' },
+            { label: 'Total Users', value: stats.users },
+            { label: 'Generations', value: stats.generations },
+            { label: 'Avg Quality', value: `${stats.avgQuality}/100`, highlight: stats.avgQuality >= 80 ? 'text-brand-green' : 'text-brand-yellow' },
+            { label: 'Failed', value: stats.failed, highlight: stats.failed > 0 ? 'text-brand-red' : 'text-brand-green' },
+            { label: 'Knowledge', value: stats.knowledge, highlight: 'text-brand-cyan' },
           ].map(s => (
             <div key={s.label} className="card p-4 text-center">
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-              <p className="text-xs text-brand-text-muted mt-1">{s.label}</p>
+              <p className={`font-mono text-2xl font-bold ${s.highlight || 'text-brand-text'}`}>{s.value}</p>
+              <p className="font-body text-xs text-brand-text-muted mt-1">{s.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-brand-card border border-brand-border rounded-xl mb-6 w-fit flex-wrap">
-          {([
-            { key: 'users', label: `👥 Users (${users.length})` },
-            { key: 'generations', label: `⚡ Generations` },
-            { key: 'failed', label: `❌ Failed (${failed.length})` },
-            { key: 'scripts', label: `📚 Scripts (${scripts.length})` },
-            { key: 'waitlist', label: `📋 Waitlist (${waitlist.length})` },
-          ] as const).map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
-              className={`tab-btn ${tab === t.key ? 'active' : ''}`}>{t.label}</button>
+        <div className="grid grid-cols-4 gap-4 mb-8">
+          {navCards.map(card => (
+            <button key={card.href} onClick={() => router.push(card.href)}
+              className={`card p-5 text-left bg-gradient-to-br ${card.color} hover:scale-[1.02] transition-transform`}>
+              <p className="font-display font-bold text-brand-text mb-1">{card.label}</p>
+              <p className="font-body text-xs text-brand-text-muted">{card.desc}</p>
+            </button>
           ))}
         </div>
 
-        {/* Users */}
-        {tab === 'users' && (
-          <div>
-            <div className="card p-5 mb-4">
-              <p className="text-sm font-semibold mb-3">Authorize by email</p>
-              <div className="flex gap-3">
-                <input value={newEmail} onChange={e => setNewEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && authorizeEmail()}
-                  placeholder="user@email.com" className="input flex-1 py-2.5" />
-                <button onClick={authorizeEmail} disabled={saving || !newEmail.trim()} className="btn btn-primary px-5 py-2.5 text-sm">
-                  {saving ? '…' : 'Authorize'}
-                </button>
-              </div>
-            </div>
-            <div className="card divide-y divide-brand-border">
-              {users.map(u => (
-                <div key={u.id} className="p-4 flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm text-white">{u.email}</p>
-                    <p className="text-xs text-brand-text-dim mt-0.5">{u.generation_count || 0} gens {u.is_admin ? '· Admin' : ''}</p>
-                  </div>
-                  <button onClick={() => toggleAuth(u.id, u.is_authorized)}
-                    className={`btn text-xs px-4 py-1.5 ${u.is_authorized ? 'bg-brand-green/10 text-brand-green border border-brand-green/30 hover:bg-red-500/10 hover:text-red-400 hover:border-red-400/30' : 'btn-secondary hover:border-brand-purple hover:text-brand-purple-light'}`}>
-                    {u.is_authorized ? '✓ Authorized' : 'Authorize'}
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <div className="flex gap-2 mb-4 flex-wrap">
+          {(['users','gens','failed','scripts','waitlist'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)}
+              className={`px-4 py-2 rounded-xl font-display text-sm font-semibold capitalize transition-all ${tab===t?'bg-brand-purple text-white':'bg-brand-surface text-brand-text-muted hover:text-brand-text border border-brand-border'}`}>
+              {t==='users'?`👥 Users (${stats.users})`:t==='gens'?`⚡ Generations (${stats.generations})`:t==='failed'?`❌ Failed (${stats.failed})`:t==='scripts'?`📚 Scripts (${scripts.length})`:`📋 Waitlist (${stats.waitlist})`}
+            </button>
+          ))}
+        </div>
 
-        {/* All Generations */}
-        {tab === 'generations' && (
-          <div className="card divide-y divide-brand-border">
-            {generations.map(g => (
-              <div key={g.id} className="p-4 flex items-center justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-white truncate">{g.prompt}</p>
-                  <p className="text-xs text-brand-text-dim mt-0.5">{g.system_type} · {new Date(g.created_at).toLocaleDateString('en-GB')}</p>
-                </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  {g.output_metadata?.qualityScore && (
-                    <span className={`text-xs font-semibold ${qualityColor(g.output_metadata.qualityScore)}`}>{g.output_metadata.qualityScore}/100</span>
-                  )}
-                  <span className={`badge text-xs ${g.status === 'complete' ? 'badge-green' : g.status === 'failed' ? 'badge-red' : 'badge-cyan'}`}>{g.status}</span>
-                  {g.output_url && <a href={g.output_url} download className="text-xs text-brand-purple-light hover:text-white">Download</a>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Failed Generations */}
-        {tab === 'failed' && (
-          <div>
-            {failed.length === 0 ? (
-              <div className="text-center py-16 text-brand-text-dim">No failed generations 🎉</div>
-            ) : (
-              <div className="space-y-3">
-                {failed.map(g => (
-                  <div key={g.id} className="card p-5 border-red-500/20">
-                    <div className="flex items-start justify-between gap-4 mb-2">
-                      <p className="text-sm text-white font-medium">{g.prompt}</p>
-                      <span className="text-xs text-brand-text-dim flex-shrink-0">{new Date(g.created_at).toLocaleDateString('en-GB')}</span>
-                    </div>
-                    {g.output_metadata?.error && (
-                      <p className="text-xs text-red-400 mb-3 p-2 bg-red-500/10 rounded-lg">{g.output_metadata.error}</p>
-                    )}
-                    <p className="text-xs text-brand-text-dim">System: {g.system_type}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Scripts */}
-        {tab === 'scripts' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {scripts.length === 0 && <div className="col-span-2 text-center py-16 text-brand-text-dim">No scripts yet — generated automatically as users build.</div>}
-            {scripts.map(s => (
-              <div key={s.id} className="card p-5">
-                <div className="flex justify-between mb-2">
-                  <p className="font-semibold text-white text-sm">{s.name}</p>
-                  <span className="text-xs text-brand-text-dim">{s.usage_count} uses</span>
-                </div>
-                <p className="text-xs text-brand-text-dim mb-3">{s.description}</p>
-                <div className="flex gap-1 flex-wrap">
-                  {(s.keywords || []).slice(0, 5).map((k: string) => (
-                    <span key={k} className="badge badge-purple text-xs">{k}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Waitlist */}
-        {tab === 'waitlist' && (
-          <div className="card divide-y divide-brand-border">
-            {waitlist.length === 0 && <div className="p-10 text-center text-brand-text-dim">No waitlist entries yet.</div>}
-            {waitlist.map(w => (
-              <div key={w.id} className="p-4 flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm text-white font-medium">{w.name}</p>
-                  <p className="text-xs text-brand-text-dim">{w.email}</p>
-                  {w.reason && <p className="text-xs text-brand-text-muted mt-1 italic">"{w.reason}"</p>}
-                  <p className="text-xs text-brand-text-dim mt-1">{new Date(w.created_at).toLocaleDateString('en-GB')}</p>
-                </div>
-                <div className="flex-shrink-0">
-                  {w.status === 'approved' ? (
-                    <span className="badge badge-green text-xs">Approved</span>
-                  ) : (
-                    <button onClick={() => approveWaitlist(w)} className="btn btn-primary text-xs px-4 py-1.5">Approve</button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {tab==='users'&&<div className="card p-5"><div className="flex gap-3 mb-4"><input value={authorizeEmail} onChange={e=>setAuthorizeEmail(e.target.value)} placeholder="user@email.com" className="input flex-1 px-4 py-2 rounded-xl text-sm" onKeyDown={e=>e.key==='Enter'&&authorizeUser()}/><button onClick={authorizeUser} className="btn-primary px-6 py-2 rounded-xl text-sm font-display font-semibold">Authorize</button></div><div className="space-y-2">{users.map(u=><div key={u.id} className="flex items-center justify-between py-2 border-b border-brand-border last:border-0"><div><p className="font-body text-sm text-brand-text">{u.email}</p><p className="font-mono text-xs text-brand-text-muted">{u.generation_count||0} gens{u.is_admin?' · Admin':''}</p></div>{u.is_authorized?<span className="text-brand-green text-xs font-mono px-2 py-1 bg-brand-green/10 rounded-lg border border-brand-green/30">✓ Authorized</span>:<button onClick={()=>supabase.from('profiles').update({is_authorized:true}).eq('id',u.id).then(loadData)} className="text-xs font-mono px-3 py-1 bg-brand-purple/20 text-brand-purple-light rounded-lg border border-brand-purple/30">Authorize</button>}</div>)}</div></div>}
+        {tab==='gens'&&<div className="card p-5 space-y-2">{generations.filter(g=>g.status==='complete').map(g=><div key={g.id} className="flex items-center gap-3 py-2 border-b border-brand-border last:border-0"><span className="font-mono text-xs text-brand-green">✓</span><span className="font-body text-sm text-brand-text flex-1 truncate">{g.prompt}</span><span className="font-mono text-xs text-brand-cyan">{g.output_metadata?.qualityScore||85}</span><span className="font-mono text-xs text-brand-text-dim">{new Date(g.created_at).toLocaleDateString()}</span></div>)}</div>}
+        {tab==='failed'&&<div className="card p-5 space-y-2">{generations.filter(g=>g.status==='failed').length===0?<p className="text-center text-brand-text-muted py-8 font-body">No failed generations 🎉</p>:generations.filter(g=>g.status==='failed').map(g=><div key={g.id} className="py-2 border-b border-brand-border last:border-0"><p className="font-body text-sm text-brand-text">{g.prompt}</p><p className="font-mono text-xs text-brand-red mt-1">{g.system_type} · {new Date(g.created_at).toLocaleString()}</p></div>)}</div>}
+        {tab==='scripts'&&<div className="card p-5 space-y-2">{scripts.map(s=><div key={s.id} className="flex items-center gap-3 py-2 border-b border-brand-border last:border-0"><span className="font-body text-sm text-brand-text flex-1">{s.name}</span><span className="font-mono text-xs text-brand-cyan">Q:{s.quality_score}</span><span className="font-mono text-xs text-brand-text-dim">×{s.usage_count}</span></div>)}</div>}
+        {tab==='waitlist'&&<div className="card p-5 space-y-2">{waitlist.length===0?<p className="text-center text-brand-text-muted py-8 font-body">Waitlist empty</p>:waitlist.map(w=><div key={w.id} className="flex items-center gap-3 py-2 border-b border-brand-border last:border-0"><span className="font-body text-sm text-brand-text flex-1">{w.email}</span><span className="font-mono text-xs text-brand-text-dim">{new Date(w.added_at).toLocaleDateString()}</span></div>)}</div>}
       </div>
-    </div>
+    </main>
   )
 }
