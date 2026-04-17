@@ -1,15 +1,25 @@
 'use client'
+// app/admin/knowledge/page.tsx
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import { BUILDING_KB, VEHICLE_KB, SCRIPTING_KB, MAP_KB } from '@/lib/knowledge/index'
 
-export default function LibraryPage() {
+const DEFAULT_SECTIONS = {
+  building: BUILDING_KB,
+  vehicle: VEHICLE_KB,
+  scripting: SCRIPTING_KB,
+  map: MAP_KB,
+}
+
+export default function KnowledgePage() {
   const router = useRouter()
   const supabase = createClient()
-  const [scripts, setScripts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [expanded, setExpanded] = useState<string | null>(null)
+  const [tab, setTab] = useState<'building' | 'vehicle' | 'scripting' | 'map'>('building')
+  const [values, setValues] = useState(DEFAULT_SECTIONS)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -17,64 +27,86 @@ export default function LibraryPage() {
       if (!user) { router.push('/auth/login'); return }
       const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
       if (!profile?.is_admin) { router.push('/dashboard'); return }
-      const { data } = await supabase.from('script_library').select('*').order('usage_count', { ascending: false })
-      setScripts(data || [])
+
+      // Load any saved overrides from DB
+      const { data } = await supabase.from('knowledge_overrides').select('*')
+      if (data?.length) {
+        const overrides: any = {}
+        data.forEach((d: any) => { overrides[d.section] = d.content })
+        setValues(prev => ({ ...prev, ...overrides }))
+      }
       setLoading(false)
     }
     load()
   }, [])
 
-  const filtered = scripts.filter(s => !search ||
-    s.name?.toLowerCase().includes(search.toLowerCase()) ||
-    s.description?.toLowerCase().includes(search.toLowerCase())
+  async function save() {
+    setSaving(true)
+    await supabase
+      .from('knowledge_overrides')
+      .upsert({ section: tab, content: values[tab], updated_at: new Date().toISOString() }, { onConflict: 'section' })
+    setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  function reset() {
+    setValues(prev => ({ ...prev, [tab]: DEFAULT_SECTIONS[tab] }))
+  }
+
+  if (loading) return (
+    <div className="min-h-screen bg-brand-bg flex items-center justify-center text-white">Loading…</div>
   )
 
-  if (loading) return <div className="min-h-screen bg-brand-bg flex items-center justify-center text-white">Loading…</div>
+  const tabs = [
+    { key: 'building', label: '🏗️ Buildings' },
+    { key: 'vehicle', label: '🚗 Vehicles' },
+    { key: 'scripting', label: '💻 Scripting' },
+    { key: 'map', label: '🗺️ Maps' },
+  ] as const
 
   return (
     <div className="min-h-screen bg-brand-bg text-white">
       <nav className="border-b border-brand-border bg-brand-bg/90 sticky top-0 z-10">
-        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center gap-3">
-          <a href="/admin" className="text-brand-text-dim hover:text-white text-sm">← Admin</a>
-          <span className="text-brand-border">|</span>
-          <span className="font-bold">Script Library</span>
-          <span className="text-brand-text-dim text-sm">({scripts.length} scripts)</span>
+        <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <a href="/admin" className="text-brand-text-dim hover:text-white text-sm">← Admin</a>
+            <span className="text-brand-border">|</span>
+            <span className="font-bold">Knowledge Base Editor</span>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={reset} className="btn btn-secondary text-xs px-3 py-1.5">Reset to Default</button>
+            <button onClick={save} disabled={saving} className="btn btn-primary text-xs px-4 py-1.5">
+              {saving ? 'Saving…' : saved ? '✓ Saved' : 'Save Changes'}
+            </button>
+          </div>
         </div>
       </nav>
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search scripts…" className="input mb-6" />
-        {filtered.length === 0 && (
-          <div className="text-center py-20 text-brand-text-dim">
-            {search ? 'No scripts match.' : 'No scripts yet — generated automatically as users build assets.'}
-          </div>
-        )}
-        <div className="space-y-3">
-          {filtered.map(s => (
-            <div key={s.id} className="card p-5">
-              <div className="flex items-start justify-between gap-4 cursor-pointer" onClick={() => setExpanded(expanded === s.id ? null : s.id)}>
-                <div className="min-w-0">
-                  <p className="font-semibold text-white text-sm">{s.name}</p>
-                  <p className="text-xs text-brand-text-dim mt-0.5">{s.description}</p>
-                  <div className="flex gap-1 mt-2 flex-wrap">
-                    {(s.keywords || []).slice(0, 6).map((k: string) => (
-                      <span key={k} className="badge badge-purple text-xs">{k}</span>
-                    ))}
-                  </div>
-                </div>
-                <div className="text-right flex-shrink-0 text-xs text-brand-text-dim space-y-1">
-                  <p>{s.usage_count} uses</p>
-                  <p className={s.quality_score >= 80 ? 'text-brand-green' : 'text-brand-orange'}>{s.quality_score}/100</p>
-                  <p>{expanded === s.id ? '▲' : '▼'}</p>
-                </div>
-              </div>
-              {expanded === s.id && (
-                <pre className="mt-4 p-4 bg-brand-surface rounded-xl text-xs text-brand-text-muted overflow-auto max-h-64 border border-brand-border">
-                  {s.luau_code}
-                </pre>
-              )}
-            </div>
+      <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="mb-4 p-3 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30">
+          <p className="text-xs text-brand-cyan font-mono">
+            ℹ️ Edits saved here are stored in the <code>knowledge_overrides</code> database table and injected into every future generation. Changes take effect immediately on the next generation.
+          </p>
+        </div>
+        <div className="mb-6">
+          <p className="text-brand-text-muted text-sm">Edit the veteran knowledge that gets injected into every generation. Changes here immediately affect all future builds.</p>
+        </div>
+        <div className="flex gap-1 p-1 bg-brand-card border border-brand-border rounded-xl mb-6 w-fit">
+          {tabs.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`tab-btn ${tab === t.key ? 'active' : ''}`}>{t.label}</button>
           ))}
         </div>
+        <textarea
+          value={values[tab]}
+          onChange={e => setValues(prev => ({ ...prev, [tab]: e.target.value }))}
+          rows={30}
+          className="input font-mono text-xs resize-none"
+          spellCheck={false}
+        />
+        <p className="text-xs text-brand-text-dim mt-2">
+          This knowledge is injected verbatim into the AI prompt. Be specific, use imperative instructions, and include exact measurements and patterns.
+        </p>
       </div>
     </div>
   )
