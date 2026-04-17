@@ -1,4 +1,7 @@
-// Hardcoded building reference knowledge — replaces unreliable SerpAPI
+// lib/research.ts
+// Hardcoded building reference knowledge — used when Groq research API is not available.
+// The generator also calls the ai_knowledge table via getKnowledgeForPrompt() for
+// any additional facts that have been added through the admin research panel.
 
 export interface ResearchResult {
   query: string
@@ -62,16 +65,24 @@ const BUILDING_KNOWLEDGE: Record<string, string> = {
 - Tyre storage: rack of tyres
 - Tools: toolboxes on wheels, air compressor, diagnostic equipment
 - Exterior: forecourt, pump area if petrol station, signage`,
+
+  ambulance_station: `Ambulance Station Layout Reference:
+- Vehicle bay: 2-4 bays for ambulances, wide roller doors, floor markings
+- Equipment storage: shelves for stretchers, oxygen, first aid supplies
+- Crew room: sofas, TV, kitchen, lockers
+- Office: duty manager desk, radios, dispatch equipment
+- Clean/dirty utility rooms: for restocking and cleaning equipment
+- Exterior: yellow/green livery consistent with UK ambulance service`,
 }
 
 export async function researchTopic(prompt: string, systemType: string): Promise<ResearchResult> {
   const p = prompt.toLowerCase()
-  
   let knowledge = ''
-  
+
+  // Match known building types
   if (p.includes('fire') && (p.includes('station') || p.includes('house'))) {
     knowledge = BUILDING_KNOWLEDGE.fire_station
-  } else if (p.includes('police')) {
+  } else if (p.includes('police') || p.includes('constabulary')) {
     knowledge = BUILDING_KNOWLEDGE.police_station
   } else if (p.includes('hospital') || p.includes('medical') || p.includes('clinic')) {
     knowledge = BUILDING_KNOWLEDGE.hospital
@@ -79,6 +90,8 @@ export async function researchTopic(prompt: string, systemType: string): Promise
     knowledge = BUILDING_KNOWLEDGE.school
   } else if (p.includes('garage') || p.includes('workshop') || p.includes('mechanic')) {
     knowledge = BUILDING_KNOWLEDGE.garage
+  } else if (p.includes('ambulance')) {
+    knowledge = BUILDING_KNOWLEDGE.ambulance_station
   }
 
   return {
