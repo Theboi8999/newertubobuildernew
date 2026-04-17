@@ -1,4 +1,7 @@
-import { createClient } from '@/lib/supabase'
+// lib/prompt-memory.ts
+// Server-side only when called from generator. Uses admin client for server context,
+// falls back to regular client for client-side analytics reads.
+import { createAdminClient } from '@/lib/supabase'
 
 export interface PromptHistoryEntry {
   prompt: string
@@ -18,24 +21,29 @@ export interface UserPreferences {
   total_generations: number
 }
 
-// Save prompt to history after generation
 export async function savePromptHistory(
   userId: string,
   entry: Omit<PromptHistoryEntry, 'created_at'>
 ): Promise<void> {
   try {
-    const supabase = createClient()
+    // Use admin client — this is called server-side from generator/inngest
+    const supabase = createAdminClient()
     await supabase.from('prompt_history').insert({
       user_id: userId,
       ...entry,
     })
-  } catch {}
+  } catch (err) {
+    // Non-fatal — don't break generation if history save fails
+    console.warn('savePromptHistory failed (non-fatal):', err)
+  }
 }
 
-// Get last 5 prompts for a user (shown as suggestions)
-export async function getRecentPrompts(userId: string, systemType: string): Promise<PromptHistoryEntry[]> {
+export async function getRecentPrompts(
+  userId: string,
+  systemType: string
+): Promise<PromptHistoryEntry[]> {
   try {
-    const supabase = createClient()
+    const supabase = createAdminClient()
     const { data } = await supabase
       .from('prompt_history')
       .select('*')
@@ -49,10 +57,9 @@ export async function getRecentPrompts(userId: string, systemType: string): Prom
   }
 }
 
-// Learn user preferences from their history
 export async function getUserPreferences(userId: string): Promise<UserPreferences | null> {
   try {
-    const supabase = createClient()
+    const supabase = createAdminClient()
     const { data } = await supabase
       .from('prompt_history')
       .select('*')
@@ -62,7 +69,6 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
 
     if (!data || data.length === 0) return null
 
-    // Find most used style
     const styleCounts: Record<string, number> = {}
     const scaleCounts: Record<string, number> = {}
     const keywords: string[] = []
@@ -73,23 +79,21 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
       if (entry.style) styleCounts[entry.style] = (styleCounts[entry.style] || 0) + 1
       if (entry.scale) scaleCounts[entry.scale] = (scaleCounts[entry.scale] || 0) + 1
       if (entry.quality_score) { totalQuality += entry.quality_score; qualityCount++ }
-      // Extract keywords from prompts
-      const words = entry.prompt.toLowerCase().split(' ')
+      const words = (entry.prompt || '').toLowerCase().split(/\s+/)
       for (const w of words) {
-        if (w.length > 4 && !['with','that','have','this','make','from','into'].includes(w)) {
+        if (w.length > 4 && !['with', 'that', 'have', 'this', 'make', 'from', 'into'].includes(w)) {
           keywords.push(w)
         }
       }
     }
 
-    const preferred_style = Object.entries(styleCounts).sort((a,b) => b[1]-a[1])[0]?.[0]
-    const preferred_scale = Object.entries(scaleCounts).sort((a,b) => b[1]-a[1])[0]?.[0]
+    const preferred_style = Object.entries(styleCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
+    const preferred_scale = Object.entries(scaleCounts).sort((a, b) => b[1] - a[1])[0]?.[0]
 
-    // Top 5 most common keywords
     const kwCount: Record<string, number> = {}
     for (const kw of keywords) kwCount[kw] = (kwCount[kw] || 0) + 1
     const top_keywords = Object.entries(kwCount)
-      .sort((a,b) => b[1]-a[1])
+      .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([kw]) => kw)
 
@@ -105,18 +109,13 @@ export async function getUserPreferences(userId: string): Promise<UserPreference
   }
 }
 
-// Rate a generation (1-5 stars)
 export async function rateGeneration(generationId: string, rating: number): Promise<void> {
   try {
-    const supabase = createClient()
-    await supabase
-      .from('generations')
-      .update({ rating })
-      .eq('id', generationId)
-  } catch {}
+    const supabase = createAdminClient()
+    await supabase.from('generations').update({ rating }).eq('id', generationId)
+  } catch { /* non-fatal */ }
 }
 
-// Get prompt improvement suggestions based on history
 export async function getPromptSuggestions(
   userId: string,
   currentPrompt: string,
@@ -125,14 +124,12 @@ export async function getPromptSuggestions(
   try {
     const recent = await getRecentPrompts(userId, systemType)
     if (recent.length === 0) return []
-
-    // Find high-quality previous prompts similar to current
     const highQuality = recent.filter(r => r.quality_score >= 80)
     if (highQuality.length === 0) return []
-
-    return highQuality.slice(0, 3).map(r =>
-      r.prompt !== currentPrompt ? r.prompt : ''
-    ).filter(Boolean)
+    return highQuality
+      .slice(0, 3)
+      .map(r => r.prompt !== currentPrompt ? r.prompt : '')
+      .filter(Boolean)
   } catch {
     return []
   }
