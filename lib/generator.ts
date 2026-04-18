@@ -6,6 +6,8 @@ import { getScriptsForPrompt } from './script-library'
 import { validateRbxmx, watermarkRbxmx } from './output-validator'
 import { savePromptHistory, getUserPreferences } from './prompt-memory'
 import { researchTopic } from './research'
+import { detectBuildingType, BUILDING_BLUEPRINTS, ROOM_TEMPLATES, offsetRoom } from './room-templates'
+import { buildRbxmx, RbxModel, RbxPart } from './rbxmx'
 
 export interface GenerateOptions {
   style?: string
@@ -58,6 +60,72 @@ export async function generateAsset(
 
   await onProgress?.('⚡ Generating your asset...', 45)
 
+  // ── Builder branch: programmatic blueprint system ────────────────────────
+  if (systemType === 'builder') {
+    const buildingType = detectBuildingType(prompt)
+    console.log('[generateAsset] detectBuildingType result:', buildingType)
+
+    let allParts: RbxPart[] = []
+    let specItems: Array<{ label: string; category: 'structure'; count: number }> = []
+    let usedFallback = false
+
+    if (buildingType && BUILDING_BLUEPRINTS[buildingType]) {
+      const blueprint = BUILDING_BLUEPRINTS[buildingType]
+      for (const room of blueprint.rooms) {
+        const template = ROOM_TEMPLATES[room.template]
+        if (template) {
+          const offsetParts = offsetRoom(template, room.offsetX, 0, room.offsetZ)
+          allParts.push(...(offsetParts as RbxPart[]))
+          specItems.push({ label: room.label, category: 'structure', count: 1 })
+        }
+      }
+      allParts.push(...buildExterior(blueprint.totalWidth, blueprint.totalDepth, 12, blueprint.exteriorColor, blueprint.roofColor))
+      console.log('[generateAsset] blueprint rooms loop added', allParts.length, 'parts')
+    }
+
+    if (allParts.length === 0) {
+      allParts = buildGenericBuilding(['Reception', 'Main Office', 'Holding Cell', 'Break Room', 'Briefing Room', 'Locker Room'])
+      specItems = [
+        { label: 'Reception', category: 'structure' as const, count: 1 },
+        { label: 'Main Office', category: 'structure' as const, count: 1 },
+        { label: 'Holding Cell', category: 'structure' as const, count: 1 },
+        { label: 'Break Room', category: 'structure' as const, count: 1 },
+      ]
+      usedFallback = true
+    }
+
+    const modelName = buildingType
+      ? buildingType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+      : 'Building'
+
+    const model: RbxModel = { name: modelName, parts: allParts, scripts: [] }
+    const rbxmxBuilt = buildRbxmx([model])
+    const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
+
+    const qualityScore = usedFallback ? 75 : 92
+    const qualityNotes = usedFallback
+      ? 'Fallback generic building (no parts from blueprint)'
+      : 'Blueprint build'
+
+    savePromptHistory(userId, {
+      prompt,
+      system_type: systemType,
+      quality_score: qualityScore,
+      style: options.style,
+      scale: options.scale,
+    }).catch(() => {})
+
+    return {
+      rbxmx: rbxmxFinal,
+      spec: specItems.map(s => s.label),
+      qualityScore,
+      qualityNotes,
+      newScriptsGenerated,
+      validationWarnings: [],
+    }
+  }
+
+  // ── All other system types: Groq generation ──────────────────────────────
   const systemPrompt = buildSystemPrompt(
     staticKnowledge,
     dbKnowledge,
@@ -76,40 +144,13 @@ export async function generateAsset(
   await onProgress?.('🔧 Validating output...', 85)
 
   const rbxmxRaw = extractRbxmx(rawOutput)
-  let spec = extractSpec(rawOutput)
-
-  // Extract Part elements from the generated XML into allParts
-  let allParts = extractParts(rbxmxRaw)
-  let usedFallback = false
-
-  if (allParts.length === 0) {
-    // Fallback to generic building if blueprint produced no parts
-    console.error(`[generateAsset] No parts in generated rbxmx for prompt="${prompt}" systemType="${systemType}" — using generic building fallback`)
-    allParts = buildGenericBuilding(['Reception', 'Main Office', 'Holding Cell', 'Break Room', 'Briefing Room', 'Locker Room'])
-    spec = [
-      'Reception: structure',
-      'Main Office: structure',
-      'Holding Cell: structure',
-      'Break Room: structure',
-    ]
-    usedFallback = true
-  }
-
-  const rbxmxAssembled = usedFallback ? assembleRbxmx(allParts) : rbxmxRaw
-  const validation = validateRbxmx(rbxmxAssembled)
-  const rbxmxFixed = validation.fixed || rbxmxAssembled
+  const spec = extractSpec(rawOutput)
+  const validation = validateRbxmx(rbxmxRaw)
+  const rbxmxFixed = validation.fixed || rbxmxRaw
   const rbxmxFinal = watermarkRbxmx(rbxmxFixed, generationId, userId)
 
-  const qualityScore = systemType === 'builder'
-    ? (usedFallback ? 75 : 92)
-    : scoreQuality(rbxmxFinal, spec, systemType).score
-  const qualityNotes = systemType === 'builder'
-    ? (usedFallback ? 'Fallback generic building (no parts from blueprint)' : 'Blueprint build')
-    : scoreQuality(rbxmxFinal, spec, systemType).notes
+  const { score, notes } = scoreQuality(rbxmxFinal, spec, systemType)
 
-  const { score, notes } = { score: qualityScore, notes: qualityNotes }
-
-  // Save history non-fatally
   savePromptHistory(userId, {
     prompt,
     system_type: systemType,
@@ -126,6 +167,38 @@ export async function generateAsset(
     newScriptsGenerated,
     validationWarnings: [...validation.warnings, ...validation.tosIssues],
   }
+}
+
+function buildExterior(
+  width: number,
+  depth: number,
+  height: number,
+  exteriorColor: string,
+  roofColor: string
+): RbxPart[] {
+  const t = 1 // wall thickness
+  return [
+    { name: 'ExteriorFloor', size: { x: width, y: 1, z: depth }, position: { x: 0, y: 0, z: 0 }, color: 'Medium stone grey', material: 'concrete', anchored: true, transparency: 0 },
+    { name: 'WallFront', size: { x: width, y: height, z: t }, position: { x: 0, y: height / 2, z: -(depth / 2) }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
+    { name: 'WallBack', size: { x: width, y: height, z: t }, position: { x: 0, y: height / 2, z: depth / 2 }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
+    { name: 'WallLeft', size: { x: t, y: height, z: depth }, position: { x: -(width / 2), y: height / 2, z: 0 }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
+    { name: 'WallRight', size: { x: t, y: height, z: depth }, position: { x: width / 2, y: height / 2, z: 0 }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
+    { name: 'Roof', size: { x: width + 2, y: 1, z: depth + 2 }, position: { x: 0, y: height + 0.5, z: 0 }, color: roofColor, material: 'smoothplastic', anchored: true, transparency: 0 },
+  ]
+}
+
+function buildGenericBuilding(rooms: string[]): RbxPart[] {
+  return rooms.flatMap((room, i): RbxPart[] => {
+    const x = (i % 3) * 22
+    const z = Math.floor(i / 3) * 22
+    return [
+      { name: `${room}_Floor`, size: { x: 20, y: 1, z: 20 }, position: { x, y: 0.5, z }, color: 'Medium stone grey', material: 'concrete', anchored: true, transparency: 0 },
+      { name: `${room}_WallFront`, size: { x: 20, y: 8, z: 0.5 }, position: { x, y: 4.5, z: z - 10 }, color: 'Light grey', material: 'smoothplastic', anchored: true, transparency: 0 },
+      { name: `${room}_WallBack`, size: { x: 20, y: 8, z: 0.5 }, position: { x, y: 4.5, z: z + 10 }, color: 'Light grey', material: 'smoothplastic', anchored: true, transparency: 0 },
+      { name: `${room}_WallLeft`, size: { x: 0.5, y: 8, z: 20 }, position: { x: x - 10, y: 4.5, z }, color: 'Light grey', material: 'smoothplastic', anchored: true, transparency: 0 },
+      { name: `${room}_WallRight`, size: { x: 0.5, y: 8, z: 20 }, position: { x: x + 10, y: 4.5, z }, color: 'Light grey', material: 'smoothplastic', anchored: true, transparency: 0 },
+    ]
+  })
 }
 
 function buildSystemPrompt(
@@ -212,40 +285,6 @@ function extractSpec(output: string): string[] {
     .map(l => l.replace(/^-\s*/, ''))
 }
 
-function extractParts(rbxmx: string): string[] {
-  const parts: string[] = []
-  const regex = /<Item class="Part"[\s\S]*?<\/Item>/g
-  let match: RegExpExecArray | null
-  while ((match = regex.exec(rbxmx)) !== null) {
-    parts.push(match[0])
-  }
-  return parts
-}
-
-function buildGenericBuilding(rooms: string[]): string[] {
-  return rooms.map((room, i) => {
-    const x = (i % 3) * 22
-    const z = Math.floor(i / 3) * 22
-    return `<Item class="Part" referent="FALLBACK${i}">
-  <Properties>
-    <token name="FormFactor">0</token>
-    <string name="Name">${room}</string>
-    <CoordinateFrame name="CFrame"><X>${x}</X><Y>5</Y><Z>${z}</Z><R00>1</R00><R01>0</R01><R02>0</R02><R10>0</R10><R11>1</R11><R12>0</R12><R20>0</R20><R21>0</R21><R22>1</R22></CoordinateFrame>
-    <Vector3 name="Size"><X>20</X><Y>8</Y><Z>20</Z></Vector3>
-    <bool name="Anchored">true</bool>
-    <Color3uint8 name="Color3uint8">4292927712</Color3uint8>
-  </Properties>
-</Item>`
-  })
-}
-
-function assembleRbxmx(parts: string[]): string {
-  return `<?xml version="1.0" encoding="utf-8"?>
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
-${parts.join('\n')}
-</roblox>`
-}
-
 function scoreQuality(
   rbxmx: string,
   spec: string[],
@@ -270,11 +309,6 @@ function scoreQuality(
 
   if (systemType === 'modeling') {
     if (rbxmx.toLowerCase().includes('els') || rbxmx.includes('Siren')) { score += 5; notes.push('ELS') }
-  }
-  if (systemType === 'builder') {
-    if ((rbxmx.match(/class="PointLight"|class="SpotLight"|class="SurfaceLight"/g) || []).length > 0) {
-      score += 5; notes.push('Lighting')
-    }
   }
 
   score = Math.min(100, Math.max(0, score))
