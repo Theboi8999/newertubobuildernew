@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState, useRef, Suspense } from 'react'
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import type { RoomLayoutItem } from '@/lib/blueprint-compiler'
 
 const ROOM_TYPE_COLORS: Record<string, string> = {
@@ -104,7 +104,29 @@ function SystemPageInner() {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [rating, setRating] = useState(0)
   const [ratingDone, setRatingDone] = useState(false)
+  const [referenceImages, setReferenceImages] = useState<Array<{ base64: string; mimeType: string; preview: string }>>([])
+  const [showRefImages, setShowRefImages] = useState(false)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleImageFiles = useCallback(async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    const newImages: Array<{ base64: string; mimeType: string; preview: string }> = []
+    for (const file of Array.from(files)) {
+      if (referenceImages.length + newImages.length >= 3) break
+      if (!file.type.match(/^image\/(png|jpeg|webp)$/)) continue
+      await new Promise<void>(resolve => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const dataUrl = reader.result as string
+          newImages.push({ base64: dataUrl.split(',')[1], mimeType: file.type, preview: dataUrl })
+          resolve()
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+    setReferenceImages(prev => [...prev, ...newImages].slice(0, 3))
+  }, [referenceImages.length])
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -144,6 +166,9 @@ function SystemPageInner() {
           style: style || undefined,
           scale,
           locationReference: locationRef || undefined,
+          referenceImages: referenceImages.length > 0
+            ? referenceImages.map(i => ({ base64: i.base64, mimeType: i.mimeType }))
+            : undefined,
         }),
       })
       const data = await res.json()
@@ -339,6 +364,64 @@ function SystemPageInner() {
                   </div>
                 )}
 
+                {/* Reference image upload */}
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowRefImages(!showRefImages)}
+                    className="flex items-center gap-2 text-xs text-brand-text-muted hover:text-white transition-colors mb-2"
+                  >
+                    <span>{showRefImages ? '▲' : '▼'}</span>
+                    <span>🎨 Style Reference (optional)</span>
+                    {referenceImages.length > 0 && (
+                      <span className="bg-brand-purple/20 text-brand-purple-light border border-brand-purple/30 rounded px-1.5 py-0.5 font-mono">
+                        {referenceImages.length}
+                      </span>
+                    )}
+                  </button>
+                  {showRefImages && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        multiple
+                        className="hidden"
+                        onChange={e => handleImageFiles(e.target.files)}
+                      />
+                      <div
+                        onClick={() => referenceImages.length < 3 && fileInputRef.current?.click()}
+                        onDragOver={e => { e.preventDefault(); e.stopPropagation() }}
+                        onDrop={e => { e.preventDefault(); handleImageFiles(e.dataTransfer.files) }}
+                        className={`border border-dashed rounded-xl p-4 text-center transition-colors mb-3 ${
+                          referenceImages.length >= 3
+                            ? 'border-brand-border cursor-not-allowed'
+                            : 'border-brand-border hover:border-brand-text-muted cursor-pointer'
+                        }`}
+                      >
+                        <p className="text-xs text-brand-text-dim">
+                          {referenceImages.length >= 3 ? '3/3 images uploaded' : 'Drop images here or click to upload (max 3)'}
+                        </p>
+                        <p className="text-xs text-brand-text-dim mt-0.5">PNG, JPEG, WebP — Roblox screenshots</p>
+                      </div>
+                      {referenceImages.length > 0 && (
+                        <div className="flex gap-2 flex-wrap mb-2">
+                          {referenceImages.map((img, i) => (
+                            <div key={i} className="relative group">
+                              <img src={img.preview} alt={`ref ${i + 1}`} className="w-16 h-16 object-cover rounded-lg border border-brand-border" />
+                              <button
+                                onClick={() => setReferenceImages(prev => prev.filter((_, idx) => idx !== i))}
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-brand-bg border border-brand-border text-brand-text-muted text-xs flex items-center justify-center hover:text-white hover:border-brand-text-muted transition-colors"
+                              >×</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-xs text-brand-text-dim">Upload Roblox screenshots to guide the generation style</p>
+                    </>
+                  )}
+                </div>
+
                 <button
                   onClick={handleGenerate}
                   disabled={loading || !prompt.trim()}
@@ -485,6 +568,24 @@ function SystemPageInner() {
                           <span className="text-brand-purple-light mt-0.5">✓</span>
                           <span>{item}</span>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {generation.output_metadata?.irlImageUrls?.length > 0 && (
+                  <div className="mb-6">
+                    <p className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-3">📸 IRL References Used</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {generation.output_metadata.irlImageUrls.slice(0, 3).map((url: string, i: number) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={url}
+                            alt={`irl ref ${i + 1}`}
+                            className="w-14 h-14 object-cover rounded-lg border border-brand-border hover:border-brand-text-muted transition-colors"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+                          />
+                        </a>
                       ))}
                     </div>
                   </div>

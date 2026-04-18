@@ -1,6 +1,7 @@
 // lib/research-agent.ts
 import { createAdminClient } from './supabase'
 import { geminiGenerate } from './groq'
+import type { QualityTarget } from './vision-analyzer'
 
 export interface ResearchRoom {
   name: string
@@ -144,7 +145,7 @@ function getFallbackRooms(buildingType: string): ResearchResult {
   }
 }
 
-export async function researchBuildingType(buildingType: string, forceRefresh = false): Promise<ResearchResult> {
+export async function researchBuildingType(buildingType: string, forceRefresh = false, qualityTarget?: QualityTarget): Promise<ResearchResult> {
   const supabase = createAdminClient()
 
   // Step 1: Check cache
@@ -301,7 +302,10 @@ Respond ONLY with valid JSON, no markdown, no explanation:
 {"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
 
     const truncatedResearch = combinedResearch.substring(0, 1500)
-    const userMsg = `Building type: ${buildingType}\n\nResearch:\n${truncatedResearch}`
+    const qualityNote = qualityTarget
+      ? `\n\nQuality target from user reference: ${qualityTarget.detailLevel}/10 detail level, ${qualityTarget.interiorStyle} style, ${qualityTarget.lightingStyle} lighting. Match this quality level in your room specifications. Add more furniture items if detail level >= 7.`
+      : ''
+    const userMsg = `Building type: ${buildingType}\n\nResearch:\n${truncatedResearch}${qualityNote}`
     console.log(`[researchBuildingType] Sending ${userMsg.length} chars to Groq`)
     await new Promise(resolve => setTimeout(resolve, 3000))
     const rawJson = await geminiGenerate(systemPrompt, userMsg, 2000)

@@ -11,12 +11,14 @@ import { detectBuildingType } from './room-templates'
 import { buildRbxmx, RbxModel, RbxPart } from './rbxmx'
 import { researchBuildingType, ResearchResult } from './research-agent'
 import { compileBlueprint } from './blueprint-compiler'
+import type { QualityTarget } from './vision-analyzer'
 
 export interface GenerateOptions {
   style?: string
   scale?: string
   locationReference?: string
   variations?: number
+  referenceImages?: Array<{ base64: string; mimeType: string }>
 }
 
 export interface GenerateResult {
@@ -28,6 +30,7 @@ export interface GenerateResult {
   validationWarnings: string[]
   partCount: number
   roomLayout?: import('./blueprint-compiler').RoomLayoutItem[]
+  irlImageUrls?: string[]
 }
 
 export async function generateAsset(
@@ -50,15 +53,35 @@ export async function generateAsset(
     let usedFallback = false
     let researchResult: ResearchResult | null = null
     let compiled: ReturnType<typeof compileBlueprint> | null = null
+    let qualityTarget: QualityTarget | undefined
+    let irlImageUrls: string[] = []
+
+    if (options.referenceImages && options.referenceImages.length > 0) {
+      try {
+        const { analyzeRobloxReference, findIRLReferences } = await import('./vision-analyzer')
+        await onProgress?.('🎨 Analysing reference images...', 30)
+        const targets = await Promise.all(
+          options.referenceImages.map(img => analyzeRobloxReference(img.base64, img.mimeType))
+        )
+        qualityTarget = targets.reduce((a, b) => a.detailLevel > b.detailLevel ? a : b)
+        console.log('[generator] qualityTarget from reference:', JSON.stringify(qualityTarget))
+        if (buildingType) {
+          irlImageUrls = await findIRLReferences(buildingType)
+          console.log('[generator] found', irlImageUrls.length, 'IRL reference URLs')
+        }
+      } catch (e) {
+        console.error('[generator] vision analysis error:', e)
+      }
+    }
 
     if (buildingType) {
       try {
         await onProgress?.('🔬 Researching building type...', 50)
-        researchResult = await researchBuildingType(buildingType)
+        researchResult = await researchBuildingType(buildingType, false, qualityTarget)
         console.log('[generateAsset] research confidence:', researchResult.confidence)
 
         console.log('[generator] calling compileBlueprint for:', buildingType)
-        compiled = compileBlueprint(researchResult)
+        compiled = compileBlueprint(researchResult, qualityTarget)
         allParts = [...compiled.rooms.flat(), ...compiled.exterior]
         console.log('[generator] compiled parts count:', allParts.length)
         console.log('[DEBUG] First 3 parts of allParts:', JSON.stringify(allParts.slice(0, 3), null, 2))
@@ -125,6 +148,7 @@ export async function generateAsset(
       validationWarnings: [],
       partCount: allParts.length,
       roomLayout: compiled?.roomLayout,
+      irlImageUrls,
     }
   }
 

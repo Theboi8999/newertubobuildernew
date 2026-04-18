@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { prompt, systemType, style, scale, locationReference, variations } = body
+    const { prompt, systemType, style, scale, locationReference, variations, referenceImages } = body
 
     if (!prompt || !systemType) {
       return NextResponse.json({ error: 'Missing prompt or systemType' }, { status: 400 })
@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
           scale: scale || 'medium',
           locationReference: locationReference || undefined,
           variations: variations || 1,
+          referenceImages: referenceImages || undefined,
         },
       },
     })

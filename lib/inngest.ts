@@ -129,6 +129,7 @@ export const generateFunction = inngest.createFunction(
             newScriptsGenerated: result.newScriptsGenerated || [],
             validationWarnings: result.validationWarnings || [],
             roomLayout: result.roomLayout || [],
+            irlImageUrls: result.irlImageUrls || [],
           },
           completed_at: new Date().toISOString(),
         })

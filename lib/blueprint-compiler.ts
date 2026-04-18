@@ -2,6 +2,7 @@
 import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
 import { PROP_LIBRARY } from './model-library'
+import type { QualityTarget } from './vision-analyzer'
 
 export interface RoomLayoutItem {
   name: string
@@ -393,18 +394,22 @@ function getRoomType(name: string): string {
 
 // ── Main entry point ───────────────────────────────────────────────────────
 
-export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
+export function compileBlueprint(research: ResearchResult, qualityTarget?: QualityTarget): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
   console.log('[blueprint-compiler] buildingType input:', buildingType)
   let theme = getColorTheme(buildingType)
-  if (theme === BUILDING_COLOR_THEMES['default'] && research.exteriorColor) {
+  if (theme.exterior === 'Light grey' && research.exteriorColor) {
     theme = {
       exterior: validateColor(research.exteriorColor),
       roof: validateColor(research.roofColor || 'Dark grey'),
       trim: 'White',
-      floor: 'Medium stone grey',
+      floor: theme.floor,
     }
     console.log('[blueprint-compiler] using research colors — exterior:', theme.exterior, 'roof:', theme.roof)
+  }
+  if (qualityTarget?.colorPalette && qualityTarget.colorPalette.length > 0) {
+    theme = { ...theme, floor: validateColor(qualityTarget.colorPalette[0]) }
+    console.log('[blueprint-compiler] qualityTarget floor color override:', theme.floor)
   }
   console.log('[blueprint-compiler] theme match result:', JSON.stringify(theme))
   const retail = isRetailType(buildingType)
@@ -460,10 +465,25 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
 
   const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, buildingType)
 
-  // Enforce minimum 40 parts
   const totalNow = compiledRooms.reduce((s, r) => s + r.length, 0) + exterior.length
-  if (totalNow < 40 && compiledRooms.length > 0) {
+  const highDetail = (qualityTarget?.detailLevel ?? 0) >= 7
+  const isUltra = qualityTarget?.partDensity === 'ultra'
+
+  if (highDetail || isUltra) {
+    // Add detail trims to every room individually
+    for (let ri = 0; ri < compiledRooms.length; ri++) {
+      compiledRooms[ri] = [...compiledRooms[ri], ...addDetailParts([roomMeta[ri]])]
+    }
+  } else if (totalNow < 40 && compiledRooms.length > 0) {
     compiledRooms[0] = [...compiledRooms[0], ...addDetailParts(roomMeta)]
+  }
+
+  if (isUltra) {
+    // Extra shelving rows for maximum density
+    for (let ri = 0; ri < compiledRooms.length; ri++) {
+      const m = roomMeta[ri]
+      compiledRooms[ri].push(...addRetailShelving(`${m.name}_x`, m.offsetX, m.offsetZ, m.w, m.d))
+    }
   }
 
   return { buildingType, rooms: compiledRooms, exterior, totalWidth: tw, totalDepth: td, roomLayout }
