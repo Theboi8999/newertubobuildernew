@@ -113,7 +113,6 @@ function escapeXml(str: string): string {
 
 function generatePart(part: RbxPart, id: number): string {
   const materialEnum = getMaterial(part.material)
-  const shapeEnum = getShape(part.shape || 'Block')
   const color = sanitizeColor(part.color)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
 
@@ -129,8 +128,7 @@ function generatePart(part: RbxPart, id: number): string {
   <Item class="Part" referent="RBX${id}">
     <Properties>
       <string name="Name">${escapeXml(part.name)}</string>
-      <token name="shape">${shapeEnum}</token>
-      <Vector3 name="size">
+      <Vector3 name="Size">
         <X>${sx}</X><Y>${sy}</Y><Z>${sz}</Z>
       </Vector3>
       <CoordinateFrame name="CFrame">
