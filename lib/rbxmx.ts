@@ -9,6 +9,7 @@ export interface RbxPart {
   anchored: boolean
   transparency?: number
   shape?: 'Block' | 'Sphere' | 'Cylinder' | 'Wedge'
+  emissive?: boolean
 }
 
 export interface RbxScript {
@@ -143,7 +144,18 @@ function generatePart(part: RbxPart, id: number): string {
       <float name="Transparency">${transparency}</float>
       <bool name="CanCollide">true</bool>
       <bool name="CastShadow">true</bool>
-    </Properties>
+    </Properties>${part.emissive ? `
+    <Item class="PointLight" referent="LIGHT_RBX${id}">
+      <Properties>
+        <float name="Brightness">5</float>
+        <float name="Range">30</float>
+        <Color3 name="Color">
+          <R>1</R><G>1</G><B>0.95</B>
+        </Color3>
+        <bool name="Enabled">true</bool>
+        <bool name="Shadows">true</bool>
+      </Properties>
+    </Item>` : ''}
   </Item>`
 }
 

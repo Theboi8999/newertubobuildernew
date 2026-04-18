@@ -79,16 +79,20 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
   }
 
   let combinedResearch = ''
+  const humanName = buildingType.replace(/_/g, ' ')
 
   // Step 2: Wikipedia summary
   try {
     const res = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(buildingType)}`,
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(humanName)}`,
       { headers: { 'User-Agent': 'TurboBuilder/1.0' } }
     )
     if (res.ok) {
       const data = await res.json()
-      if (data.extract) combinedResearch += `Wikipedia: ${data.extract}\n\n`
+      if (data.extract) {
+        combinedResearch += `Wikipedia: ${data.extract}\n\n`
+        console.log(`[researchBuildingType] Wikipedia summary: ${data.extract.length} chars`)
+      }
     }
   } catch (e) {
     console.error('[researchBuildingType] Wikipedia summary error:', e)
@@ -97,7 +101,7 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
   // Wikipedia wikitext for room/area mentions
   try {
     const res = await fetch(
-      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(buildingType)}&prop=revisions&rvprop=content&format=json&rvslots=main&origin=*`
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(humanName)}&prop=revisions&rvprop=content&format=json&rvslots=main&origin=*`
     )
     if (res.ok) {
       const data = await res.json()
@@ -108,7 +112,9 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
         /\b(room|floor|area|hall|office|cell|bay|ward|wing|suite|lobby|corridor|department)\b[^.]{0,120}/gi
       ) || []
       if (roomMatches.length > 0) {
-        combinedResearch += `Wikipedia rooms/areas: ${roomMatches.slice(0, 15).join('. ')}\n\n`
+        const section = roomMatches.slice(0, 15).join('. ')
+        combinedResearch += `Wikipedia rooms/areas: ${section}\n\n`
+        console.log(`[researchBuildingType] Wikipedia wikitext rooms: ${roomMatches.length} matches`)
       }
     }
   } catch (e) {
@@ -123,15 +129,21 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           api_key: process.env.TAVILY_API_KEY,
-          query: `${buildingType} interior layout rooms floor plan architecture`,
+          query: `${humanName} interior layout rooms floor plan architecture`,
           search_depth: 'advanced',
-          max_results: 5,
+          include_answer: true,
+          max_results: 7,
         }),
       })
       if (res.ok) {
         const data = await res.json()
-        const text = (data.results || []).map((r: any) => r.content || '').join('\n')
-        if (text) combinedResearch += `Tavily:\n${text}\n\n`
+        let tavilyText = ''
+        if (data.answer) tavilyText += `Answer: ${data.answer}\n`
+        tavilyText += (data.results || []).map((r: any) => r.content || '').join('\n')
+        if (tavilyText) {
+          combinedResearch += `Tavily:\n${tavilyText}\n\n`
+          console.log(`[researchBuildingType] Tavily: ${tavilyText.length} chars`)
+        }
       }
     }
   } catch (e) {
@@ -148,14 +160,17 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
           'x-api-key': process.env.SERPER_API_KEY!,
         },
         body: JSON.stringify({
-          q: `${buildingType} rooms list interior layout typical`,
-          num: 5,
+          q: `${humanName} rooms list interior layout typical`,
+          num: 7,
         }),
       })
       if (res.ok) {
         const data = await res.json()
-        const text = (data.organic || []).map((r: any) => r.snippet || '').join('\n')
-        if (text) combinedResearch += `Serper:\n${text}\n\n`
+        const text = (data.organic || []).map((r: any) => `${r.title || ''}: ${r.snippet || ''}`).join('\n')
+        if (text) {
+          combinedResearch += `Serper:\n${text}\n\n`
+          console.log(`[researchBuildingType] Serper: ${text.length} chars`)
+        }
       }
     }
   } catch (e) {
@@ -170,15 +185,47 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
   let result: ResearchResult = FALLBACK_RESULT(buildingType)
 
   try {
-    const systemPrompt = `You are an expert architect and Roblox game developer. Given research about a building type, extract structured layout data for a Roblox building. Use exact Roblox BrickColor names (e.g. "White", "Bright red", "Navy blue", "Medium stone grey", "Sand yellow", "Reddish brown"). Respond ONLY with valid JSON, no markdown, no explanation:
-{"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"Concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}
-Include at least 6 rooms. Each room must have realistic dimensions in Roblox studs (1 stud = 28cm).`
+    const systemPrompt = `You are an expert architect and Roblox game developer. Given research about a building type, synthesise the information into a structured JSON layout for a Roblox building.
+
+ROOM NAMING GUIDE (use these names when appropriate):
+- Police Station: Main Entrance, Front Desk, Waiting Area, Holding Cell, Interrogation Room, Briefing Room, Locker Room, Evidence Room, Staff Room, Armory
+- Hospital: Main Entrance, Reception, Waiting Room, Triage, Emergency Bay, Ward, Operating Theatre, Pharmacy, Nurse Station, Storage
+- School: Main Entrance, Reception, Classroom A, Classroom B, Science Lab, Library, Cafeteria, Gymnasium, Staff Room, Principal Office
+- Restaurant: Main Entrance, Dining Area, Bar, Kitchen, Storage Room, Staff Room, Bathroom
+- Convenience Store: Main Entrance, Sales Floor, Checkout Area, Stockroom, Staff Room, Bathroom, Refrigeration Area
+- Fire Station: Main Entrance, Apparatus Bay, Briefing Room, Dormitory, Kitchen, Locker Room, Watch Room, Gym
+
+VALID BrickColor NAMES (use ONLY these):
+White, Institutional white, Ghost white, Light grey, Medium stone grey, Dark grey, Black, Bright red, Crimson, Dark red, Rust, Bright orange, Bright yellow, Cool yellow, Bright green, Dark green, Sand green, Medium green, Mint, Bright blue, Navy blue, Sand blue, Light blue, Teal, Cyan, Bright violet, Lavender, Hot pink, Reddish brown, Brown, Pine cone, Sand yellow, Brick yellow, Fossil
+
+VALID MATERIAL NAMES (use ONLY these):
+smoothplastic, wood, concrete, brick, metal, fabric, marble, glass, neon
+
+RULES:
+- Include at least 6 rooms, at most 12 rooms. Each room name must be unique.
+- Room dimensions in Roblox studs (1 stud = 28cm): width/depth 8-30, height 8-14
+- Furniture: 0-5 items per room with realistic sizes
+- exteriorColor and roofColor must be valid BrickColor names
+- confidence: 0-100 score for how well the research supports the layout
+
+Respond ONLY with valid JSON, no markdown, no explanation:
+{"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
 
     const userMsg = `Building type: ${buildingType}\n\nResearch:\n${combinedResearch.slice(0, 3000)}`
+    console.log(`[researchBuildingType] Sending ${userMsg.length} chars to Groq`)
     const rawJson = await geminiGenerate(systemPrompt, userMsg, 2000)
+    console.log(`[researchBuildingType] Groq raw response length: ${rawJson.length}`)
 
-    const cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
-    const parsed = JSON.parse(cleaned)
+    let cleaned: string
+    let parsed: any
+    try {
+      cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
+      parsed = JSON.parse(cleaned)
+    } catch (parseErr) {
+      console.error('[researchBuildingType] JSON parse error:', parseErr)
+      console.error('[researchBuildingType] Raw Groq response:', rawJson.slice(0, 500))
+      throw parseErr
+    }
     result = { ...FALLBACK_RESULT(buildingType), ...parsed }
 
     // Bug fix #4: enforce minimum 6 rooms after parse

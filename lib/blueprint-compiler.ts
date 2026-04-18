@@ -1,6 +1,7 @@
 // lib/blueprint-compiler.ts
 import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
+import { PROP_LIBRARY } from './model-library'
 
 export interface CompiledBlueprint {
   buildingType: string
@@ -81,11 +82,12 @@ const MATERIAL_MAP: Record<string, string> = {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function getColorTheme(buildingType: string): ColorTheme {
-  const bt = buildingType.toLowerCase()
-  for (const [key, theme] of Object.entries(BUILDING_COLOR_THEMES)) {
-    if (key !== 'default' && bt.includes(key)) return theme
-  }
-  return BUILDING_COLOR_THEMES.default
+  const bt = buildingType.toLowerCase().replace(/_/g, ' ')
+  const keys = Object.keys(BUILDING_COLOR_THEMES).filter(k => k !== 'default')
+  const match = keys.find(k => bt.includes(k.replace(/_/g, ' ')))
+  const theme = BUILDING_COLOR_THEMES[match ?? 'default']
+  console.log('[blueprint-compiler] buildingType:', buildingType, 'theme key:', match ?? 'default')
+  return theme
 }
 
 function isRetailType(buildingType: string): boolean {
@@ -94,7 +96,7 @@ function isRetailType(buildingType: string): boolean {
 }
 
 function validateColor(color: string): string {
-  if (!color) return 'Medium stone grey'
+  if (!color) return 'Light grey'
   const lower = color.toLowerCase().trim()
   if (COLOR_ALIASES[lower]) return COLOR_ALIASES[lower]
   const exact = VALID_BRICK_COLORS.find(c => c.toLowerCase() === lower)
@@ -105,7 +107,7 @@ function validateColor(color: string): string {
     const match = VALID_BRICK_COLORS.find(c => c.toLowerCase().includes(word))
     if (match) return match
   }
-  return 'Medium stone grey'
+  return 'Light grey'
 }
 
 function validateMaterial(mat: string): string {
@@ -149,7 +151,7 @@ function compileRoom(
   const t = 0.5
 
   const parts: RbxPart[] = [
-    p(`${name}_Floor`,     w, 0.5, d,   offsetX,         0.25,    offsetZ,      fc,   fm),
+    p(`${name}_Floor`,     w, 1,   d,   offsetX,         0.5,     offsetZ,      fc,   fm),
     p(`${name}_Ceiling`,   w, 0.5, d,   offsetX,         h,       offsetZ,      wc,   'smoothplastic'),
     p(`${name}_WallNorth`, w, h,   t,   offsetX,         h / 2,   offsetZ - d / 2, wc, 'smoothplastic'),
     p(`${name}_WallSouth`, w, h,   t,   offsetX,         h / 2,   offsetZ + d / 2, wc, 'smoothplastic'),
@@ -179,7 +181,7 @@ function compileRoom(
     parts.push(p(
       `${name}_${item.name}`,
       fw, fh, fd,
-      fx, 0.5 + fh / 2, fz,   // Bug fix #1: correct Y
+      fx, 1 + fh / 2, fz,
       validateColor(item.color || 'Reddish brown'),
       validateMaterial(item.material || 'wood'),
     ))
@@ -296,12 +298,46 @@ function addDetailParts(roomData: RoomMeta[]): RbxPart[] {
     detail.push(p(`${name}_TrimW`, 0.4, 0.4, d,   offsetX - w / 2 + 0.2, h - 0.2, offsetZ, 'White', 'smoothplastic'))
     detail.push(p(`${name}_TrimE`, 0.4, 0.4, d,   offsetX + w / 2 - 0.2, h - 0.2, offsetZ, 'White', 'smoothplastic'))
     // Floor border strips
-    detail.push(p(`${name}_BordN`, w,   0.3, 0.3, offsetX,         0.65, offsetZ - d / 2 + 0.15, 'Dark grey', 'smoothplastic'))
-    detail.push(p(`${name}_BordS`, w,   0.3, 0.3, offsetX,         0.65, offsetZ + d / 2 - 0.15, 'Dark grey', 'smoothplastic'))
-    detail.push(p(`${name}_BordW`, 0.3, 0.3, d,   offsetX - w / 2 + 0.15, 0.65, offsetZ, 'Dark grey', 'smoothplastic'))
-    detail.push(p(`${name}_BordE`, 0.3, 0.3, d,   offsetX + w / 2 - 0.15, 0.65, offsetZ, 'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordN`, w,   0.3, 0.3, offsetX,         1.15, offsetZ - d / 2 + 0.15, 'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordS`, w,   0.3, 0.3, offsetX,         1.15, offsetZ + d / 2 - 0.15, 'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordW`, 0.3, 0.3, d,   offsetX - w / 2 + 0.15, 1.15, offsetZ, 'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordE`, 0.3, 0.3, d,   offsetX + w / 2 - 0.15, 1.15, offsetZ, 'Dark grey', 'smoothplastic'))
   }
   return detail
+}
+
+// ── Prop library placement ─────────────────────────────────────────────────
+
+function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWidth: number, roomDepth: number): RbxPart[] {
+  const name = roomName.toLowerCase()
+  const w2 = roomWidth / 2 - 2
+  const d2 = roomDepth / 2 - 2
+
+  if (name.includes('checkout') || name.includes('cashier') || name.includes('till')) {
+    return PROP_LIBRARY.CHECKOUT_COUNTER(roomX, 0, roomZ - d2)
+  }
+  if (name.includes('refriger') || name.includes('fridge') || name.includes('cold')) {
+    return PROP_LIBRARY.REFRIGERATOR_UNIT(roomX + w2, 0, roomZ)
+  }
+  if (name.includes('shelf') || name.includes('sales') || name.includes('retail') || name.includes('store floor')) {
+    return PROP_LIBRARY.SHELVING_UNIT(roomX - w2, 0, roomZ)
+  }
+  if (name.includes('holding') || name.includes('detention') || (name.includes('cell') && !name.includes('excel'))) {
+    return PROP_LIBRARY.POLICE_CELL(roomX, 0, roomZ)
+  }
+  if (name.includes('bathroom') || name.includes('toilet') || name.includes('restroom') || name.includes('lavatory') || name.includes(' wc')) {
+    return PROP_LIBRARY.TOILET_CUBICLE(roomX, 0, roomZ)
+  }
+  if (name.includes('reception') || name.includes('lobby') || name.includes('waiting area') || name.includes('front desk')) {
+    return PROP_LIBRARY.RECEPTION_DESK(roomX, 0, roomZ + d2)
+  }
+  if (name.includes('office') || name.includes('admin') || name.includes('principal') || name.includes('staff room')) {
+    return [
+      ...PROP_LIBRARY.OFFICE_DESK(roomX - w2, 0, roomZ),
+      ...PROP_LIBRARY.OFFICE_CHAIR(roomX - w2 + 3, 0, roomZ),
+    ]
+  }
+  return []
 }
 
 // ── Main entry point ───────────────────────────────────────────────────────
@@ -341,6 +377,9 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
       roomParts.push(...addRetailShelving(room.name, offsetX, offsetZ, w, d))
       roomParts.push(...addCheckoutCounter(room.name, offsetX, offsetZ, d))
     }
+
+    // Add detailed props from model library based on room name
+    roomParts.push(...getPropsForRoom(room.name, offsetX, offsetZ, w, d))
 
     compiledRooms.push(roomParts)
     roomMeta.push({ name: room.name, offsetX, offsetZ, w, d, h })

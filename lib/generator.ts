@@ -1,5 +1,6 @@
 // lib/generator.ts
 import { geminiGenerate } from './groq'
+import { createAdminClient } from './supabase'
 import { getKnowledgeForSystem, getQualityStandards, interpretPrompt, buildQuantityInstruction, SystemType } from './knowledge/index'
 import { getKnowledgeForPrompt } from './knowledge-store'
 import { getScriptsForPrompt } from './script-library'
@@ -82,6 +83,14 @@ export async function generateAsset(
         allParts = [...compiled.rooms.flat(), ...compiled.exterior]
         specItems = researchResult.rooms.map(r => r.name)
         console.log('[generateAsset] compiled blueprint parts:', allParts.length)
+
+        // Save compiled blueprint to cache
+        try {
+          const supabaseAdmin = createAdminClient()
+          await supabaseAdmin.from('research_cache').update({ blueprint: compiled }).eq('building_type', buildingType)
+        } catch (e) {
+          console.error('[generateAsset] blueprint cache save error:', e)
+        }
       } catch (e) {
         console.error('[generateAsset] research/compile error:', e)
       }
