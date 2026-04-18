@@ -365,10 +365,22 @@ function SystemPageInner() {
                 </div>
 
                 {generation.output_url && (
-                  <a href={generation.output_url} download
+                  <button
+                    onClick={async () => {
+                      const res = await fetch(generation.output_url)
+                      const blob = await res.blob()
+                      const blobUrl = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = blobUrl
+                      a.download = `turbobuilder-${generationId}.rbxmx`
+                      document.body.appendChild(a)
+                      a.click()
+                      document.body.removeChild(a)
+                      URL.revokeObjectURL(blobUrl)
+                    }}
                     className="btn btn-primary w-full py-3.5 text-sm font-semibold mb-4 text-center block">
                     ⬇ Download .rbxmx File
-                  </a>
+                  </button>
                 )}
 
                 {generation.spec_items?.length > 0 && (
