@@ -51,12 +51,7 @@ export const generateFunction = inngest.createFunction(
           generationId,
           async (msg: string, percent: number) => {
             // Fire-and-forget progress updates (don't await — keeps generation moving)
-            supabase
-              .from('generations')
-              .update({ status: 'generating', progress: percent })
-              .eq('id', generationId)
-              .then(() => {})
-              .catch(() => {})
+            ;(async () => { try { await supabase.from('generations').update({ status: 'generating', progress: percent }).eq('id', generationId) } catch {} })()
           }
         )
       })
