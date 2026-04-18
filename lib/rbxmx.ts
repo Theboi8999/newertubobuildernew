@@ -63,7 +63,7 @@ const SHAPE_ENUM: Record<string, number> = {
 // Valid Roblox BrickColors - map invalid ones to nearest valid
 const VALID_COLORS: Record<string, string> = {
   'transparent': 'Institutional white',
-  'dark red': 'Crimson',
+  'dark red': 'Bright red',
   'dark blue': 'Navy blue',
   'dark grey': 'Dark grey',
   'dark gray': 'Dark grey',
@@ -86,6 +86,21 @@ const VALID_COLORS: Record<string, string> = {
   'gold': 'Bright yellow',
   'teal': 'Teal',
   'cyan': 'Cyan',
+  // Full BrickColor names as pass-throughs (defensive: ensures casing is normalised)
+  'navy blue': 'Navy blue',
+  'bright green': 'Bright green',
+  'bright red': 'Bright red',
+  'bright blue': 'Bright blue',
+  'bright yellow': 'Bright yellow',
+  'bright orange': 'Bright orange',
+  'bright violet': 'Bright violet',
+  'light grey': 'Light grey',
+  'sand yellow': 'Sand yellow',
+  'sand blue': 'Sand blue',
+  'brick yellow': 'Brick yellow',
+  'institutional white': 'Institutional white',
+  'reddish brown': 'Reddish brown',
+  'medium stone grey': 'Medium stone grey',
 }
 
 function sanitizeColor(color: string): string {

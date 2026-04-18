@@ -147,15 +147,15 @@ function compileRoom(
   offsetZ: number,
   theme: ColorTheme,
 ): RbxPart[] {
-  const { name, wallColor, floorColor, floorMaterial, furniture } = room
+  const { name, wallColor, floorMaterial, furniture } = room
   const w = Math.max(8, Number(room.width) || 12)
   const d = Math.max(8, Number(room.depth) || 10)
   const h = Math.max(5, Number(room.height) || 10)
 
-  // Bug fix #3: prefer research color if it resolves to something other than fallback
-  const resolvedWall = validateColor(wallColor)
-  const wc = (resolvedWall !== 'Medium stone grey' || !wallColor) ? resolvedWall : theme.floor
-  const fc = floorColor ? validateColor(floorColor) : theme.floor
+  // Interior walls: use Groq's wallColor only when the building has no strong theme (default Light grey).
+  // For themed buildings, always force Light grey walls so dark Groq colors don't override the interior.
+  const wc = theme.exterior === 'Light grey' ? validateColor(wallColor) || 'Light grey' : 'Light grey'
+  const fc = theme.floor
   const fm = validateMaterial(floorMaterial)
   const t = 0.5
 
