@@ -29,19 +29,33 @@ export interface ResearchResult {
   confidence: number
 }
 
+// Bug fix #4: fallback has 6 rooms so minimum is always met
 const FALLBACK_RESULT = (buildingType: string): ResearchResult => ({
   buildingType,
   rooms: [
-    { name: 'Main Hall', width: 20, depth: 15, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
-    { name: 'Office', width: 10, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
+    { name: 'Main Entrance', width: 16, depth: 12, height: 10, furniture: [], wallColor: 'White', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
+    { name: 'Main Hall',     width: 20, depth: 15, height: 10, furniture: [], wallColor: 'White', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
+    { name: 'Office',        width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
+    { name: 'Staff Room',    width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
+    { name: 'Storage',       width: 8,  depth: 8,  height: 8,  furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
+    { name: 'Utility Room',  width: 8,  depth: 6,  height: 8,  furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
   ],
-  totalWidth: 40,
-  totalDepth: 30,
-  exteriorColor: 'Light grey',
+  totalWidth: 50,
+  totalDepth: 40,
+  exteriorColor: 'Medium stone grey',
   roofColor: 'Dark grey',
   culturalNotes: '',
   confidence: 0,
 })
+
+const GENERIC_PAD_ROOMS: ResearchResult['rooms'] = [
+  { name: 'Corridor',      width: 10, depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
+  { name: 'Meeting Room',  width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
+  { name: 'Waiting Area',  width: 12, depth: 8,  height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
+  { name: 'Store Room',    width: 8,  depth: 6,  height: 8,  furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' },
+  { name: 'Bathroom',      width: 6,  depth: 6,  height: 8,  furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'Marble' },
+  { name: 'Break Room',    width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
+]
 
 export async function researchBuildingType(buildingType: string, forceRefresh = false): Promise<ResearchResult> {
   const supabase = createAdminClient()
@@ -156,8 +170,9 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
   let result: ResearchResult = FALLBACK_RESULT(buildingType)
 
   try {
-    const systemPrompt = `You are an expert architect and Roblox game developer. Given research about a building type, extract structured layout data. Respond ONLY with valid JSON matching this exact schema, no markdown, no explanation:
-{"buildingType":"string","rooms":[{"name":"string","width":20,"depth":15,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"string","material":"string"}],"wallColor":"string","floorColor":"string","floorMaterial":"string"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"string","roofColor":"string","culturalNotes":"string","confidence":75}`
+    const systemPrompt = `You are an expert architect and Roblox game developer. Given research about a building type, extract structured layout data for a Roblox building. Use exact Roblox BrickColor names (e.g. "White", "Bright red", "Navy blue", "Medium stone grey", "Sand yellow", "Reddish brown"). Respond ONLY with valid JSON, no markdown, no explanation:
+{"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"Concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}
+Include at least 6 rooms. Each room must have realistic dimensions in Roblox studs (1 stud = 28cm).`
 
     const userMsg = `Building type: ${buildingType}\n\nResearch:\n${combinedResearch.slice(0, 3000)}`
     const rawJson = await geminiGenerate(systemPrompt, userMsg, 2000)
@@ -165,13 +180,21 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
     const cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
     const parsed = JSON.parse(cleaned)
     result = { ...FALLBACK_RESULT(buildingType), ...parsed }
+
+    // Bug fix #4: enforce minimum 6 rooms after parse
+    let padIdx = 0
+    while (result.rooms.length < 6) {
+      result.rooms.push(GENERIC_PAD_ROOMS[padIdx % GENERIC_PAD_ROOMS.length])
+      padIdx++
+    }
   } catch (e) {
     console.error('[researchBuildingType] Groq synthesis error:', e)
   }
 
+  // Bug fix #2: log cache save errors explicitly
   // Step 6: Save to cache
   try {
-    await supabase.from('research_cache').upsert({
+    const { error: upsertError } = await supabase.from('research_cache').upsert({
       building_type: buildingType,
       raw_research: combinedResearch.slice(0, 10000),
       structured_knowledge: result,
@@ -179,8 +202,10 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
       research_version: 1,
       last_researched_at: new Date().toISOString(),
     }, { onConflict: 'building_type' })
+    if (upsertError) console.error('[researchBuildingType] Cache upsert error:', upsertError.message)
+    else console.log(`[researchBuildingType] Cached "${buildingType}" confidence=${result.confidence}`)
   } catch (e) {
-    console.error('[researchBuildingType] Cache save error:', e)
+    console.error('[researchBuildingType] Cache save threw:', e)
   }
 
   return result
