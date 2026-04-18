@@ -221,6 +221,7 @@ Respond ONLY with valid JSON, no markdown, no explanation:
     try {
       cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
       parsed = JSON.parse(cleaned)
+      console.log('[DEBUG] Groq returned rooms:', parsed.rooms?.map((r: any) => `${r.name}(${r.width}x${r.depth}x${r.height})`).join(', '))
     } catch (parseErr) {
       console.error('[researchBuildingType] JSON parse error:', parseErr)
       console.error('[researchBuildingType] Raw Groq response:', rawJson.slice(0, 500))

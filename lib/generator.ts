@@ -86,6 +86,10 @@ export async function generateAsset(
         compiled = compileBlueprint(researchResult)
         allParts = [...compiled.rooms.flat(), ...compiled.exterior]
         console.log('[generator] compiled parts count:', allParts.length)
+        console.log('[DEBUG] First 3 parts of allParts:', JSON.stringify(allParts.slice(0, 3), null, 2))
+        console.log('[DEBUG] Total parts:', allParts.length)
+        console.log('[DEBUG] Exterior parts count:', compiled.exterior.length)
+        console.log('[DEBUG] Room parts counts:', compiled.rooms.map((r, i) => `room${i}:${r.length}`).join(', '))
         specItems = researchResult.rooms.map(r => r.name)
         console.log('[generateAsset] compiled blueprint parts:', allParts.length)
 

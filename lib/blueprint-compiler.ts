@@ -162,6 +162,9 @@ function compileRoom(
   const d = Math.max(8, Number(room.depth) || 10)
   const h = Math.max(5, Number(room.height) || 10)
 
+  console.log('[DEBUG] compileRoom:', name, 'offsetX:', offsetX, 'offsetZ:', offsetZ, 'w:', w, 'd:', d, 'h:', h)
+  console.log('[DEBUG] wall color wc:', 'Light grey', 'floor color fc:', theme.floor)
+
   const wc = 'Light grey'
   const fc = theme.floor
   const fm = validateMaterial(floorMaterial)
@@ -253,6 +256,8 @@ function buildExteriorWalls(tw: number, td: number, height: number, theme: Color
   const retail = isRetailType(buildingType)
   console.log('[blueprint-compiler] exterior wall color being applied:', ec)
   console.log('[blueprint-compiler] roof color being applied:', rc)
+  console.log('[DEBUG] Building exterior with tw:', tw, 'td:', td, 'height:', height)
+  console.log('[DEBUG] theme.exterior:', theme.exterior, 'theme.roof:', theme.roof)
 
   const parts: RbxPart[] = [
     // Ground slab
