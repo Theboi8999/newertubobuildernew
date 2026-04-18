@@ -14,7 +14,7 @@ async function callGroq(system: string, prompt: string, maxTokens: number): Prom
     },
     body: JSON.stringify({
       model: 'llama-3.1-8b-instant',
-      max_tokens: Math.min(maxTokens, 8000),
+      max_tokens: Math.min(maxTokens, 4000),
       temperature: 0.2,
       messages: [
         { role: 'system', content: system },

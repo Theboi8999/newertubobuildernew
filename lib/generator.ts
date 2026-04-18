@@ -70,7 +70,8 @@ export async function generateAsset(
 
   const userPrompt = buildUserPrompt(prompt, quantityInstruction, options)
 
-  const rawOutput = await geminiGenerate(systemPrompt, userPrompt, 8000)
+  const trimmedKnowledge = systemPrompt.slice(0, 4000)
+  const rawOutput = await geminiGenerate(trimmedKnowledge, userPrompt, 8000)
 
   await onProgress?.('🔧 Validating output...', 85)
 
