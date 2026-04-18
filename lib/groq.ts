@@ -23,6 +23,10 @@ async function callGroq(system: string, prompt: string, maxTokens: number): Prom
     }),
   })
 
+  if (res.status === 429) {
+    throw Object.assign(new Error('Groq rate limit (429)'), { status: 429 })
+  }
+
   if (!res.ok) {
     const body = await res.text()
     throw new Error(`Groq API error: ${res.status} ${body}`)
@@ -48,8 +52,8 @@ export async function geminiGenerate(
     } catch (err: any) {
       lastError = err
       if (attempt < MAX_RETRIES) {
-        // Exponential backoff: 1s, 2s
-        await new Promise(r => setTimeout(r, attempt * 1000))
+        const delay = (err as any).status === 429 ? 5000 : attempt * 1000
+        await new Promise(r => setTimeout(r, delay))
       }
     }
   }

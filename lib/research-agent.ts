@@ -57,6 +57,93 @@ const GENERIC_PAD_ROOMS: ResearchResult['rooms'] = [
   { name: 'Break Room',    width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'Wood' },
 ]
 
+function getFallbackRooms(buildingType: string): ResearchResult {
+  const bt = buildingType.toLowerCase()
+
+  if (bt.includes('convenience') || bt.includes('konbini') || bt.includes('store') || bt.includes('shop')) {
+    return {
+      buildingType,
+      rooms: [
+        { name: 'Main Shopping Floor', width: 24, depth: 16, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Checkout Area',       width: 12, depth: 8,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Refrigerator Wall',   width: 12, depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Staff Room',          width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
+        { name: 'Storage Room',        width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Customer Toilet',     width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'marble' },
+      ],
+      totalWidth: 48, totalDepth: 32,
+      exteriorColor: 'Bright green', roofColor: 'White',
+      culturalNotes: 'Japanese convenience store', confidence: 50,
+    }
+  }
+
+  if (bt.includes('police') || (bt.includes('station') && !bt.includes('fire'))) {
+    return {
+      buildingType,
+      rooms: [
+        { name: 'Public Reception',  width: 20, depth: 14, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Officer Bullpen',   width: 24, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Holding Cell 1',    width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Holding Cell 2',    width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Interview Room',    width: 10, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Chief Office',      width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Reddish brown', floorMaterial: 'wood' },
+      ],
+      totalWidth: 50, totalDepth: 36,
+      exteriorColor: 'Navy blue', roofColor: 'Dark grey',
+      culturalNotes: 'UK police station', confidence: 50,
+    }
+  }
+
+  if (bt.includes('fire')) {
+    return {
+      buildingType,
+      rooms: [
+        { name: 'Apparatus Bay',   width: 24, depth: 16, height: 12, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Watch Room',      width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Briefing Room',   width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+        { name: 'Dormitory',       width: 14, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'wood' },
+        { name: 'Kitchen',         width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Locker Room',     width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+      ],
+      totalWidth: 50, totalDepth: 36,
+      exteriorColor: 'Bright red', roofColor: 'Dark grey',
+      culturalNotes: 'UK fire station', confidence: 50,
+    }
+  }
+
+  if (bt.includes('hospital') || bt.includes('clinic')) {
+    return {
+      buildingType,
+      rooms: [
+        { name: 'Main Entrance',     width: 20, depth: 14, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Reception',         width: 16, depth: 12, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Waiting Room',      width: 16, depth: 12, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Emergency Bay',     width: 20, depth: 14, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Ward',              width: 20, depth: 14, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+        { name: 'Nurse Station',     width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
+      ],
+      totalWidth: 52, totalDepth: 40,
+      exteriorColor: 'White', roofColor: 'White',
+      culturalNotes: 'NHS hospital', confidence: 50,
+    }
+  }
+
+  return {
+    buildingType,
+    rooms: [
+      { name: 'Main Hall',    width: 20, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
+      { name: 'Office',       width: 14, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
+      { name: 'Meeting Room', width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
+      { name: 'Reception',    width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
+      { name: 'Staff Room',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
+      { name: 'Toilet',       width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'marble' },
+    ],
+    totalWidth: 44, totalDepth: 32,
+    exteriorColor: 'Light grey', roofColor: 'Dark grey',
+    culturalNotes: 'Generic building', confidence: 30,
+  }
+}
+
 export async function researchBuildingType(buildingType: string, forceRefresh = false): Promise<ResearchResult> {
   const supabase = createAdminClient()
 
@@ -65,7 +152,7 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
     try {
       const { data: cached } = await supabase
         .from('research_cache')
-        .select('structured_knowledge, confidence_score, last_researched_at')
+        .select('*')
         .eq('building_type', buildingType)
         .single()
 
@@ -211,8 +298,10 @@ RULES:
 Respond ONLY with valid JSON, no markdown, no explanation:
 {"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
 
-    const userMsg = `Building type: ${buildingType}\n\nResearch:\n${combinedResearch.slice(0, 3000)}`
+    const truncatedResearch = combinedResearch.substring(0, 2000)
+    const userMsg = `Building type: ${buildingType}\n\nResearch:\n${truncatedResearch}`
     console.log(`[researchBuildingType] Sending ${userMsg.length} chars to Groq`)
+    await new Promise(resolve => setTimeout(resolve, 2000))
     const rawJson = await geminiGenerate(systemPrompt, userMsg, 2000)
     console.log(`[researchBuildingType] Groq raw response length: ${rawJson.length}`)
 
@@ -237,6 +326,7 @@ Respond ONLY with valid JSON, no markdown, no explanation:
     }
   } catch (e) {
     console.error('[researchBuildingType] Groq synthesis error:', e)
+    result = getFallbackRooms(buildingType)
   }
 
   // Bug fix #2: log cache save errors explicitly

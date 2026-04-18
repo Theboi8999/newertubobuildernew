@@ -40,32 +40,7 @@ export async function generateAsset(
 ): Promise<GenerateResult> {
   await onProgress?.('🔍 Analysing prompt...', 15)
 
-  // Static knowledge base
-  const staticKnowledge = getKnowledgeForSystem(systemType as SystemType, prompt)
-  const qualityStandards = getQualityStandards(systemType)
-  const promptIntent = interpretPrompt(prompt)
-  const quantityInstruction = buildQuantityInstruction(promptIntent)
-
-  // Dynamic DB knowledge injected from admin research panel
-  const dbKnowledge = await getKnowledgeForPrompt(prompt)
-
-  // User preferences (non-fatal)
-  const userPrefs = await getUserPreferences(userId).catch(() => null)
-
-  // Hardcoded research fallback
-  const research = await researchTopic(prompt, systemType)
-
-  await onProgress?.('📚 Loading specialist scripts...', 25)
-
-  // Script library injection
-  const { injectedKnowledge: scriptKnowledge, newScriptsGenerated } = await getScriptsForPrompt(
-    prompt,
-    (msg: string) => { onProgress?.(msg, 30) }
-  )
-
-  await onProgress?.('⚡ Generating your asset...', 45)
-
-  // ── Builder branch: research agent + dynamic blueprint ───────────────────
+  // ── Builder branch: runs FIRST — no Groq/knowledge calls before this ──────
   if (systemType === 'builder') {
     const buildingType = detectBuildingType(prompt)
     console.log('[generateAsset] detectBuildingType result:', buildingType)
@@ -146,14 +121,32 @@ export async function generateAsset(
       spec: specItems,
       qualityScore,
       qualityNotes,
-      newScriptsGenerated,
+      newScriptsGenerated: [],
       validationWarnings: [],
       partCount: allParts.length,
       roomLayout: compiled?.roomLayout,
     }
   }
 
-  // ── All other system types: Groq generation ──────────────────────────────
+  // ── All other system types: knowledge + Groq generation ─────────────────
+  const staticKnowledge = getKnowledgeForSystem(systemType as SystemType, prompt)
+  const qualityStandards = getQualityStandards(systemType)
+  const promptIntent = interpretPrompt(prompt)
+  const quantityInstruction = buildQuantityInstruction(promptIntent)
+
+  const dbKnowledge = await getKnowledgeForPrompt(prompt)
+  const userPrefs = await getUserPreferences(userId).catch(() => null)
+  const research = await researchTopic(prompt, systemType)
+
+  await onProgress?.('📚 Loading specialist scripts...', 25)
+
+  const { injectedKnowledge: scriptKnowledge, newScriptsGenerated } = await getScriptsForPrompt(
+    prompt,
+    (msg: string) => { onProgress?.(msg, 30) }
+  )
+
+  await onProgress?.('⚡ Generating your asset...', 45)
+
   const systemPrompt = buildSystemPrompt(
     staticKnowledge,
     dbKnowledge,
