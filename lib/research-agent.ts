@@ -154,7 +154,7 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
         .from('research_cache')
         .select('*')
         .eq('building_type', buildingType)
-        .single()
+        .maybeSingle()
 
       if (cached?.structured_knowledge && cached.confidence_score >= 70) {
         const ageMs = Date.now() - new Date(cached.last_researched_at).getTime()
@@ -170,8 +170,9 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
 
   // Step 2: Wikipedia summary
   try {
+    const wikiSlug = humanName.replace(/\s+/g, '_')
     const res = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(humanName)}`,
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiSlug)}`,
       { headers: { 'User-Agent': 'TurboBuilder/1.0' } }
     )
     if (res.ok) {
@@ -187,8 +188,9 @@ export async function researchBuildingType(buildingType: string, forceRefresh = 
 
   // Wikipedia wikitext for room/area mentions
   try {
+    const wikiSlug = humanName.replace(/\s+/g, '_')
     const res = await fetch(
-      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(humanName)}&prop=revisions&rvprop=content&format=json&rvslots=main&origin=*`
+      `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiSlug)}&prop=revisions&rvprop=content&format=json&rvslots=main&origin=*`
     )
     if (res.ok) {
       const data = await res.json()
@@ -298,10 +300,10 @@ RULES:
 Respond ONLY with valid JSON, no markdown, no explanation:
 {"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
 
-    const truncatedResearch = combinedResearch.substring(0, 2000)
+    const truncatedResearch = combinedResearch.substring(0, 1500)
     const userMsg = `Building type: ${buildingType}\n\nResearch:\n${truncatedResearch}`
     console.log(`[researchBuildingType] Sending ${userMsg.length} chars to Groq`)
-    await new Promise(resolve => setTimeout(resolve, 2000))
+    await new Promise(resolve => setTimeout(resolve, 3000))
     const rawJson = await geminiGenerate(systemPrompt, userMsg, 2000)
     console.log(`[researchBuildingType] Groq raw response length: ${rawJson.length}`)
 

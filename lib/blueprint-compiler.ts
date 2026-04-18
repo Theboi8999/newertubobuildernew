@@ -396,7 +396,16 @@ function getRoomType(name: string): string {
 export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
   console.log('[blueprint-compiler] buildingType input:', buildingType)
-  const theme = getColorTheme(buildingType)
+  let theme = getColorTheme(buildingType)
+  if (theme === BUILDING_COLOR_THEMES['default'] && research.exteriorColor) {
+    theme = {
+      exterior: validateColor(research.exteriorColor),
+      roof: validateColor(research.roofColor || 'Dark grey'),
+      trim: 'White',
+      floor: 'Medium stone grey',
+    }
+    console.log('[blueprint-compiler] using research colors — exterior:', theme.exterior, 'roof:', theme.roof)
+  }
   console.log('[blueprint-compiler] theme match result:', JSON.stringify(theme))
   const retail = isRetailType(buildingType)
 
