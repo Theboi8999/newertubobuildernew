@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import { createServerClient, createAdminClient } from '@/lib/supabase'
 import { inngest } from '@/lib/inngest'
 
+export const maxDuration = 60
+
 export async function POST(req: NextRequest) {
   try {
     const cookieStore = cookies()
@@ -28,7 +30,12 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const body = await req.json()
+    let body: any
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid request body — may be too large' }, { status: 400 })
+    }
     const { prompt, systemType, style, scale, locationReference, variations, referenceImages } = body
 
     if (!prompt || !systemType) {

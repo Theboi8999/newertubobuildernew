@@ -79,6 +79,32 @@ const WIZARD_QUESTIONS: Record<SystemId, { q: string; placeholder: string }[]> =
   ],
 }
 
+function compressImage(file: File): Promise<{ base64: string; mimeType: string; preview: string }> {
+  return new Promise(resolve => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const MAX = 512
+        let w = img.width
+        let h = img.height
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX }
+          else { w = Math.round(w * MAX / h); h = MAX }
+        }
+        canvas.width = w
+        canvas.height = h
+        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+        const compressed = canvas.toDataURL('image/jpeg', 0.7)
+        resolve({ base64: compressed.split(',')[1], mimeType: 'image/jpeg', preview: compressed })
+      }
+      img.src = e.target?.result as string
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
 function SystemPageInner() {
   const router = useRouter()
   const params = useSearchParams()
@@ -115,15 +141,8 @@ function SystemPageInner() {
     for (const file of Array.from(files)) {
       if (referenceImages.length + newImages.length >= 3) break
       if (!file.type.match(/^image\/(png|jpeg|webp)$/)) continue
-      await new Promise<void>(resolve => {
-        const reader = new FileReader()
-        reader.onload = () => {
-          const dataUrl = reader.result as string
-          newImages.push({ base64: dataUrl.split(',')[1], mimeType: file.type, preview: dataUrl })
-          resolve()
-        }
-        reader.readAsDataURL(file)
-      })
+      const compressed = await compressImage(file)
+      newImages.push(compressed)
     }
     setReferenceImages(prev => [...prev, ...newImages].slice(0, 3))
   }, [referenceImages.length])
