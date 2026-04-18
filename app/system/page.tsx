@@ -1,5 +1,57 @@
 'use client'
 import { useEffect, useState, useRef, Suspense } from 'react'
+import type { RoomLayoutItem } from '@/lib/blueprint-compiler'
+
+const ROOM_TYPE_COLORS: Record<string, string> = {
+  reception: '#7c3aed',
+  office: '#2563eb',
+  bathroom: '#0891b2',
+  holding: '#dc2626',
+  meeting: '#d97706',
+  kitchen: '#16a34a',
+  storage: '#6b7280',
+  retail: '#db2777',
+  locker: '#7c3aed',
+  general: '#4b5563',
+}
+
+function FloorPlanSVG({ rooms, totalWidth, totalDepth }: { rooms: RoomLayoutItem[]; totalWidth: number; totalDepth: number }) {
+  if (!rooms || rooms.length === 0) return null
+  const PAD = 10
+  const SVG_W = 340
+  const SVG_H = 220
+  const scaleX = (SVG_W - PAD * 2) / totalWidth
+  const scaleY = (SVG_H - PAD * 2) / totalDepth
+
+  return (
+    <div className="mb-6">
+      <p className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-3">Floor Plan</p>
+      <div className="rounded-xl overflow-hidden border border-brand-border bg-brand-surface">
+        <svg width="100%" viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ display: 'block' }}>
+          {/* Building outline */}
+          <rect x={PAD} y={PAD} width={SVG_W - PAD * 2} height={SVG_H - PAD * 2} fill="#1a1a2e" stroke="#334155" strokeWidth="1" rx="2" />
+          {rooms.map((room) => {
+            const rx = PAD + (room.x - room.w / 2) * scaleX
+            const rz = PAD + (room.z - room.d / 2) * scaleY
+            const rw = room.w * scaleX
+            const rd = room.d * scaleY
+            const fill = ROOM_TYPE_COLORS[room.type] || '#4b5563'
+            return (
+              <g key={room.name}>
+                <rect x={rx} y={rz} width={rw} height={rd} fill={fill} fillOpacity="0.25" stroke={fill} strokeWidth="1" rx="1" />
+                {rw > 30 && rd > 12 && (
+                  <text x={rx + rw / 2} y={rz + rd / 2 + 4} textAnchor="middle" fontSize="7" fill={fill} fontFamily="monospace">
+                    {room.name.replace(/_/g, ' ').slice(0, 14)}
+                  </text>
+                )}
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+    </div>
+  )
+}
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { SYSTEMS, STYLE_OPTIONS, SCALE_OPTIONS, qualityColor, qualityLabel } from '@/lib/utils'
@@ -386,6 +438,14 @@ function SystemPageInner() {
                     className="btn btn-primary w-full py-3.5 text-sm font-semibold mb-4 text-center block">
                     ⬇ Download .rbxmx File
                   </button>
+                )}
+
+                {generation.output_metadata?.roomLayout?.length > 0 && (
+                  <FloorPlanSVG
+                    rooms={generation.output_metadata.roomLayout}
+                    totalWidth={generation.output_metadata.roomLayout.reduce((max: number, r: RoomLayoutItem) => Math.max(max, r.x + r.w / 2), 0) + 6}
+                    totalDepth={generation.output_metadata.roomLayout.reduce((max: number, r: RoomLayoutItem) => Math.max(max, r.z + r.d / 2), 0) + 6}
+                  />
                 )}
 
                 {/* Star rating */}

@@ -3,12 +3,22 @@ import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
 import { PROP_LIBRARY } from './model-library'
 
+export interface RoomLayoutItem {
+  name: string
+  type: string
+  x: number
+  z: number
+  w: number
+  d: number
+}
+
 export interface CompiledBlueprint {
   buildingType: string
   rooms: RbxPart[][]
   exterior: RbxPart[]
   totalWidth: number
   totalDepth: number
+  roomLayout: RoomLayoutItem[]
 }
 
 interface ColorTheme {
@@ -155,7 +165,7 @@ function compileRoom(
   const wc = 'Light grey'
   const fc = theme.floor
   const fm = validateMaterial(floorMaterial)
-  const t = 0.5
+  const t = 0.3
 
   const parts: RbxPart[] = [
     p(`${name}_Floor`,     w, 1,   d,   offsetX,         0.5,     offsetZ,      fc,   fm),
@@ -362,6 +372,20 @@ function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWid
   return []
 }
 
+function getRoomType(name: string): string {
+  const n = name.toLowerCase()
+  if (n.includes('reception') || n.includes('lobby')) return 'reception'
+  if (n.includes('bathroom') || n.includes('toilet') || n.includes('restroom') || n.includes('lavatory')) return 'bathroom'
+  if (n.includes('holding') || n.includes('detention') || (n.includes('cell') && !n.includes('excel'))) return 'holding'
+  if (n.includes('meeting') || n.includes('conference') || n.includes('briefing') || n.includes('interrogation')) return 'meeting'
+  if (n.includes('kitchen') || n.includes('break') || n.includes('canteen')) return 'kitchen'
+  if (n.includes('storage') || n.includes('warehouse') || n.includes('stock')) return 'storage'
+  if (n.includes('sales') || n.includes('retail') || n.includes('shop') || n.includes('checkout')) return 'retail'
+  if (n.includes('locker')) return 'locker'
+  if (n.includes('office') || n.includes('admin') || n.includes('staff')) return 'office'
+  return 'general'
+}
+
 // ── Main entry point ───────────────────────────────────────────────────────
 
 export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
@@ -372,11 +396,12 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
   const retail = isRetailType(buildingType)
 
   const COLS = 2
-  let cursorX = 0
-  let cursorZ = 0
+  let cursorX = 3
+  let cursorZ = 3
   let rowMaxDepth = 0
   const compiledRooms: RbxPart[][] = []
   const roomMeta: RoomMeta[] = []
+  const roomLayout: RoomLayoutItem[] = []
 
   for (let i = 0; i < research.rooms.length; i++) {
     const room = research.rooms[i]
@@ -386,8 +411,8 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
     const col = i % COLS
 
     if (col === 0 && i > 0) {
-      cursorZ += rowMaxDepth + 2
-      cursorX = 0
+      cursorZ += rowMaxDepth
+      cursorX = 3
       rowMaxDepth = 0
     }
 
@@ -408,14 +433,16 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
 
     compiledRooms.push(roomParts)
     roomMeta.push({ name: room.name, offsetX, offsetZ, w, d, h })
+    roomLayout.push({ name: room.name, type: getRoomType(room.name), x: offsetX, z: offsetZ, w, d })
 
-    cursorX += w + 2
+    cursorX += w
     rowMaxDepth = Math.max(rowMaxDepth, d)
   }
 
   const tw = Math.max(research.totalWidth || 40, cursorX + 6)
   const td = Math.max(research.totalDepth || 30, cursorZ + rowMaxDepth + 6)
-  const EXTERIOR_HEIGHT = 14
+  const tallestRoom = Math.max(...research.rooms.map(r => Math.max(5, Number(r.height) || 10)))
+  const EXTERIOR_HEIGHT = tallestRoom + 2
 
   const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, buildingType)
 
@@ -425,5 +452,5 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
     compiledRooms[0] = [...compiledRooms[0], ...addDetailParts(roomMeta)]
   }
 
-  return { buildingType, rooms: compiledRooms, exterior, totalWidth: tw, totalDepth: td }
+  return { buildingType, rooms: compiledRooms, exterior, totalWidth: tw, totalDepth: td, roomLayout }
 }

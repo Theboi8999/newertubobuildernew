@@ -27,6 +27,7 @@ export interface GenerateResult {
   newScriptsGenerated: string[]
   validationWarnings: string[]
   partCount: number
+  roomLayout?: import('./blueprint-compiler').RoomLayoutItem[]
 }
 
 export async function generateAsset(
@@ -73,6 +74,7 @@ export async function generateAsset(
     let specItems: string[] = []
     let usedFallback = false
     let researchResult: ResearchResult | null = null
+    let compiled: ReturnType<typeof compileBlueprint> | null = null
 
     if (buildingType) {
       try {
@@ -81,7 +83,7 @@ export async function generateAsset(
         console.log('[generateAsset] research confidence:', researchResult.confidence)
 
         console.log('[generator] calling compileBlueprint for:', buildingType)
-        const compiled = compileBlueprint(researchResult)
+        compiled = compileBlueprint(researchResult)
         allParts = [...compiled.rooms.flat(), ...compiled.exterior]
         console.log('[generator] compiled parts count:', allParts.length)
         specItems = researchResult.rooms.map(r => r.name)
@@ -113,7 +115,7 @@ export async function generateAsset(
     const rbxmxBuilt = buildRbxmx([model])
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
 
-    let qualityScore = usedFallback ? 75 : 92
+    let qualityScore = usedFallback ? 75 : 85
     let qualityNotes = usedFallback ? 'Fallback generic building' : 'Blueprint build'
 
     if (researchResult && buildingType) {
@@ -143,6 +145,7 @@ export async function generateAsset(
       newScriptsGenerated,
       validationWarnings: [],
       partCount: allParts.length,
+      roomLayout: compiled?.roomLayout,
     }
   }
 

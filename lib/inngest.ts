@@ -128,6 +128,7 @@ export const generateFunction = inngest.createFunction(
             partCount: result.partCount ?? 0,
             newScriptsGenerated: result.newScriptsGenerated || [],
             validationWarnings: result.validationWarnings || [],
+            roomLayout: result.roomLayout || [],
           },
           completed_at: new Date().toISOString(),
         })
