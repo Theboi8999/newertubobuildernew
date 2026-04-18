@@ -183,3 +183,72 @@ select id, email, true, true from auth.users where email = 'zack@myerscough.info
 on conflict (id) do update set is_admin = true, is_authorized = true;
 
 select 'TurboBuilder setup complete!' as result;
+
+-- ── Research & Self-teaching tables ────────────────────────────────────────
+
+-- Research knowledge cache
+CREATE TABLE IF NOT EXISTS research_cache (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  building_type text NOT NULL UNIQUE,
+  raw_research text,
+  structured_knowledge jsonb,
+  blueprint jsonb,
+  confidence_score integer DEFAULT 0,
+  research_version integer DEFAULT 1,
+  last_researched_at timestamptz DEFAULT now(),
+  created_at timestamptz DEFAULT now()
+);
+
+-- Generation failures for self-teaching
+CREATE TABLE IF NOT EXISTS generation_failures (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  building_type text,
+  failure_reason text,
+  missing_rooms text[],
+  quality_score integer,
+  generation_id uuid,
+  created_at timestamptz DEFAULT now()
+);
+
+-- User ratings
+CREATE TABLE IF NOT EXISTS generation_ratings (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  generation_id uuid NOT NULL,
+  user_id uuid NOT NULL,
+  rating integer CHECK (rating >= 1 AND rating <= 5),
+  created_at timestamptz DEFAULT now()
+);
+
+-- Knowledge patches from self-teaching
+CREATE TABLE IF NOT EXISTS knowledge_patches (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  building_type text NOT NULL,
+  patch_note text NOT NULL,
+  applied_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE research_cache ENABLE ROW LEVEL SECURITY;
+ALTER TABLE generation_failures ENABLE ROW LEVEL SECURITY;
+ALTER TABLE generation_ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE knowledge_patches ENABLE ROW LEVEL SECURITY;
+
+-- research_cache: service role only
+DROP POLICY IF EXISTS "service research_cache" ON research_cache;
+CREATE POLICY "service research_cache" ON research_cache USING (false);
+
+-- generation_failures: service role only
+DROP POLICY IF EXISTS "service generation_failures" ON generation_failures;
+CREATE POLICY "service generation_failures" ON generation_failures USING (false);
+
+-- knowledge_patches: service role only
+DROP POLICY IF EXISTS "service knowledge_patches" ON knowledge_patches;
+CREATE POLICY "service knowledge_patches" ON knowledge_patches USING (false);
+
+-- generation_ratings: authenticated users insert/read own rows
+DROP POLICY IF EXISTS "own ratings insert" ON generation_ratings;
+CREATE POLICY "own ratings insert" ON generation_ratings
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "own ratings read" ON generation_ratings;
+CREATE POLICY "own ratings read" ON generation_ratings
+  FOR SELECT USING (auth.uid() = user_id);

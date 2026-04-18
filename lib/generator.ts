@@ -6,8 +6,10 @@ import { getScriptsForPrompt } from './script-library'
 import { validateRbxmx, watermarkRbxmx } from './output-validator'
 import { savePromptHistory, getUserPreferences } from './prompt-memory'
 import { researchTopic } from './research'
-import { detectBuildingType, BUILDING_BLUEPRINTS, ROOM_TEMPLATES, offsetRoom } from './room-templates'
+import { detectBuildingType } from './room-templates'
 import { buildRbxmx, RbxModel, RbxPart } from './rbxmx'
+import { researchBuildingType, ResearchResult } from './research-agent'
+import { compileBlueprint } from './blueprint-compiler'
 
 export interface GenerateOptions {
   style?: string
@@ -60,37 +62,34 @@ export async function generateAsset(
 
   await onProgress?.('⚡ Generating your asset...', 45)
 
-  // ── Builder branch: programmatic blueprint system ────────────────────────
+  // ── Builder branch: research agent + dynamic blueprint ───────────────────
   if (systemType === 'builder') {
     const buildingType = detectBuildingType(prompt)
     console.log('[generateAsset] detectBuildingType result:', buildingType)
 
     let allParts: RbxPart[] = []
-    let specItems: Array<{ label: string; category: 'structure'; count: number }> = []
+    let specItems: string[] = []
     let usedFallback = false
+    let researchResult: ResearchResult | null = null
 
-    if (buildingType && BUILDING_BLUEPRINTS[buildingType]) {
-      const blueprint = BUILDING_BLUEPRINTS[buildingType]
-      for (const room of blueprint.rooms) {
-        const template = ROOM_TEMPLATES[room.template]
-        if (template) {
-          const offsetParts = offsetRoom(template, room.offsetX, 0, room.offsetZ)
-          allParts.push(...(offsetParts as RbxPart[]))
-          specItems.push({ label: room.label, category: 'structure', count: 1 })
-        }
+    if (buildingType) {
+      try {
+        await onProgress?.('🔬 Researching building type...', 50)
+        researchResult = await researchBuildingType(buildingType)
+        console.log('[generateAsset] research confidence:', researchResult.confidence)
+
+        const compiled = compileBlueprint(researchResult)
+        allParts = [...compiled.rooms.flat(), ...compiled.exterior]
+        specItems = researchResult.rooms.map(r => r.name)
+        console.log('[generateAsset] compiled blueprint parts:', allParts.length)
+      } catch (e) {
+        console.error('[generateAsset] research/compile error:', e)
       }
-      allParts.push(...buildExterior(blueprint.totalWidth, blueprint.totalDepth, 12, blueprint.exteriorColor, blueprint.roofColor))
-      console.log('[generateAsset] blueprint rooms loop added', allParts.length, 'parts')
     }
 
     if (allParts.length === 0) {
       allParts = buildGenericBuilding(['Reception', 'Main Office', 'Holding Cell', 'Break Room', 'Briefing Room', 'Locker Room'])
-      specItems = [
-        { label: 'Reception', category: 'structure' as const, count: 1 },
-        { label: 'Main Office', category: 'structure' as const, count: 1 },
-        { label: 'Holding Cell', category: 'structure' as const, count: 1 },
-        { label: 'Break Room', category: 'structure' as const, count: 1 },
-      ]
+      specItems = ['Reception', 'Main Office', 'Holding Cell', 'Break Room', 'Briefing Room', 'Locker Room']
       usedFallback = true
     }
 
@@ -102,10 +101,19 @@ export async function generateAsset(
     const rbxmxBuilt = buildRbxmx([model])
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
 
-    const qualityScore = usedFallback ? 75 : 92
-    const qualityNotes = usedFallback
-      ? 'Fallback generic building (no parts from blueprint)'
-      : 'Blueprint build'
+    let qualityScore = usedFallback ? 75 : 92
+    let qualityNotes = usedFallback ? 'Fallback generic building' : 'Blueprint build'
+
+    if (researchResult && buildingType) {
+      try {
+        const { evaluateGeneration } = await import('./auto-evaluator')
+        const evalResult = await evaluateGeneration({ rbxmx: rbxmxFinal, buildingType, researchResult, generationId })
+        qualityScore = evalResult.score
+        qualityNotes = evalResult.notes
+      } catch (e) {
+        console.error('[generateAsset] auto-evaluator error:', e)
+      }
+    }
 
     savePromptHistory(userId, {
       prompt,
@@ -117,7 +125,7 @@ export async function generateAsset(
 
     return {
       rbxmx: rbxmxFinal,
-      spec: specItems.map(s => s.label),
+      spec: specItems,
       qualityScore,
       qualityNotes,
       newScriptsGenerated,
@@ -169,23 +177,6 @@ export async function generateAsset(
   }
 }
 
-function buildExterior(
-  width: number,
-  depth: number,
-  height: number,
-  exteriorColor: string,
-  roofColor: string
-): RbxPart[] {
-  const t = 1 // wall thickness
-  return [
-    { name: 'ExteriorFloor', size: { x: width, y: 1, z: depth }, position: { x: 0, y: 0, z: 0 }, color: 'Medium stone grey', material: 'concrete', anchored: true, transparency: 0 },
-    { name: 'WallFront', size: { x: width, y: height, z: t }, position: { x: 0, y: height / 2, z: -(depth / 2) }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
-    { name: 'WallBack', size: { x: width, y: height, z: t }, position: { x: 0, y: height / 2, z: depth / 2 }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
-    { name: 'WallLeft', size: { x: t, y: height, z: depth }, position: { x: -(width / 2), y: height / 2, z: 0 }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
-    { name: 'WallRight', size: { x: t, y: height, z: depth }, position: { x: width / 2, y: height / 2, z: 0 }, color: exteriorColor, material: 'smoothplastic', anchored: true, transparency: 0 },
-    { name: 'Roof', size: { x: width + 2, y: 1, z: depth + 2 }, position: { x: 0, y: height + 0.5, z: 0 }, color: roofColor, material: 'smoothplastic', anchored: true, transparency: 0 },
-  ]
-}
 
 function buildGenericBuilding(rooms: string[]): RbxPart[] {
   return rooms.flatMap((room, i): RbxPart[] => {

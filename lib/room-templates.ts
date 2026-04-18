@@ -252,12 +252,21 @@ export const BUILDING_BLUEPRINTS: Record<string, {
   },
 }
 
+const FILLER_WORDS = new Set([
+  'a', 'an', 'the', 'with', 'full', 'interior', 'exterior', 'build',
+  'me', 'make', 'create', 'generate', 'and', 'or', 'of', 'in', 'on',
+  'at', 'to', 'for', 'from', 'by', 'is', 'are', 'was', 'were',
+  'roblox', 'studio', 'game', 'map', 'asset', 'model',
+  'style', 'type', 'large', 'small', 'big', 'complete', 'detailed',
+  'furnished', 'realistic', 'accurate', 'uk', 'us', 'usa',
+])
+
 export function detectBuildingType(prompt: string): string | null {
-  const p = prompt.toLowerCase()
-  if (p.includes('fire') || p.includes('appliance') || p.includes('engine house')) return 'fire_station'
-  if (p.includes('police') || p.includes('constabulary') || p.includes('cop shop')) return 'police_station'
-  if (p.includes('hospital') || p.includes('medical') || p.includes('clinic') || p.includes('nhs') || p.includes('a&e')) return 'hospital'
-  if (p.includes('school') || p.includes('college') || p.includes('academy') || p.includes('university')) return 'school'
-  if (p.includes('garage') || p.includes('mechanic') || p.includes('workshop') || p.includes('mot')) return 'garage'
-  return null
+  const words = prompt
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 1 && !FILLER_WORDS.has(w))
+  if (words.length === 0) return null
+  return words.join('_')
 }

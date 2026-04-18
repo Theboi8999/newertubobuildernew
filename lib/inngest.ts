@@ -6,6 +6,23 @@ export const inngest = new Inngest({
   eventKey: process.env.INNGEST_EVENT_KEY,
 })
 
+export const researchRetryFunction = inngest.createFunction(
+  { id: 'research-retry', name: 'Re-research Building Type', retries: 1 },
+  { event: 'research/retry' },
+  async ({ event, step }) => {
+    const { buildingType } = event.data as { buildingType: string }
+
+    await step.run('re-research', async () => {
+      const { researchBuildingType } = await import('./research-agent')
+      const result = await researchBuildingType(buildingType, true)
+      console.log(`[researchRetry] Re-researched "${buildingType}" — confidence: ${result.confidence}`)
+      return result
+    })
+
+    return { success: true, buildingType }
+  }
+)
+
 export const generateFunction = inngest.createFunction(
   {
     id: 'generate-asset',

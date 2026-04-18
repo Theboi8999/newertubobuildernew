@@ -1,9 +1,9 @@
 // app/api/inngest/route.ts
 import { serve } from 'inngest/next'
-import { inngest, generateFunction } from '@/lib/inngest'
+import { inngest, generateFunction, researchRetryFunction } from '@/lib/inngest'
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [generateFunction],
+  functions: [generateFunction, researchRetryFunction],
   signingKey: process.env.INNGEST_SIGNING_KEY,
 })

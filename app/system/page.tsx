@@ -50,6 +50,8 @@ function SystemPageInner() {
   const [criticism, setCriticism] = useState('')
   const [criticiseLoading, setCriticiseLoading] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [rating, setRating] = useState(0)
+  const [ratingDone, setRatingDone] = useState(false)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -382,6 +384,34 @@ function SystemPageInner() {
                     ⬇ Download .rbxmx File
                   </button>
                 )}
+
+                {/* Star rating */}
+                <div className="mb-5">
+                  {ratingDone ? (
+                    <p className="text-xs text-brand-text-muted text-center">Thanks for rating!</p>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xs text-brand-text-muted mr-1">Rate this generation:</span>
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          onClick={async () => {
+                            setRating(star)
+                            await fetch('/api/rate', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ generationId, rating: star }),
+                            })
+                            setRatingDone(true)
+                          }}
+                          className={`text-xl transition-colors ${star <= rating ? 'text-brand-purple-light' : 'text-brand-border hover:text-brand-text-muted'}`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 {generation.spec_items?.length > 0 && (
                   <div className="mb-6">
