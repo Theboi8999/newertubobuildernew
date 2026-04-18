@@ -3,14 +3,19 @@ import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
 import { PROP_LIBRARY } from './model-library'
 import type { QualityTarget } from './vision-analyzer'
+import {
+  buildDetailedWall, buildDetailedFloor, buildDetailedCeiling,
+  buildDetailedDoor, buildWallDetails,
+  buildDetailedDesk, buildDetailedChair, buildDetailedShelf, buildDetailedLocker,
+} from './detail-system'
 
 export interface RoomLayoutItem {
   name: string
   type: string
   x: number
   z: number
-  w: number
-  d: number
+  width: number
+  depth: number
 }
 
 export interface CompiledBlueprint {
@@ -63,7 +68,6 @@ export const VALID_BRICK_COLORS: string[] = [
   'Sand yellow', 'Brick yellow', 'Fossil',
 ]
 
-// Bug fix #3: expanded alias map so Groq color names don't default to Light grey
 const COLOR_ALIASES: Record<string, string> = {
   'beige': 'Sand yellow', 'cream': 'White', 'ivory': 'White',
   'off-white': 'Institutional white', 'off white': 'Institutional white',
@@ -102,11 +106,9 @@ function getColorTheme(buildingType: string): ColorTheme {
   const normalized = buildingType.toLowerCase().replace(/_/g, ' ')
   for (const key of Object.keys(BUILDING_COLOR_THEMES)) {
     if (key !== 'default' && normalized.includes(key)) {
-      console.log('[blueprint-compiler] matched theme key:', key)
       return BUILDING_COLOR_THEMES[key]
     }
   }
-  console.log('[blueprint-compiler] no theme match, using default')
   return BUILDING_COLOR_THEMES['default']
 }
 
@@ -115,7 +117,7 @@ function isRetailType(buildingType: string): boolean {
   return RETAIL_KEYWORDS.some(k => bt.includes(k))
 }
 
-function validateColor(color: string): string {
+export function validateColor(color: string): string {
   if (!color) return 'Light grey'
   const lower = color.toLowerCase().trim()
   if (COLOR_ALIASES[lower]) return COLOR_ALIASES[lower]
@@ -130,7 +132,7 @@ function validateColor(color: string): string {
   return 'Light grey'
 }
 
-function validateMaterial(mat: string): string {
+export function validateMaterial(mat: string): string {
   if (!mat) return 'smoothplastic'
   return MATERIAL_MAP[mat.toLowerCase()] || 'smoothplastic'
 }
@@ -150,6 +152,118 @@ function p(
   }
 }
 
+// ── Placement-aware furniture ──────────────────────────────────────────────
+
+type FurnitureItem = NonNullable<ResearchResult['rooms'][0]['furniture']>[0]
+
+function spawnFurniturePart(item: FurnitureItem, tag: string, fx: number, fz: number): RbxPart[] {
+  const fw = Math.max(0.5, Number(item.size?.x) || 2)
+  const fh = Math.max(0.5, Number(item.size?.y) || 1)
+  const fd = Math.max(0.5, Number(item.size?.z) || 2)
+  const color = validateColor(item.color || 'Reddish brown')
+  const mat = validateMaterial(item.material || 'wood')
+  const n = item.name.toLowerCase()
+
+  if (n.includes('desk')) {
+    return buildDetailedDesk({ name: tag, x: fx, y: 1, z: fz, width: fw, depth: fd, deskColor: color }) as RbxPart[]
+  }
+  if (n.includes('chair') || n.includes('seat')) {
+    return buildDetailedChair({ name: tag, x: fx, y: 1, z: fz, color }) as RbxPart[]
+  }
+  if (n.includes('shelf') || n.includes('shelv') || n.includes('rack')) {
+    return buildDetailedShelf({ name: tag, x: fx, y: 0, z: fz, width: fw, depth: fd, color }) as RbxPart[]
+  }
+  if (n.includes('locker')) {
+    return buildDetailedLocker({ name: tag, x: fx, y: 0, z: fz, color }) as RbxPart[]
+  }
+  return [p(tag, fw, fh, fd, fx, 1 + fh / 2, fz, color, mat)]
+}
+
+function placeAlongWall(
+  items: FurnitureItem[],
+  roomName: string,
+  offsetX: number,
+  offsetZ: number,
+  w: number,
+  d: number,
+  wall: 'north_wall' | 'south_wall' | 'east_wall' | 'west_wall',
+): RbxPart[] {
+  const parts: RbxPart[] = []
+  if (!items.length) return parts
+  const margin = 1.2
+  let cursor = 0
+
+  for (const item of items) {
+    const qty = Math.max(1, item.quantity || 1)
+    const fw = Math.max(0.5, Number(item.size?.x) || 2)
+    const fd = Math.max(0.5, Number(item.size?.z) || 2)
+    const isHoriz = wall === 'north_wall' || wall === 'south_wall'
+    const step = (isHoriz ? fw : fd) + 0.5
+
+    for (let q = 0; q < qty; q++) {
+      let fx: number, fz: number
+
+      if (wall === 'north_wall') {
+        fx = offsetX - w / 2 + margin + cursor + fw / 2
+        fz = offsetZ - d / 2 + fd / 2 + margin
+      } else if (wall === 'south_wall') {
+        fx = offsetX - w / 2 + margin + cursor + fw / 2
+        fz = offsetZ + d / 2 - fd / 2 - margin
+      } else if (wall === 'west_wall') {
+        fx = offsetX - w / 2 + fw / 2 + margin
+        fz = offsetZ - d / 2 + margin + cursor + fd / 2
+      } else {
+        fx = offsetX + w / 2 - fw / 2 - margin
+        fz = offsetZ - d / 2 + margin + cursor + fd / 2
+      }
+
+      fx = Math.min(offsetX + w / 2 - margin, Math.max(offsetX - w / 2 + margin, fx))
+      fz = Math.min(offsetZ + d / 2 - margin, Math.max(offsetZ - d / 2 + margin, fz))
+
+      parts.push(...spawnFurniturePart(item, `${roomName}_${item.name}_${q}`, fx, fz))
+      cursor += step
+    }
+  }
+  return parts
+}
+
+function placeInRows(
+  items: FurnitureItem[],
+  roomName: string,
+  offsetX: number,
+  offsetZ: number,
+  w: number,
+  d: number,
+): RbxPart[] {
+  const parts: RbxPart[] = []
+  if (!items.length) return parts
+  const margin = 1.5
+  let fi = 0
+
+  for (const item of items) {
+    const qty = Math.max(1, item.quantity || 1)
+    const fw = Math.max(0.5, Number(item.size?.x) || 2)
+    const fd = Math.max(0.5, Number(item.size?.z) || 2)
+
+    for (let q = 0; q < qty; q++) {
+      const cols = Math.max(1, Math.floor((w - margin * 2) / (fw + 1)))
+      const col = fi % cols
+      const row = Math.floor(fi / cols)
+      const fx = Math.min(
+        offsetX + w / 2 - margin,
+        Math.max(offsetX - w / 2 + margin, offsetX - w / 2 + margin + col * (fw + 1) + fw / 2)
+      )
+      const fz = Math.min(
+        offsetZ + d / 2 - margin,
+        Math.max(offsetZ - d / 2 + margin, offsetZ - d / 2 + margin + row * (fd + 1) + fd / 2)
+      )
+      parts.push(...spawnFurniturePart(item, `${roomName}_${item.name}_${q}`, fx, fz))
+      fi++
+    }
+  }
+  return parts
+}
+
 // ── Room compiler ──────────────────────────────────────────────────────────
 
 function compileRoom(
@@ -158,55 +272,38 @@ function compileRoom(
   offsetZ: number,
   theme: ColorTheme,
 ): RbxPart[] {
-  const { name, floorMaterial, furniture } = room
+  const { name, floorMaterial } = room
   const w = Math.max(8, Number(room.width) || 12)
   const d = Math.max(8, Number(room.depth) || 10)
   const h = Math.max(5, Number(room.height) || 10)
-
-  console.log('[DEBUG] compileRoom:', name, 'offsetX:', offsetX, 'offsetZ:', offsetZ, 'w:', w, 'd:', d, 'h:', h)
-  console.log('[DEBUG] wall color wc:', 'Light grey', 'floor color fc:', theme.floor)
-
-  const wc = 'Light grey'
-  const fc = theme.floor
   const fm = validateMaterial(floorMaterial)
-  const t = 0.3
 
   const parts: RbxPart[] = [
-    p(`${name}_Floor`,     w, 1,   d,   offsetX,         0.5,     offsetZ,      fc,   fm),
-    p(`${name}_Ceiling`,   w, 0.5, d,   offsetX,         h,       offsetZ,      wc,   'smoothplastic'),
-    p(`${name}_WallNorth`, w, h,   t,   offsetX,         h / 2,   offsetZ - d / 2, wc, 'smoothplastic'),
-    p(`${name}_WallSouth`, w, h,   t,   offsetX,         h / 2,   offsetZ + d / 2, wc, 'smoothplastic'),
-    p(`${name}_WallWest`,  t, h,   d,   offsetX - w / 2, h / 2,   offsetZ,      wc,   'smoothplastic'),
-    p(`${name}_WallEast`,  t, h,   d,   offsetX + w / 2, h / 2,   offsetZ,      wc,   'smoothplastic'),
-    // Ceiling light strip
-    p(`${name}_CeilLight`, w - 1, 0.3, 1, offsetX, h - 0.2, offsetZ, 'Institutional white', 'neon', 0.1),
+    ...(buildDetailedFloor({ name, x: offsetX, z: offsetZ, width: w, depth: d, color: theme.floor, material: fm, hasBorderTiles: true }) as RbxPart[]),
+    ...(buildDetailedCeiling({ name, x: offsetX, z: offsetZ, width: w, depth: d, height: h, color: 'White', lightCount: Math.max(1, Math.floor(w / 8)), hasAirVents: w >= 12 }) as RbxPart[]),
+    ...(buildDetailedWall({ name: `${name}_N`, x: offsetX, y: h / 2, z: offsetZ - d / 2, width: w, height: h, direction: 'north', color: 'Light grey', material: 'smoothplastic', hasSkirtingBoard: true, hasCornicing: true }) as RbxPart[]),
+    ...(buildDetailedWall({ name: `${name}_S`, x: offsetX, y: h / 2, z: offsetZ + d / 2, width: w, height: h, direction: 'south', color: 'Light grey', material: 'smoothplastic', hasSkirtingBoard: true, hasCornicing: true }) as RbxPart[]),
+    ...(buildDetailedWall({ name: `${name}_W`, x: offsetX - w / 2, y: h / 2, z: offsetZ, width: d, height: h, direction: 'west', color: 'Light grey', material: 'smoothplastic', hasSkirtingBoard: true }) as RbxPart[]),
+    ...(buildDetailedWall({ name: `${name}_E`, x: offsetX + w / 2, y: h / 2, z: offsetZ, width: d, height: h, direction: 'east', color: 'Light grey', material: 'smoothplastic', hasSkirtingBoard: true }) as RbxPart[]),
+    ...(buildDetailedDoor({ name: `${name}_Door`, x: offsetX, y: 0, z: offsetZ + d / 2, direction: 'south' }) as RbxPart[]),
+    ...(buildWallDetails({ name: `${name}_WD`, x: offsetX - w / 2 + 1, y: h / 2, z: offsetZ, width: d, height: h, direction: 'west', hasPowerSocket: true, hasLightSwitch: true, hasRadiator: h >= 8 }) as RbxPart[]),
   ]
 
-  // Bug fix #1: furniture Y = floor_top (0.5) + half furniture height, clamped inside room
-  const margin = 1.5
-  for (let fi = 0; fi < (furniture || []).length; fi++) {
-    const item = furniture[fi]
-    const fw = Math.max(0.5, Number(item.size?.x) || 2)
-    const fh = Math.max(0.5, Number(item.size?.y) || 1)
-    const fd = Math.max(0.5, Number(item.size?.z) || 2)
+  const furniture = room.furniture || []
+  const northItems = furniture.filter(f => f.placement === 'north_wall')
+  const southItems = furniture.filter(f => f.placement === 'south_wall')
+  const eastItems  = furniture.filter(f => f.placement === 'east_wall')
+  const westItems  = furniture.filter(f => f.placement === 'west_wall')
+  const rowItems   = furniture.filter(f => f.placement === 'row')
+  const centerItems = furniture.filter(f => f.placement === 'center' || !f.placement)
 
-    const cols = Math.max(1, Math.floor((w - margin * 2) / (fw + 1)))
-    const col = fi % cols
-    const row = Math.floor(fi / cols)
-
-    const rawFx = offsetX - w / 2 + margin + col * (fw + 1) + fw / 2
-    const rawFz = offsetZ - d / 2 + margin + row * (fd + 1) + fd / 2
-    const fx = Math.min(offsetX + w / 2 - margin, Math.max(offsetX - w / 2 + margin, rawFx))
-    const fz = Math.min(offsetZ + d / 2 - margin, Math.max(offsetZ - d / 2 + margin, rawFz))
-
-    parts.push(p(
-      `${name}_${item.name}`,
-      fw, fh, fd,
-      fx, 1 + fh / 2, fz,
-      validateColor(item.color || 'Reddish brown'),
-      validateMaterial(item.material || 'wood'),
-    ))
-  }
+  parts.push(
+    ...placeAlongWall(northItems, name, offsetX, offsetZ, w, d, 'north_wall'),
+    ...placeAlongWall(southItems, name, offsetX, offsetZ, w, d, 'south_wall'),
+    ...placeAlongWall(eastItems,  name, offsetX, offsetZ, w, d, 'east_wall'),
+    ...placeAlongWall(westItems,  name, offsetX, offsetZ, w, d, 'west_wall'),
+    ...placeInRows([...rowItems, ...centerItems], name, offsetX, offsetZ, w, d),
+  )
 
   return parts
 }
@@ -222,13 +319,10 @@ function addRetailShelving(roomName: string, offsetX: number, offsetZ: number, w
     const sx = offsetX - w / 2 + 3 + i * 4
     if (sx > offsetX + w / 2 - 3) break
 
-    // Shelf unit body
     parts.push(p(`${roomName}_Shelf1_${i}`,    1, 4, shelfLength, sx,     2.5, offsetZ, 'White',      'smoothplastic'))
-    // Shelf surfaces
     parts.push(p(`${roomName}_ShelfTop1_${i}`, 1, 0.3, shelfLength, sx,   4.3, offsetZ, 'Light grey', 'smoothplastic'))
     parts.push(p(`${roomName}_ShelfMid1_${i}`, 1, 0.3, shelfLength, sx,   2.3, offsetZ, 'Light grey', 'smoothplastic'))
 
-    // Second row offset on X
     const sx2 = sx + 2
     if (sx2 <= offsetX + w / 2 - 2) {
       parts.push(p(`${roomName}_Shelf2_${i}`,    1, 4, shelfLength, sx2,   2.5, offsetZ, 'White',      'smoothplastic'))
@@ -250,39 +344,104 @@ function addCheckoutCounter(roomName: string, offsetX: number, offsetZ: number, 
 
 // ── Exterior ───────────────────────────────────────────────────────────────
 
-function buildExteriorWalls(tw: number, td: number, height: number, theme: ColorTheme, buildingType: string): RbxPart[] {
+function buildExteriorWalls(
+  tw: number, td: number, height: number,
+  theme: ColorTheme, buildingType: string,
+  exteriorFeatures?: ResearchResult['exteriorFeatures'],
+): RbxPart[] {
   const ec = theme.exterior
   const rc = theme.roof
   const tc = theme.trim
   const retail = isRetailType(buildingType)
-  console.log('[blueprint-compiler] exterior wall color being applied:', ec)
-  console.log('[blueprint-compiler] roof color being applied:', rc)
-  console.log('[DEBUG] Building exterior with tw:', tw, 'td:', td, 'height:', height)
-  console.log('[DEBUG] theme.exterior:', theme.exterior, 'theme.roof:', theme.roof)
+  const feat = exteriorFeatures || {}
 
   const parts: RbxPart[] = [
     // Ground slab
-    p('Exterior_Floor',       tw,     1,    td,     tw / 2, 0,            td / 2, 'Medium stone grey', 'concrete'),
-    // Back and side solid walls
-    p('Exterior_WallSouth',   tw,     height, 1,    tw / 2, height / 2,   td,     ec, 'smoothplastic'),
-    p('Exterior_WallWest',    1,      height, td,   0,      height / 2,   td / 2, ec, 'smoothplastic'),
-    p('Exterior_WallEast',    1,      height, td,   tw,     height / 2,   td / 2, ec, 'smoothplastic'),
+    p('Exterior_Ground',     tw + 30, 1, td + 30, tw / 2,  0,            td / 2,   'Medium stone grey', 'concrete'),
+    // Perimeter walls
+    p('Exterior_WallSouth',  tw, height, 1, tw / 2, height / 2, td,    ec, 'smoothplastic'),
+    p('Exterior_WallWest',   1, height, td, 0,      height / 2, td / 2, ec, 'smoothplastic'),
+    p('Exterior_WallEast',   1, height, td, tw,     height / 2, td / 2, ec, 'smoothplastic'),
     // Roof slab
-    p('Exterior_Roof',        tw + 2, 1,    td + 2, tw / 2, height + 0.5, td / 2, rc, 'smoothplastic'),
-    // Roof edge trim (Bug fix #5: exterior detail)
-    p('Exterior_RoofTrimF',   tw + 2, 0.8,  0.8,   tw / 2, height + 0.1, -0.4,      tc, 'smoothplastic'),
-    p('Exterior_RoofTrimB',   tw + 2, 0.8,  0.8,   tw / 2, height + 0.1, td + 0.4,  tc, 'smoothplastic'),
-    p('Exterior_RoofTrimL',   0.8,   0.8,  td + 2, -0.4,   height + 0.1, td / 2,    tc, 'smoothplastic'),
-    p('Exterior_RoofTrimR',   0.8,   0.8,  td + 2, tw + 0.4, height + 0.1, td / 2,  tc, 'smoothplastic'),
+    p('Exterior_Roof',       tw + 2, 1, td + 2, tw / 2, height + 0.5, td / 2, rc, 'smoothplastic'),
+    // Roof edge trim
+    p('Exterior_RoofTrimF',  tw + 2, 0.8, 0.8, tw / 2,    height + 0.1, -0.4,      tc, 'smoothplastic'),
+    p('Exterior_RoofTrimB',  tw + 2, 0.8, 0.8, tw / 2,    height + 0.1, td + 0.4,  tc, 'smoothplastic'),
+    p('Exterior_RoofTrimL',  0.8,   0.8, td + 2, -0.4,    height + 0.1, td / 2,    tc, 'smoothplastic'),
+    p('Exterior_RoofTrimR',  0.8,   0.8, td + 2, tw + 0.4, height + 0.1, td / 2,   tc, 'smoothplastic'),
     // Corner pillars
-    p('Exterior_PillarNW', 1.5, height, 1.5, 0.75,       height / 2, 0.75,       ec, 'smoothplastic'),
-    p('Exterior_PillarNE', 1.5, height, 1.5, tw - 0.75,  height / 2, 0.75,       ec, 'smoothplastic'),
-    p('Exterior_PillarSW', 1.5, height, 1.5, 0.75,       height / 2, td - 0.75,  ec, 'smoothplastic'),
-    p('Exterior_PillarSE', 1.5, height, 1.5, tw - 0.75,  height / 2, td - 0.75,  ec, 'smoothplastic'),
+    p('Exterior_PillarNW', 1.5, height, 1.5, 0.75,      height / 2, 0.75,      ec, 'smoothplastic'),
+    p('Exterior_PillarNE', 1.5, height, 1.5, tw - 0.75, height / 2, 0.75,      ec, 'smoothplastic'),
+    p('Exterior_PillarSW', 1.5, height, 1.5, 0.75,      height / 2, td - 0.75, ec, 'smoothplastic'),
+    p('Exterior_PillarSE', 1.5, height, 1.5, tw - 0.75, height / 2, td - 0.75, ec, 'smoothplastic'),
   ]
 
+  // Roof details — HVAC / AC units
+  const hvacCount = Math.max(1, Math.floor(tw / 20))
+  for (let i = 0; i < hvacCount; i++) {
+    const hx = tw * 0.25 + i * (tw / (hvacCount + 1))
+    parts.push(p(`Roof_HVAC_${i}`,    4, 2, 3, hx, height + 1.5, td / 2 + i * 4, 'Dark grey', 'metal'))
+    parts.push(p(`Roof_HVAC_Fan_${i}`, 3, 0.3, 3, hx, height + 2.65, td / 2 + i * 4, 'Medium stone grey', 'metal'))
+  }
+
+  // Bollards near entrance
+  const bollardCount = 4
+  for (let i = 0; i < bollardCount; i++) {
+    const bx = tw / 2 - 6 + i * 4
+    parts.push(p(`Bollard_${i}_Post`,  0.6, 3, 0.6, bx, 1.5, -3, 'Dark grey', 'metal'))
+    parts.push(p(`Bollard_${i}_Top`,   0.8, 0.4, 0.8, bx, 3.2, -3, 'Bright yellow', 'smoothplastic'))
+  }
+
+  // Exterior lamp posts on each side of entrance
+  parts.push(p('LampPost_L_Pole',  0.4, 8, 0.4, tw / 2 - 8, 4, -6, 'Dark grey', 'metal'))
+  parts.push(p('LampPost_L_Head',  1.5, 0.5, 1.5, tw / 2 - 8, 8.25, -6, 'Dark grey', 'metal'))
+  parts.push(p('LampPost_L_Light', 1, 0.3, 1, tw / 2 - 8, 8, -6, 'Bright yellow', 'neon', 0.1))
+  parts.push(p('LampPost_R_Pole',  0.4, 8, 0.4, tw / 2 + 8, 4, -6, 'Dark grey', 'metal'))
+  parts.push(p('LampPost_R_Head',  1.5, 0.5, 1.5, tw / 2 + 8, 8.25, -6, 'Dark grey', 'metal'))
+  parts.push(p('LampPost_R_Light', 1, 0.3, 1, tw / 2 + 8, 8, -6, 'Bright yellow', 'neon', 0.1))
+
+  // Flagpole
+  if (feat.hasFlagpole !== false) {
+    parts.push(p('Flagpole_Base',  1, 0.5, 1, tw / 2 - tw / 3, 0.25, -8, 'Medium stone grey', 'concrete'))
+    parts.push(p('Flagpole_Pole',  0.3, 14, 0.3, tw / 2 - tw / 3, 7, -8, 'Light grey', 'metal'))
+    parts.push(p('Flagpole_Flag',  4, 2.5, 0.2, tw / 2 - tw / 3 + 2, 13, -8, 'Bright red', 'fabric'))
+  }
+
+  // Fence / perimeter barrier
+  if (feat.hasFence) {
+    const fenceH = 4
+    const postSpacing = 6
+    const sidesData: [string, number, number, number, number][] = [
+      ['FenceN', tw, fenceH, tw / 2, -10],
+      ['FenceS', tw, fenceH, tw / 2, td + 10],
+    ]
+    for (const [fname, fw2, fh, fx, fz2] of sidesData) {
+      parts.push(p(`${fname}_Rail`, fw2, 0.3, 0.3, fx, fh - 0.5, fz2, 'Dark grey', 'metal'))
+      parts.push(p(`${fname}_Rail2`, fw2, 0.3, 0.3, fx, fh / 2, fz2, 'Dark grey', 'metal'))
+      const postCount = Math.floor(fw2 / postSpacing)
+      for (let pi = 0; pi <= postCount; pi++) {
+        const px = fx - fw2 / 2 + pi * postSpacing
+        parts.push(p(`${fname}_Post_${pi}`, 0.4, fh, 0.4, px, fh / 2, fz2, 'Dark grey', 'metal'))
+      }
+    }
+  }
+
+  // Car park
+  if (feat.hasCarPark) {
+    const spaces = 6
+    const spaceW = 4
+    const spaceD = 8
+    const parkZ = td + 4
+    for (let i = 0; i < spaces; i++) {
+      const sx = tw / 2 - (spaces * spaceW) / 2 + i * spaceW + spaceW / 2
+      parts.push(p(`CarPark_Space_${i}`, spaceW - 0.3, 0.1, spaceD, sx, 0.55, parkZ + spaceD / 2, 'Medium stone grey', 'smoothplastic'))
+      parts.push(p(`CarPark_Line_L_${i}`, 0.2, 0.1, spaceD, sx - spaceW / 2, 0.6, parkZ + spaceD / 2, 'White', 'smoothplastic'))
+      parts.push(p(`CarPark_Line_R_${i}`, 0.2, 0.1, spaceD, sx + spaceW / 2, 0.6, parkZ + spaceD / 2, 'White', 'smoothplastic'))
+    }
+  }
+
+  // Front wall + door
   if (retail) {
-    // Glass front wall: solid pillars + large glass panel + transom
     const pillarW = 2
     const glassW  = Math.max(4, tw - pillarW * 2 - 2)
     const glassH  = height - 3
@@ -291,42 +450,36 @@ function buildExteriorWalls(tw: number, td: number, height: number, theme: Color
     parts.push(p('Exterior_FrontPillarR', pillarW, height, 1, tw - pillarW / 2 - 1, height / 2, 0, ec, 'smoothplastic'))
     parts.push(p('Exterior_FrontGlass', glassW, glassH, 0.3, tw / 2, glassH / 2 + 0.5, 0, 'Institutional white', 'smoothplastic', 0.3))
     parts.push(p('Exterior_FrontTransom', tw, height - glassH - 0.5, 1, tw / 2, glassH + (height - glassH) / 2, 0, ec, 'smoothplastic'))
-    // Entrance canopy
     parts.push(p('Exterior_Canopy', tw, 0.8, 4, tw / 2, height * 0.75, -2, tc, 'smoothplastic'))
-    // Signage panel
-    parts.push(p('Signage_Panel', Math.max(4, tw - 4), 2, 0.3, tw / 2, height - 1, -0.5, ec, 'smoothplastic'))
+    parts.push(p('Signage_Panel', Math.max(4, tw - 4), 2.5, 0.3, tw / 2, height - 1, -0.5, ec, 'neon'))
   } else {
-    // Solid front wall with door opening implied by frame
     parts.push(p('Exterior_WallNorth',  tw, height, 1, tw / 2, height / 2, 0, ec, 'smoothplastic'))
     parts.push(p('Exterior_DoorFrameL', 0.5, 6, 1.2, tw / 2 - 2.25, 3, -0.1, tc, 'smoothplastic'))
     parts.push(p('Exterior_DoorFrameR', 0.5, 6, 1.2, tw / 2 + 2.25, 3, -0.1, tc, 'smoothplastic'))
     parts.push(p('Exterior_DoorHeader', 4.5, 0.5, 1.2, tw / 2, 6.25, -0.1, tc, 'smoothplastic'))
-    // Entrance canopy
+    parts.push(p('Exterior_DoorGlass',  3.5, 5, 0.2, tw / 2, 3, -0.1, 'Institutional white', 'smoothplastic', 0.5))
     parts.push(p('Exterior_Canopy', Math.min(tw, 12), 0.8, 3, tw / 2, height * 0.75, -1.5, tc, 'smoothplastic'))
-    // Signage panel
-    parts.push(p('Signage_Panel', Math.max(4, tw - 6), 2, 0.3, tw / 2, height - 1, -0.5, ec, 'smoothplastic'))
+    parts.push(p('Signage_Panel', Math.max(4, tw - 6), 2.5, 0.3, tw / 2, height - 1, -0.5, ec, 'neon'))
   }
 
   return parts
 }
 
-// ── Detail padding (Bug fix #5 + minimum part count) ──────────────────────
+// ── Detail padding ─────────────────────────────────────────────────────────
 
 interface RoomMeta { name: string; offsetX: number; offsetZ: number; w: number; d: number; h: number }
 
 function addDetailParts(roomData: RoomMeta[]): RbxPart[] {
   const detail: RbxPart[] = []
   for (const { name, offsetX, offsetZ, w, d, h } of roomData) {
-    // Wall trim strips (top of interior walls)
-    detail.push(p(`${name}_TrimN`, w,   0.4, 0.4, offsetX,         h - 0.2, offsetZ - d / 2 + 0.2, 'White', 'smoothplastic'))
-    detail.push(p(`${name}_TrimS`, w,   0.4, 0.4, offsetX,         h - 0.2, offsetZ + d / 2 - 0.2, 'White', 'smoothplastic'))
-    detail.push(p(`${name}_TrimW`, 0.4, 0.4, d,   offsetX - w / 2 + 0.2, h - 0.2, offsetZ, 'White', 'smoothplastic'))
-    detail.push(p(`${name}_TrimE`, 0.4, 0.4, d,   offsetX + w / 2 - 0.2, h - 0.2, offsetZ, 'White', 'smoothplastic'))
-    // Floor border strips
-    detail.push(p(`${name}_BordN`, w,   0.3, 0.3, offsetX,         1.15, offsetZ - d / 2 + 0.15, 'Dark grey', 'smoothplastic'))
-    detail.push(p(`${name}_BordS`, w,   0.3, 0.3, offsetX,         1.15, offsetZ + d / 2 - 0.15, 'Dark grey', 'smoothplastic'))
-    detail.push(p(`${name}_BordW`, 0.3, 0.3, d,   offsetX - w / 2 + 0.15, 1.15, offsetZ, 'Dark grey', 'smoothplastic'))
-    detail.push(p(`${name}_BordE`, 0.3, 0.3, d,   offsetX + w / 2 - 0.15, 1.15, offsetZ, 'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_TrimN`, w,   0.4, 0.4, offsetX,              h - 0.2, offsetZ - d / 2 + 0.2, 'White', 'smoothplastic'))
+    detail.push(p(`${name}_TrimS`, w,   0.4, 0.4, offsetX,              h - 0.2, offsetZ + d / 2 - 0.2, 'White', 'smoothplastic'))
+    detail.push(p(`${name}_TrimW`, 0.4, 0.4, d,   offsetX - w / 2 + 0.2, h - 0.2, offsetZ,              'White', 'smoothplastic'))
+    detail.push(p(`${name}_TrimE`, 0.4, 0.4, d,   offsetX + w / 2 - 0.2, h - 0.2, offsetZ,              'White', 'smoothplastic'))
+    detail.push(p(`${name}_BordN`, w,   0.3, 0.3, offsetX,              1.15, offsetZ - d / 2 + 0.15,    'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordS`, w,   0.3, 0.3, offsetX,              1.15, offsetZ + d / 2 - 0.15,    'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordW`, 0.3, 0.3, d,   offsetX - w / 2 + 0.15, 1.15, offsetZ,                'Dark grey', 'smoothplastic'))
+    detail.push(p(`${name}_BordE`, 0.3, 0.3, d,   offsetX + w / 2 - 0.15, 1.15, offsetZ,                'Dark grey', 'smoothplastic'))
   }
   return detail
 }
@@ -378,17 +531,19 @@ function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWid
   return []
 }
 
-function getRoomType(name: string): string {
+export function getRoomType(name: string): string {
   const n = name.toLowerCase()
-  if (n.includes('reception') || n.includes('lobby')) return 'reception'
+  if (n.includes('reception') || n.includes('lobby') || n.includes('entrance')) return 'reception'
   if (n.includes('bathroom') || n.includes('toilet') || n.includes('restroom') || n.includes('lavatory')) return 'bathroom'
-  if (n.includes('holding') || n.includes('detention') || (n.includes('cell') && !n.includes('excel'))) return 'holding'
+  if (n.includes('holding') || n.includes('detention')) return 'holding'
+  if (n.includes('cell') && !n.includes('excel')) return 'cell'
   if (n.includes('meeting') || n.includes('conference') || n.includes('briefing') || n.includes('interrogation')) return 'meeting'
   if (n.includes('kitchen') || n.includes('break') || n.includes('canteen')) return 'kitchen'
-  if (n.includes('storage') || n.includes('warehouse') || n.includes('stock')) return 'storage'
-  if (n.includes('sales') || n.includes('retail') || n.includes('shop') || n.includes('checkout')) return 'retail'
+  if (n.includes('storage') || n.includes('warehouse') || n.includes('stock') || n.includes('evidence')) return 'storage'
+  if (n.includes('sales') || n.includes('retail') || n.includes('shopping') || n.includes('shop') || n.includes('checkout')) return 'shopping'
   if (n.includes('locker')) return 'locker'
-  if (n.includes('office') || n.includes('admin') || n.includes('staff')) return 'office'
+  if (n.includes('office') || n.includes('admin') || n.includes('dispatch') || n.includes('control')) return 'office'
+  if (n.includes('ward') || n.includes('bay') || n.includes('theatre') || n.includes('pharmacy')) return 'medical'
   return 'general'
 }
 
@@ -396,7 +551,6 @@ function getRoomType(name: string): string {
 
 export function compileBlueprint(research: ResearchResult, qualityTarget?: QualityTarget): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
-  console.log('[blueprint-compiler] buildingType input:', buildingType)
   let theme = getColorTheme(buildingType)
   if (theme.exterior === 'Light grey' && research.exteriorColor) {
     theme = {
@@ -405,13 +559,10 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
       trim: 'White',
       floor: theme.floor,
     }
-    console.log('[blueprint-compiler] using research colors — exterior:', theme.exterior, 'roof:', theme.roof)
   }
   if (qualityTarget?.colorPalette && qualityTarget.colorPalette.length > 0) {
     theme = { ...theme, floor: validateColor(qualityTarget.colorPalette[0]) }
-    console.log('[blueprint-compiler] qualityTarget floor color override:', theme.floor)
   }
-  console.log('[blueprint-compiler] theme match result:', JSON.stringify(theme))
   const retail = isRetailType(buildingType)
 
   const COLS = 2
@@ -440,19 +591,16 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
 
     const roomParts = compileRoom(room, offsetX, offsetZ, theme)
 
-    // Add retail detail to the first (main sales floor) room
     if (retail && i === 0) {
       roomParts.push(...addRetailShelving(room.name, offsetX, offsetZ, w, d))
       roomParts.push(...addCheckoutCounter(room.name, offsetX, offsetZ, d))
     }
 
-    // Add detailed props from model library based on room name
-    console.log('[props] placing props for room:', room.name, 'at world pos offsetX:', offsetX, 'offsetZ:', offsetZ, 'width:', w, 'depth:', d)
     roomParts.push(...getPropsForRoom(room.name, offsetX, offsetZ, w, d))
 
     compiledRooms.push(roomParts)
     roomMeta.push({ name: room.name, offsetX, offsetZ, w, d, h })
-    roomLayout.push({ name: room.name, type: getRoomType(room.name), x: offsetX, z: offsetZ, w, d })
+    roomLayout.push({ name: room.name, type: getRoomType(room.name), x: offsetX, z: offsetZ, width: w, depth: d })
 
     cursorX += w
     rowMaxDepth = Math.max(rowMaxDepth, d)
@@ -463,14 +611,13 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
   const tallestRoom = Math.max(...research.rooms.map(r => Math.max(5, Number(r.height) || 10)))
   const EXTERIOR_HEIGHT = tallestRoom + 2
 
-  const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, buildingType)
+  const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, buildingType, research.exteriorFeatures)
 
   const totalNow = compiledRooms.reduce((s, r) => s + r.length, 0) + exterior.length
   const highDetail = (qualityTarget?.detailLevel ?? 0) >= 7
   const isUltra = qualityTarget?.partDensity === 'ultra'
 
   if (highDetail || isUltra) {
-    // Add detail trims to every room individually
     for (let ri = 0; ri < compiledRooms.length; ri++) {
       compiledRooms[ri] = [...compiledRooms[ri], ...addDetailParts([roomMeta[ri]])]
     }
@@ -479,7 +626,6 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
   }
 
   if (isUltra) {
-    // Extra shelving rows for maximum density
     for (let ri = 0; ri < compiledRooms.length; ri++) {
       const m = roomMeta[ri]
       compiledRooms[ri].push(...addRetailShelving(`${m.name}_x`, m.offsetX, m.offsetZ, m.w, m.d))

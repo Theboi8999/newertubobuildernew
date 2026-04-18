@@ -31,10 +31,10 @@ function FloorPlanSVG({ rooms, totalWidth, totalDepth }: { rooms: RoomLayoutItem
           {/* Building outline */}
           <rect x={PAD} y={PAD} width={SVG_W - PAD * 2} height={SVG_H - PAD * 2} fill="#1a1a2e" stroke="#334155" strokeWidth="1" rx="2" />
           {rooms.map((room) => {
-            const rx = PAD + (room.x - room.w / 2) * scaleX
-            const rz = PAD + (room.z - room.d / 2) * scaleY
-            const rw = room.w * scaleX
-            const rd = room.d * scaleY
+            const rx = PAD + (room.x - room.width / 2) * scaleX
+            const rz = PAD + (room.z - room.depth / 2) * scaleY
+            const rw = room.width * scaleX
+            const rd = room.depth * scaleY
             const fill = ROOM_TYPE_COLORS[room.type] || '#4b5563'
             return (
               <g key={room.name}>
@@ -545,8 +545,8 @@ function SystemPageInner() {
                 {generation.output_metadata?.roomLayout?.length > 0 && (
                   <FloorPlanSVG
                     rooms={generation.output_metadata.roomLayout}
-                    totalWidth={generation.output_metadata.roomLayout.reduce((max: number, r: RoomLayoutItem) => Math.max(max, r.x + r.w / 2), 0) + 6}
-                    totalDepth={generation.output_metadata.roomLayout.reduce((max: number, r: RoomLayoutItem) => Math.max(max, r.z + r.d / 2), 0) + 6}
+                    totalWidth={generation.output_metadata.roomLayout.reduce((max: number, r: RoomLayoutItem) => Math.max(max, r.x + r.width / 2), 0) + 6}
+                    totalDepth={generation.output_metadata.roomLayout.reduce((max: number, r: RoomLayoutItem) => Math.max(max, r.z + r.depth / 2), 0) + 6}
                   />
                 )}
 

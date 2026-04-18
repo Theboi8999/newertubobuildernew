@@ -77,7 +77,14 @@ export async function generateAsset(
     if (buildingType) {
       try {
         await onProgress?.('🔬 Researching building type...', 50)
-        researchResult = await researchBuildingType(buildingType, false, qualityTarget)
+        let teachingContext = ''
+        try {
+          const { getTeachingContext } = await import('./self-teaching-agent')
+          teachingContext = await getTeachingContext(buildingType)
+        } catch (e) {
+          console.error('[generateAsset] teaching context error:', e)
+        }
+        researchResult = await researchBuildingType(buildingType, false, qualityTarget, teachingContext)
         console.log('[generateAsset] research confidence:', researchResult.confidence)
 
         console.log('[generator] calling compileBlueprint for:', buildingType)
@@ -128,6 +135,13 @@ export async function generateAsset(
         qualityNotes = evalResult.notes
       } catch (e) {
         console.error('[generateAsset] auto-evaluator error:', e)
+      }
+      try {
+        const { teachFromGeneration } = await import('./self-teaching-agent')
+        const roomNames = researchResult.rooms.map(r => r.name)
+        await teachFromGeneration({ buildingType, qualityScore, partCount: allParts.length, roomNames, generationId })
+      } catch (e) {
+        console.error('[generateAsset] teach from generation error:', e)
       }
     }
 
