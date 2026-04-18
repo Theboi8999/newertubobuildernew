@@ -8,7 +8,6 @@ export interface RbxPart {
   material: string
   anchored: boolean
   transparency?: number
-  shape?: 'Block' | 'Sphere' | 'Cylinder' | 'Wedge'
   emissive?: boolean
 }
 
@@ -53,15 +52,6 @@ const MATERIAL_MAP: Record<string, number> = {
   'cobblestone': 1392,
   'ice': 1536,
   'forcefield': 1408,
-}
-
-// Correct Roblox shape enum values
-const SHAPE_ENUM: Record<string, number> = {
-  'block': 0,
-  'sphere': 1,
-  'ball': 1,
-  'cylinder': 2,
-  'wedge': 3,
 }
 
 // Valid Roblox BrickColors - map invalid ones to nearest valid
@@ -115,11 +105,6 @@ function sanitizeColor(color: string): string {
 function getMaterialEnum(material: string): number {
   const lower = material.toLowerCase().trim()
   return MATERIAL_MAP[lower] ?? 256
-}
-
-function getShape(shape: string): number {
-  const lower = (shape || 'block').toLowerCase().trim()
-  return SHAPE_ENUM[lower] || 0 // default to Block
 }
 
 function escapeXml(str: string): string {

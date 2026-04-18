@@ -26,6 +26,7 @@ export interface GenerateResult {
   qualityNotes: string
   newScriptsGenerated: string[]
   validationWarnings: string[]
+  partCount: number
 }
 
 export async function generateAsset(
@@ -141,6 +142,7 @@ export async function generateAsset(
       qualityNotes,
       newScriptsGenerated,
       validationWarnings: [],
+      partCount: allParts.length,
     }
   }
 
@@ -178,6 +180,8 @@ export async function generateAsset(
     scale: options.scale,
   }).catch(() => {})
 
+  const xmlPartCount = (rbxmxFinal.match(/<Item class="Part"/g) || []).length
+
   return {
     rbxmx: rbxmxFinal,
     spec,
@@ -185,6 +189,7 @@ export async function generateAsset(
     qualityNotes: notes,
     newScriptsGenerated,
     validationWarnings: [...validation.warnings, ...validation.tosIssues],
+    partCount: xmlPartCount,
   }
 }
 

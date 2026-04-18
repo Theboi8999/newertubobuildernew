@@ -18,6 +18,8 @@ export function validateRbxmx(rbxmx: string): ValidationResult {
   if (!rbxmx.includes('<roblox')) errors.push('Missing <roblox> root element')
   if (!rbxmx.includes('</roblox>')) errors.push('Missing closing </roblox> tag')
   if (!rbxmx.includes('<Item class="Model"')) warnings.push('No Model item found — may not import correctly')
+  const partCount = (rbxmx.match(/<Item class="Part"/g) || []).length
+  if (partCount === 0) errors.push('No Part items found — file will be empty in Studio')
 
   // Rough tag balance check (within tolerance — XML attributes also have < > chars)
   const openTags = (rbxmx.match(/<[A-Za-z][A-Za-z0-9]*[\s>]/g) || []).length

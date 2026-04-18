@@ -125,6 +125,7 @@ export const generateFunction = inngest.createFunction(
           output_metadata: {
             qualityScore: result.qualityScore,
             qualityNotes: result.qualityNotes,
+            partCount: result.partCount ?? 0,
             newScriptsGenerated: result.newScriptsGenerated || [],
             validationWarnings: result.validationWarnings || [],
           },

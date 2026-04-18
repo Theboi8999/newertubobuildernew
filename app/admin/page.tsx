@@ -44,7 +44,7 @@ export default function AdminPage() {
 
   const tiles = [
     { href: '/admin/knowledge-base', icon: '📚', label: 'Knowledge Base', desc: 'Edit AI generation knowledge', badge: null },
-    { href: '/admin/research-queue', icon: '🔬', label: 'Research Queue', desc: 'Add new building/vehicle research', badge: stats?.knowledgeCount },
+    { href: '/admin/research', icon: '🔬', label: 'Research Queue', desc: 'Add new building/vehicle research', badge: stats?.knowledgeCount },
     { href: '/admin/library', icon: '💾', label: 'Script Library', desc: 'View auto-generated scripts', badge: stats?.scriptCount },
   ]
 

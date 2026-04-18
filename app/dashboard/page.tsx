@@ -152,6 +152,9 @@ export default function Dashboard() {
                                 <span className="text-brand-text-dim">·</span>
                                 <span className="text-xs text-brand-text-dim">{new Date(gen.created_at).toLocaleDateString('en-GB')}</span>
                                 {qs && <span className={`text-xs font-semibold ${qualityColor(qs)}`}>{qs}/100 — {qualityLabel(qs)}</span>}
+                                {gen.output_metadata?.partCount > 0 && (
+                                  <span className="text-xs text-brand-text-dim">{gen.output_metadata.partCount} parts</span>
+                                )}
                               </div>
                               {gen.status === 'complete' && (
                                 <div className="flex gap-1 mt-2">
@@ -172,8 +175,22 @@ export default function Dashboard() {
                                 className="btn btn-secondary text-xs px-3 py-1.5">Watch</a>
                             )}
                             {gen.output_url && (
-                              <a href={gen.output_url} download
-                                className="btn btn-secondary text-xs px-3 py-1.5">Download</a>
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    const res = await fetch(gen.output_url)
+                                    const blob = await res.blob()
+                                    const blobUrl = URL.createObjectURL(blob)
+                                    const a = document.createElement('a')
+                                    a.href = blobUrl
+                                    a.download = `turbobuilder-${gen.id}.rbxmx`
+                                    document.body.appendChild(a)
+                                    a.click()
+                                    document.body.removeChild(a)
+                                    URL.revokeObjectURL(blobUrl)
+                                  } catch { alert('Download failed — try again') }
+                                }}
+                                className="btn btn-secondary text-xs px-3 py-1.5">Download</button>
                             )}
                             <button onClick={() => regen(gen)}
                               className="btn btn-secondary text-xs px-3 py-1.5">↺ Regen</button>

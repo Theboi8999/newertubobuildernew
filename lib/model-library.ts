@@ -42,7 +42,7 @@ export function SHELVING_UNIT(baseX: number, baseY: number, baseZ: number): RbxP
     part('Shelf_Surface3',  4,   0.2, 4,   baseX,     f + 2.5, baseZ,       'Light grey', 'smoothplastic'),
     part('Shelf_Surface4',  4,   0.2, 4,   baseX,     f + 3.7, baseZ,       'Light grey', 'smoothplastic'),
   ]
-  const productColors = ['Bright red', 'Bright blue', 'Bright yellow', 'Bright green', 'Bright orange', 'White']
+  const productColors = ['Bright red', 'Bright blue', 'Bright yellow', 'Bright green', 'Hot pink', 'Bright orange']
   for (let row = 0; row < 3; row++) {
     // Products sit on surfaces: surface tops at f+0.2, f+1.4, f+2.6 → product centers at f+0.4, f+1.6, f+2.8
     const py = f + 0.4 + row * 1.2
