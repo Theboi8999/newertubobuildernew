@@ -547,9 +547,134 @@ export function getRoomType(name: string): string {
   return 'general'
 }
 
+// ── Exterior-only extra detail ─────────────────────────────────────────────
+
+function buildDetailedExteriorOnly(tw: number, td: number, height: number, theme: ColorTheme): RbxPart[] {
+  const parts: RbxPart[] = []
+  const ec = theme.exterior
+  const pipeH = height + 3
+
+  // GROUND DETAIL
+  parts.push(p('EO_GroundExt',  tw + 40, 0.5, td + 40, tw / 2, 0.25,  td / 2, 'Medium stone grey', 'concrete'))
+  parts.push(p('EO_Pavement',   tw + 6,  0.6, 8,       tw / 2, 0.3,  -4,      'Light grey',        'concrete'))
+  parts.push(p('EO_KerbLeft',   0.5,     0.8, 8,       -0.25,  0.4,  -4,      'White',             'concrete'))
+  parts.push(p('EO_KerbRight',  0.5,     0.8, 8,       tw + 0.25, 0.4, -4,    'White',             'concrete'))
+  parts.push(p('EO_Road',       tw + 40, 0.4, 12,      tw / 2, 0.2,  -14,     'Dark grey',         'concrete'))
+  parts.push(p('EO_RoadLineC',  tw + 40, 0.5, 0.2,     tw / 2, 0.45, -14,     'White',             'smoothplastic'))
+  parts.push(p('EO_RoadLineY',  tw + 40, 0.5, 0.2,     tw / 2, 0.45, -12,     'Bright yellow',     'smoothplastic'))
+
+  // CAR PARK (right side of building)
+  const cpX = tw + 15
+  const cpZ = td / 2
+  const cpD = td + 10
+  parts.push(p('EO_CarParkSurf',  30, 0.6, cpD, cpX, 0.3,  cpZ,          'Dark grey',  'concrete'))
+  parts.push(p('EO_CarParkKerb',  30, 0.8, 0.4, cpX, 0.4,  cpZ - cpD / 2, 'White',     'concrete'))
+  parts.push(p('EO_DisabledBay',   4, 0.6, 6,   tw + 4, 0.35, cpZ,       'Bright blue', 'smoothplastic'))
+  for (let i = 0; i < 8; i++) {
+    parts.push(p(`EO_BayLine_${i}`, 0.2, 0.6, 6, tw + 4 + i * 3.2, 0.35, cpZ, 'White', 'smoothplastic'))
+  }
+
+  // PERIMETER FENCE
+  const fH = 5
+  const fStep = 4
+  let pi = 0
+  for (let fx = -2; fx <= tw + 2; fx += fStep) {
+    parts.push(p(`EO_FencePN_${pi++}`, 0.4, fH, 0.4, fx, fH / 2, -2, 'Dark grey', 'metal'))
+  }
+  parts.push(p('EO_FenceRailNT', tw + 4, 0.2, 0.2, tw / 2, fH - 0.5, -2, 'Dark grey', 'metal'))
+  parts.push(p('EO_FenceRailNM', tw + 4, 0.2, 0.2, tw / 2, fH / 2,   -2, 'Dark grey', 'metal'))
+  pi = 0
+  for (let fx = -2; fx <= tw + 2; fx += fStep) {
+    parts.push(p(`EO_FencePS_${pi++}`, 0.4, fH, 0.4, fx, fH / 2, td + 2, 'Dark grey', 'metal'))
+  }
+  parts.push(p('EO_FenceRailST', tw + 4, 0.2, 0.2, tw / 2, fH - 0.5, td + 2, 'Dark grey', 'metal'))
+  parts.push(p('EO_FenceRailSM', tw + 4, 0.2, 0.2, tw / 2, fH / 2,   td + 2, 'Dark grey', 'metal'))
+  pi = 0
+  for (let fz = -2; fz <= td + 2; fz += fStep) {
+    parts.push(p(`EO_FencePW_${pi++}`, 0.4, fH, 0.4, -2,     fH / 2, fz, 'Dark grey', 'metal'))
+  }
+  parts.push(p('EO_FenceRailWT', 0.2, 0.2, td + 4, -2,     fH - 0.5, td / 2, 'Dark grey', 'metal'))
+  parts.push(p('EO_FenceRailWM', 0.2, 0.2, td + 4, -2,     fH / 2,   td / 2, 'Dark grey', 'metal'))
+  pi = 0
+  for (let fz = -2; fz <= td + 2; fz += fStep) {
+    parts.push(p(`EO_FencePE_${pi++}`, 0.4, fH, 0.4, tw + 2, fH / 2, fz, 'Dark grey', 'metal'))
+  }
+  parts.push(p('EO_FenceRailET', 0.2, 0.2, td + 4, tw + 2, fH - 0.5, td / 2, 'Dark grey', 'metal'))
+  parts.push(p('EO_FenceRailEM', 0.2, 0.2, td + 4, tw + 2, fH / 2,   td / 2, 'Dark grey', 'metal'))
+
+  // ENTRANCE DETAIL
+  const gL = tw / 2 - 5
+  const gR = tw / 2 + 5
+  parts.push(p('EO_GatePostL',  1,   6,   1,   gL,       3,     -2.5, 'Dark grey', 'metal'))
+  parts.push(p('EO_GatePostR',  1,   6,   1,   gR,       3,     -2.5, 'Dark grey', 'metal'))
+  parts.push(p('EO_GateCapL',   1.2, 0.5, 1.2, gL,       6.25,  -2.5, 'Dark grey', 'metal'))
+  parts.push(p('EO_GateCapR',   1.2, 0.5, 1.2, gR,       6.25,  -2.5, 'Dark grey', 'metal'))
+  parts.push(p('EO_WelcomeMat', 4,   0.6, 2,   tw / 2,   0.3,   -1,   'Dark grey', 'concrete'))
+  parts.push(p('EO_Step1',      tw / 3, 0.4, 1, tw / 2,  0.7,   -0.5, 'Medium stone grey', 'concrete'))
+  parts.push(p('EO_Step2',      tw / 3, 0.4, 1, tw / 2,  1.1,    0.5, 'Medium stone grey', 'concrete'))
+
+  // ROOF DETAIL
+  parts.push(p('EO_ParapetF',  tw + 2, 1.5, 0.6, tw / 2,    height + 1.25, -0.3,      ec, 'smoothplastic'))
+  parts.push(p('EO_ParapetB',  tw + 2, 1.5, 0.6, tw / 2,    height + 1.25, td + 0.3,  ec, 'smoothplastic'))
+  parts.push(p('EO_ParapetL',  0.6, 1.5, td + 2, -0.3,      height + 1.25, td / 2,    ec, 'smoothplastic'))
+  parts.push(p('EO_ParapetR',  0.6, 1.5, td + 2, tw + 0.3,  height + 1.25, td / 2,    ec, 'smoothplastic'))
+  parts.push(p('EO_RoofAC1',  4, 2, 4, tw / 4,     height + 1.5, td / 2, 'Dark grey', 'metal'))
+  parts.push(p('EO_RoofAC2',  4, 2, 4, tw * 3 / 4, height + 1.5, td / 2, 'Dark grey', 'metal'))
+  parts.push(p('EO_Satellite', 2, 1, 2, tw / 2,     height + 1,   td / 4, 'Medium stone grey', 'metal'))
+  parts.push(p('EO_WaterTank', 3, 3, 3, tw * 3 / 4, height + 2,   td * 3 / 4, 'Medium stone grey', 'metal'))
+  parts.push(p('EO_DrainNW',  0.4, pipeH, 0.4, 0.2,      pipeH / 2, 0.2,       'Dark grey', 'metal'))
+  parts.push(p('EO_DrainNE',  0.4, pipeH, 0.4, tw - 0.2, pipeH / 2, 0.2,       'Dark grey', 'metal'))
+  parts.push(p('EO_DrainSW',  0.4, pipeH, 0.4, 0.2,      pipeH / 2, td - 0.2,  'Dark grey', 'metal'))
+  parts.push(p('EO_DrainSE',  0.4, pipeH, 0.4, tw - 0.2, pipeH / 2, td - 0.2,  'Dark grey', 'metal'))
+
+  // WALL SURFACE DETAIL
+  const winW = 3
+  const winCount = Math.max(1, Math.floor((tw - 6) / 8))
+  for (let i = 0; i < winCount; i++) {
+    const wx = 4 + i * 8
+    parts.push(p(`EO_WinLedgeF_${i}`, winW + 0.4, 0.15, 0.3, wx, 4, -0.15,     'White', 'smoothplastic'))
+    parts.push(p(`EO_WinLintF_${i}`,  winW + 0.4, 0.15, 0.3, wx, 7, -0.15,     'White', 'smoothplastic'))
+    parts.push(p(`EO_WinLedgeB_${i}`, winW + 0.4, 0.15, 0.3, wx, 4, td + 0.15, 'White', 'smoothplastic'))
+    parts.push(p(`EO_WinLintB_${i}`,  winW + 0.4, 0.15, 0.3, wx, 7, td + 0.15, 'White', 'smoothplastic'))
+  }
+  const courseCount = Math.floor(height / 2)
+  for (let i = 1; i < courseCount; i++) {
+    parts.push(p(`EO_CourseN_${i}`, tw, 0.05, 0.05, tw / 2, i * 2, -0.01, 'Medium stone grey', 'smoothplastic'))
+  }
+  const quoinMax = Math.min(8, Math.floor(height / 1.2))
+  for (let i = 0; i < quoinMax; i++) {
+    const qy = 0.5 + i * 1.2
+    const wide = i % 2 === 0
+    parts.push(p(`EO_QuoinNW_${i}`, wide ? 1 : 0.4, 0.4, wide ? 0.4 : 1, 0,  qy + 0.2, 0, 'White', 'smoothplastic'))
+    parts.push(p(`EO_QuoinNE_${i}`, wide ? 1 : 0.4, 0.4, wide ? 0.4 : 1, tw, qy + 0.2, 0, 'White', 'smoothplastic'))
+  }
+
+  // EXTERIOR LIGHTING
+  parts.push(p('EO_FloodNW', 0.8, 0.4, 0.8, 2,      0.2, 2,      'Institutional white', 'neon', 0.1))
+  parts.push(p('EO_FloodNE', 0.8, 0.4, 0.8, tw - 2, 0.2, 2,      'Institutional white', 'neon', 0.1))
+  parts.push(p('EO_FloodSW', 0.8, 0.4, 0.8, 2,      0.2, td - 2, 'Institutional white', 'neon', 0.1))
+  parts.push(p('EO_FloodSE', 0.8, 0.4, 0.8, tw - 2, 0.2, td - 2, 'Institutional white', 'neon', 0.1))
+  const lampPx = [tw / 2 - tw / 3, tw / 2 - tw / 5, tw / 2 + tw / 5, tw / 2 + tw / 3]
+  for (let i = 0; i < 4; i++) {
+    const lx = lampPx[i]
+    parts.push(p(`EO_LampPole_${i}`, 0.4, 12, 0.4, lx,  6,    -8,    'Dark grey',          'metal'))
+    parts.push(p(`EO_LampArm_${i}`,  0.2, 0.2, 1.5, lx, 12.1, -8.75, 'Dark grey',          'metal'))
+    parts.push(p(`EO_LampHead_${i}`, 1,   0.5, 1,   lx, 12,   -9.5,  'Institutional white', 'neon', 0.1))
+  }
+
+  // SIGNAGE
+  parts.push(p('EO_Fascia',       tw - 2, 3,   0.5, tw / 2, height - 1.5, -0.25, ec, 'smoothplastic'))
+  parts.push(p('EO_FasciaLightB', tw - 2, 0.2, 0.2, tw / 2, height - 3,   -0.1,  'Institutional white', 'neon', 0.1))
+  parts.push(p('EO_FasciaLightT', tw - 2, 0.2, 0.2, tw / 2, height,       -0.1,  'Institutional white', 'neon', 0.1))
+  parts.push(p('EO_SideSignL',    0.3, 2, 2, -0.15,     height - 3, td / 2, ec, 'smoothplastic'))
+  parts.push(p('EO_SideSignR',    0.3, 2, 2,  tw + 0.15, height - 3, td / 2, ec, 'smoothplastic'))
+
+  return parts
+}
+
 // ── Main entry point ───────────────────────────────────────────────────────
 
-export function compileBlueprint(research: ResearchResult, qualityTarget?: QualityTarget): CompiledBlueprint {
+export function compileBlueprint(research: ResearchResult, qualityTarget?: QualityTarget, exteriorOnly = false): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
   let theme = getColorTheme(buildingType)
   if (theme.exterior === 'Light grey' && research.exteriorColor) {
@@ -612,6 +737,10 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
   const EXTERIOR_HEIGHT = tallestRoom + 2
 
   const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, buildingType, research.exteriorFeatures)
+
+  if (exteriorOnly) {
+    exterior.push(...buildDetailedExteriorOnly(tw, td, EXTERIOR_HEIGHT, theme))
+  }
 
   const totalNow = compiledRooms.reduce((s, r) => s + r.length, 0) + exterior.length
   const highDetail = (qualityTarget?.detailLevel ?? 0) >= 7

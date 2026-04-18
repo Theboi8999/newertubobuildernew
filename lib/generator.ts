@@ -19,6 +19,7 @@ export interface GenerateOptions {
   locationReference?: string
   variations?: number
   referenceImages?: Array<{ base64: string; mimeType: string }>
+  exteriorOnly?: boolean
 }
 
 export interface GenerateResult {
@@ -88,8 +89,10 @@ export async function generateAsset(
         console.log('[generateAsset] research confidence:', researchResult.confidence)
 
         console.log('[generator] calling compileBlueprint for:', buildingType)
-        compiled = compileBlueprint(researchResult, qualityTarget)
-        allParts = [...compiled.rooms.flat(), ...compiled.exterior]
+        compiled = compileBlueprint(researchResult, qualityTarget, options.exteriorOnly)
+        allParts = options.exteriorOnly
+          ? [...compiled.exterior]
+          : [...compiled.rooms.flat(), ...compiled.exterior]
         console.log('[generator] compiled parts count:', allParts.length)
         console.log('[DEBUG] First 3 parts of allParts:', JSON.stringify(allParts.slice(0, 3), null, 2))
         console.log('[DEBUG] Total parts:', allParts.length)
@@ -125,7 +128,7 @@ export async function generateAsset(
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
 
     let qualityScore = usedFallback ? 75 : 85
-    let qualityNotes = usedFallback ? 'Fallback generic building' : 'Blueprint build'
+    let qualityNotes = usedFallback ? 'Fallback generic building' : options.exteriorOnly ? 'Exterior only build' : 'Blueprint build'
 
     if (researchResult && buildingType) {
       try {

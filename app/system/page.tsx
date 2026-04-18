@@ -132,6 +132,7 @@ function SystemPageInner() {
   const [ratingDone, setRatingDone] = useState(false)
   const [referenceImages, setReferenceImages] = useState<Array<{ base64: string; mimeType: string; preview: string }>>([])
   const [showRefImages, setShowRefImages] = useState(false)
+  const [exteriorOnly, setExteriorOnly] = useState(false)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -188,6 +189,7 @@ function SystemPageInner() {
           referenceImages: referenceImages.length > 0
             ? referenceImages.map(i => ({ base64: i.base64, mimeType: i.mimeType }))
             : undefined,
+          exteriorOnly: exteriorOnly || undefined,
         }),
       })
       const data = await res.json()
@@ -440,6 +442,31 @@ function SystemPageInner() {
                     </>
                   )}
                 </div>
+
+                {systemId === 'builder' && (
+                  <div className="flex gap-2 mb-4">
+                    <button
+                      onClick={() => setExteriorOnly(false)}
+                      className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+                        !exteriorOnly
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      🏛️ Full Building
+                    </button>
+                    <button
+                      onClick={() => setExteriorOnly(true)}
+                      className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
+                        exteriorOnly
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      🏗️ Exterior Only
+                    </button>
+                  </div>
+                )}
 
                 <button
                   onClick={handleGenerate}
