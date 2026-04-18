@@ -243,6 +243,8 @@ function buildExteriorWalls(tw: number, td: number, height: number, theme: Color
   const rc = theme.roof
   const tc = theme.trim
   const retail = isRetailType(buildingType)
+  console.log('[blueprint-compiler] exterior wall color being applied:', ec)
+  console.log('[blueprint-compiler] roof color being applied:', rc)
 
   const parts: RbxPart[] = [
     // Ground slab
@@ -319,17 +321,24 @@ function addDetailParts(roomData: RoomMeta[]): RbxPart[] {
 
 function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWidth: number, roomDepth: number): RbxPart[] {
   const name = roomName.toLowerCase()
-  const w2 = roomWidth / 2 - 2
-  const d2 = roomDepth / 2 - 2
+  const insetX = roomWidth / 2 - 3
+  const insetZ = roomDepth / 2 - 3
 
   if (name.includes('checkout') || name.includes('cashier') || name.includes('till')) {
-    return PROP_LIBRARY.CHECKOUT_COUNTER(roomX, 0, roomZ - d2)
+    return PROP_LIBRARY.CHECKOUT_COUNTER(roomX, 0, roomZ + insetZ)
   }
-  if (name.includes('refriger') || name.includes('fridge') || name.includes('cold')) {
-    return PROP_LIBRARY.REFRIGERATOR_UNIT(roomX + w2, 0, roomZ)
+  if (name.includes('refriger') || name.includes('fridge') || name.includes('cold') || name.includes('refrigeration')) {
+    return PROP_LIBRARY.REFRIGERATOR_UNIT(roomX + Math.max(0, insetX), 0, roomZ)
   }
-  if (name.includes('shelf') || name.includes('sales') || name.includes('retail') || name.includes('store floor')) {
-    return PROP_LIBRARY.SHELVING_UNIT(roomX - w2, 0, roomZ)
+  if (name.includes('shelf') || name.includes('sales floor') || name.includes('retail') || name.includes('sales area')) {
+    const props: RbxPart[] = []
+    const slots = Math.max(1, Math.floor(roomWidth / 6))
+    for (let i = 0; i < slots; i++) {
+      const sx = roomX - insetX + i * 6
+      if (sx > roomX + insetX) break
+      props.push(...PROP_LIBRARY.SHELVING_UNIT(sx, 0, roomZ))
+    }
+    return props
   }
   if (name.includes('holding') || name.includes('detention') || (name.includes('cell') && !name.includes('excel'))) {
     return PROP_LIBRARY.POLICE_CELL(roomX, 0, roomZ)
@@ -338,12 +347,18 @@ function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWid
     return PROP_LIBRARY.TOILET_CUBICLE(roomX, 0, roomZ)
   }
   if (name.includes('reception') || name.includes('lobby') || name.includes('waiting area') || name.includes('front desk')) {
-    return PROP_LIBRARY.RECEPTION_DESK(roomX, 0, roomZ + d2)
+    return PROP_LIBRARY.RECEPTION_DESK(roomX, 0, roomZ - insetZ)
   }
-  if (name.includes('office') || name.includes('admin') || name.includes('principal') || name.includes('staff room')) {
+  if (name.includes('meeting') || name.includes('conference') || name.includes('briefing') || name.includes('interrogation')) {
     return [
-      ...PROP_LIBRARY.OFFICE_DESK(roomX - w2, 0, roomZ),
-      ...PROP_LIBRARY.OFFICE_CHAIR(roomX - w2 + 3, 0, roomZ),
+      ...PROP_LIBRARY.OFFICE_DESK(roomX, 0, roomZ),
+      ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 2.5, 0, roomZ + 1.5),
+    ]
+  }
+  if (name.includes('office') || name.includes('admin') || name.includes('principal') || name.includes('staff room') || name.includes('locker')) {
+    return [
+      ...PROP_LIBRARY.OFFICE_DESK(roomX - Math.max(0, insetX), 0, roomZ),
+      ...PROP_LIBRARY.OFFICE_CHAIR(roomX - Math.max(0, insetX) + 2.5, 0, roomZ + 1.5),
     ]
   }
   return []
@@ -390,6 +405,7 @@ export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
     }
 
     // Add detailed props from model library based on room name
+    console.log('[props] placing props for room:', room.name, 'at world pos offsetX:', offsetX, 'offsetZ:', offsetZ, 'width:', w, 'depth:', d)
     roomParts.push(...getPropsForRoom(room.name, offsetX, offsetZ, w, d))
 
     compiledRooms.push(roomParts)

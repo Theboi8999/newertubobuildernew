@@ -26,8 +26,9 @@ export interface RbxModel {
 }
 
 // Correct Roblox material enum values
-const MATERIAL_ENUM: Record<string, number> = {
+const MATERIAL_MAP: Record<string, number> = {
   'smoothplastic': 256,
+  'smooth plastic': 256,
   'plastic': 256,
   'glass': 256,
   'wood': 512,
@@ -40,6 +41,7 @@ const MATERIAL_ENUM: Record<string, number> = {
   'corrugatedmetal': 1040,
   'brick': 1040,
   'diamondplate': 1056,
+  'diamond plate': 1056,
   'foil': 1072,
   'pebble': 1072,
   'sand': 1088,
@@ -50,6 +52,7 @@ const MATERIAL_ENUM: Record<string, number> = {
   'neon': 1376,
   'cobblestone': 1392,
   'ice': 1536,
+  'forcefield': 1408,
 }
 
 // Correct Roblox shape enum values
@@ -109,9 +112,9 @@ function sanitizeColor(color: string): string {
   return VALID_COLORS[lower] || color
 }
 
-function getMaterial(material: string): number {
+function getMaterialEnum(material: string): number {
   const lower = material.toLowerCase().trim()
-  return MATERIAL_ENUM[lower] || 256 // default to SmoothPlastic
+  return MATERIAL_MAP[lower] ?? 256
 }
 
 function getShape(shape: string): number {
@@ -129,7 +132,7 @@ function escapeXml(str: string): string {
 }
 
 function generatePart(part: RbxPart, id: number): string {
-  const materialEnum = getMaterial(part.material)
+  const materialEnum = getMaterialEnum(part.material)
   const color = sanitizeColor(part.color)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
 

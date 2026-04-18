@@ -25,7 +25,7 @@ export function CHECKOUT_COUNTER(baseX: number, baseY: number, baseZ: number): R
     part('Checkout_Rope',          0.1, 0.1, 4,   baseX + 3.5, f + 1.4,   baseZ,        'Bright red',        'fabric'),
     part('Checkout_CashTray',      1,   0.1, 0.8, baseX + 1,   f + 1.2,   baseZ - 0.5,  'Dark grey',        'metal'),
     part('Checkout_Printer',       0.8, 0.5, 0.6, baseX + 2,   f + 1.55,  baseZ - 0.5,  'White',            'smoothplastic'),
-    part('Checkout_Conveyor',      3,   0.2, 1.5, baseX - 0.5, f + 1.2,   baseZ,        'Dark grey',        'smoothplastic'),
+    part('Checkout_Conveyor',      3,   0.2, 1.5, baseX - 0.5, f + 1.2,   baseZ,        'Dark grey',        'metal'),
   ]
 }
 
@@ -147,7 +147,7 @@ export function TOILET_CUBICLE(baseX: number, baseY: number, baseZ: number): Rbx
 export function RECEPTION_DESK(baseX: number, baseY: number, baseZ: number): RbxPart[] {
   const f = baseY + 1
   return [
-    part('Reception_DeskMain',   8,   2,   2,   baseX,       f + 2,    baseZ,        'Reddish brown', 'wood'),
+    part('Reception_DeskMain',   8,   2,   2,   baseX,       f + 2,    baseZ,        'Reddish brown', 'smoothplastic'),
     part('Reception_DeskTop',    8.4, 0.3, 2.4, baseX,       f + 3.15, baseZ,        'Dark grey',     'smoothplastic'),
     part('Reception_BackPanel',  8,   5,   0.3, baseX,       f + 3.5,  baseZ + 2,    'Light grey',    'smoothplastic'),
     part('Reception_LogoPanel',  4,   2,   0.2, baseX,       f + 4.5,  baseZ + 2.2,  'Bright blue',   'smoothplastic'),

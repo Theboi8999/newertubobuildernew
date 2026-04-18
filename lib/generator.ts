@@ -79,8 +79,10 @@ export async function generateAsset(
         researchResult = await researchBuildingType(buildingType)
         console.log('[generateAsset] research confidence:', researchResult.confidence)
 
+        console.log('[generator] calling compileBlueprint for:', buildingType)
         const compiled = compileBlueprint(researchResult)
         allParts = [...compiled.rooms.flat(), ...compiled.exterior]
+        console.log('[generator] compiled parts count:', allParts.length)
         specItems = researchResult.rooms.map(r => r.name)
         console.log('[generateAsset] compiled blueprint parts:', allParts.length)
 
