@@ -27,28 +27,29 @@ export interface RbxModel {
 
 // Correct Roblox material enum values
 const MATERIAL_ENUM: Record<string, number> = {
-  'plastic': 256,
   'smoothplastic': 256,
+  'plastic': 256,
+  'glass': 256,
   'wood': 512,
   'woodplanks': 512,
   'slate': 800,
-  'concrete': 816,
-  'cobblestone': 832,
-  'brick': 848,
-  'grass': 1024,
-  'sand': 1040,
-  'fabric': 1312,
-  'glass': 1568,
-  'forcefield': 1584,
-  'ice': 1536,
-  'metal': 1280,
-  'corrugatedmetal': 1296,
-  'diamondplate': 1552,
-  'foil': 1312,
-  'neon': 1632,
   'marble': 784,
+  'concrete': 816,
   'granite': 832,
-  'ground': 1040,
+  'corrodedmetal': 1040,
+  'corrugatedmetal': 1040,
+  'brick': 1040,
+  'diamondplate': 1056,
+  'foil': 1072,
+  'pebble': 1072,
+  'sand': 1088,
+  'ground': 1088,
+  'grass': 1280,
+  'metal': 1280,
+  'fabric': 1312,
+  'neon': 1376,
+  'cobblestone': 1392,
+  'ice': 1536,
 }
 
 // Correct Roblox shape enum values
@@ -162,8 +163,8 @@ function generatePart(part: RbxPart, id: number): string {
     </Properties>${part.emissive ? `
     <Item class="PointLight" referent="LIGHT_RBX${id}">
       <Properties>
-        <float name="Brightness">5</float>
-        <float name="Range">30</float>
+        <float name="Brightness">8</float>
+        <float name="Range">40</float>
         <Color3 name="Color">
           <R>1</R><G>1</G><B>0.95</B>
         </Color3>
