@@ -31,18 +31,21 @@ export function CHECKOUT_COUNTER(baseX: number, baseY: number, baseZ: number): R
 
 export function SHELVING_UNIT(baseX: number, baseY: number, baseZ: number): RbxPart[] {
   const f = baseY + 1
+  // Frame: h=5, floor-sitting → center at f + 2.5 (bottom at f, top at f+5)
+  // Surfaces spaced 1.2 apart starting at f + 0.1 (h=0.2 sitting on floor)
   const parts: RbxPart[] = [
-    part('Shelf_BackPanel', 4,   5,   0.3, baseX,     f + 3.5, baseZ + 2,   'White',      'smoothplastic'),
-    part('Shelf_SideL',     0.3, 5,   4,   baseX - 2, f + 3.5, baseZ,       'Light grey', 'smoothplastic'),
-    part('Shelf_SideR',     0.3, 5,   4,   baseX + 2, f + 3.5, baseZ,       'Light grey', 'smoothplastic'),
-    part('Shelf_Surface1',  4,   0.2, 4,   baseX,     f + 0.5, baseZ,       'Light grey', 'smoothplastic'),
-    part('Shelf_Surface2',  4,   0.2, 4,   baseX,     f + 1.7, baseZ,       'Light grey', 'smoothplastic'),
-    part('Shelf_Surface3',  4,   0.2, 4,   baseX,     f + 2.9, baseZ,       'Light grey', 'smoothplastic'),
-    part('Shelf_Surface4',  4,   0.2, 4,   baseX,     f + 4.1, baseZ,       'Light grey', 'smoothplastic'),
+    part('Shelf_BackPanel', 4,   5,   0.3, baseX,     f + 2.5, baseZ + 2,   'White',      'smoothplastic'),
+    part('Shelf_SideL',     0.3, 5,   4,   baseX - 2, f + 2.5, baseZ,       'Light grey', 'smoothplastic'),
+    part('Shelf_SideR',     0.3, 5,   4,   baseX + 2, f + 2.5, baseZ,       'Light grey', 'smoothplastic'),
+    part('Shelf_Surface1',  4,   0.2, 4,   baseX,     f + 0.1, baseZ,       'Light grey', 'smoothplastic'),
+    part('Shelf_Surface2',  4,   0.2, 4,   baseX,     f + 1.3, baseZ,       'Light grey', 'smoothplastic'),
+    part('Shelf_Surface3',  4,   0.2, 4,   baseX,     f + 2.5, baseZ,       'Light grey', 'smoothplastic'),
+    part('Shelf_Surface4',  4,   0.2, 4,   baseX,     f + 3.7, baseZ,       'Light grey', 'smoothplastic'),
   ]
   const productColors = ['Bright red', 'Bright blue', 'Bright yellow', 'Bright green', 'Bright orange', 'White']
   for (let row = 0; row < 3; row++) {
-    const py = f + 0.7 + row * 1.2
+    // Products sit on surfaces: surface tops at f+0.2, f+1.4, f+2.6 → product centers at f+0.4, f+1.6, f+2.8
+    const py = f + 0.4 + row * 1.2
     for (let col = 0; col < 6; col++) {
       parts.push(part(
         `Shelf_Product_${row}_${col}`,

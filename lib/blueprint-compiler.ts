@@ -19,15 +19,21 @@ interface ColorTheme {
 }
 
 const BUILDING_COLOR_THEMES: Record<string, ColorTheme> = {
-  convenience_store: { exterior: 'Bright green', roof: 'White', trim: 'White', floor: 'White' },
-  police_station:    { exterior: 'Navy blue',    roof: 'Dark grey', trim: 'White', floor: 'Medium stone grey' },
-  hospital:          { exterior: 'White',         roof: 'White',     trim: 'Bright blue', floor: 'White' },
-  school:            { exterior: 'Bright red',    roof: 'Dark red',  trim: 'White', floor: 'Sand yellow' },
-  fire_station:      { exterior: 'Bright red',    roof: 'Dark grey', trim: 'White', floor: 'Medium stone grey' },
-  restaurant:        { exterior: 'Reddish brown', roof: 'Dark red',  trim: 'Bright yellow', floor: 'Sand yellow' },
-  stadium:           { exterior: 'Medium stone grey', roof: 'Dark grey', trim: 'Bright blue', floor: 'Bright green' },
-  office:            { exterior: 'Medium stone grey', roof: 'Dark grey', trim: 'Institutional white', floor: 'Medium stone grey' },
-  default:           { exterior: 'Light grey',    roof: 'Dark grey', trim: 'White', floor: 'Medium stone grey' },
+  'convenience': { exterior: 'Bright green',      roof: 'White',      trim: 'White',             floor: 'White' },
+  'konbini':     { exterior: 'Bright green',      roof: 'White',      trim: 'White',             floor: 'White' },
+  'supermarket': { exterior: 'Bright blue',       roof: 'White',      trim: 'White',             floor: 'White' },
+  'police':      { exterior: 'Navy blue',         roof: 'Dark grey',  trim: 'White',             floor: 'Medium stone grey' },
+  'hospital':    { exterior: 'White',             roof: 'White',      trim: 'Bright blue',       floor: 'White' },
+  'school':      { exterior: 'Brick yellow',      roof: 'Reddish brown', trim: 'White',          floor: 'Sand yellow' },
+  'fire':        { exterior: 'Bright red',        roof: 'Dark grey',  trim: 'White',             floor: 'Medium stone grey' },
+  'restaurant':  { exterior: 'Reddish brown',     roof: 'Dark red',   trim: 'Bright yellow',     floor: 'Sand yellow' },
+  'stadium':     { exterior: 'Medium stone grey', roof: 'Dark grey',  trim: 'Bright blue',       floor: 'Bright green' },
+  'office':      { exterior: 'Medium stone grey', roof: 'Dark grey',  trim: 'Institutional white', floor: 'Medium stone grey' },
+  'hotel':       { exterior: 'Sand yellow',       roof: 'Dark grey',  trim: 'Bright yellow',     floor: 'Sand yellow' },
+  'airport':     { exterior: 'White',             roof: 'Light grey', trim: 'Bright blue',       floor: 'Light grey' },
+  'train':       { exterior: 'Medium stone grey', roof: 'Dark grey',  trim: 'Bright red',        floor: 'Medium stone grey' },
+  'bank':        { exterior: 'Sand yellow',       roof: 'Dark grey',  trim: 'Dark grey',         floor: 'Institutional white' },
+  'default':     { exterior: 'Light grey',        roof: 'Dark grey',  trim: 'White',             floor: 'Medium stone grey' },
 }
 
 const RETAIL_KEYWORDS = ['store', 'shop', 'restaurant', 'cafe', 'mall', 'market', 'convenience', 'supermarket', 'pharmacy']
@@ -82,12 +88,15 @@ const MATERIAL_MAP: Record<string, string> = {
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function getColorTheme(buildingType: string): ColorTheme {
-  const bt = buildingType.toLowerCase().replace(/_/g, ' ')
-  const keys = Object.keys(BUILDING_COLOR_THEMES).filter(k => k !== 'default')
-  const match = keys.find(k => bt.includes(k.replace(/_/g, ' ')))
-  const theme = BUILDING_COLOR_THEMES[match ?? 'default']
-  console.log('[blueprint-compiler] buildingType:', buildingType, 'theme key:', match ?? 'default')
-  return theme
+  const normalized = buildingType.toLowerCase().replace(/_/g, ' ')
+  for (const key of Object.keys(BUILDING_COLOR_THEMES)) {
+    if (key !== 'default' && normalized.includes(key)) {
+      console.log('[blueprint-compiler] matched theme key:', key)
+      return BUILDING_COLOR_THEMES[key]
+    }
+  }
+  console.log('[blueprint-compiler] no theme match, using default')
+  return BUILDING_COLOR_THEMES['default']
 }
 
 function isRetailType(buildingType: string): boolean {
@@ -269,7 +278,7 @@ function buildExteriorWalls(tw: number, td: number, height: number, theme: Color
     // Entrance canopy
     parts.push(p('Exterior_Canopy', tw, 0.8, 4, tw / 2, height * 0.75, -2, tc, 'smoothplastic'))
     // Signage panel
-    parts.push(p('Signage_Panel', Math.max(4, tw - 4), 2, 0.3, tw / 2, height - 1, -0.5, tc, 'smoothplastic'))
+    parts.push(p('Signage_Panel', Math.max(4, tw - 4), 2, 0.3, tw / 2, height - 1, -0.5, ec, 'smoothplastic'))
   } else {
     // Solid front wall with door opening implied by frame
     parts.push(p('Exterior_WallNorth',  tw, height, 1, tw / 2, height / 2, 0, ec, 'smoothplastic'))
@@ -279,7 +288,7 @@ function buildExteriorWalls(tw: number, td: number, height: number, theme: Color
     // Entrance canopy
     parts.push(p('Exterior_Canopy', Math.min(tw, 12), 0.8, 3, tw / 2, height * 0.75, -1.5, tc, 'smoothplastic'))
     // Signage panel
-    parts.push(p('Signage_Panel', Math.max(4, tw - 6), 2, 0.3, tw / 2, height - 1, -0.5, tc, 'smoothplastic'))
+    parts.push(p('Signage_Panel', Math.max(4, tw - 6), 2, 0.3, tw / 2, height - 1, -0.5, ec, 'smoothplastic'))
   }
 
   return parts
@@ -344,7 +353,9 @@ function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWid
 
 export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
+  console.log('[blueprint-compiler] buildingType input:', buildingType)
   const theme = getColorTheme(buildingType)
+  console.log('[blueprint-compiler] theme match result:', JSON.stringify(theme))
   const retail = isRetailType(buildingType)
 
   const COLS = 2
