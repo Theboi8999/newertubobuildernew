@@ -21,9 +21,9 @@ const VISION_PROMPT =
   'Analyze this Roblox build screenshot. Extract: 1) Part density (how many parts/detail level: low/medium/high/ultra), 2) Color palette (list up to 5 dominant Roblox BrickColor names), 3) Lighting style (bright/warm/cool/dark), 4) Interior style (modern/realistic/stylized/minimal), 5) Detail level score 1-10. Respond ONLY with JSON: {"partDensity":"high","colorPalette":["White","Light grey","Reddish brown"],"lightingStyle":"warm","interiorStyle":"realistic","detailLevel":8,"notes":"brief description"}'
 
 export async function analyzeRobloxReference(imageBase64: string, mimeType: string): Promise<QualityTarget> {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.warn('[vision-analyzer] ANTHROPIC_API_KEY not set — returning default quality target')
-    return DEFAULT_TARGET
+  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'sk-ant-xxxxx') {
+    console.log('[vision] ANTHROPIC_API_KEY not set, skipping vision analysis')
+    return { partDensity: 'medium', colorPalette: [], lightingStyle: 'bright', interiorStyle: 'realistic', detailLevel: 5, notes: 'vision disabled' }
   }
 
   try {

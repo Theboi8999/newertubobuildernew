@@ -25,7 +25,6 @@ export async function teachFromGeneration(params: {
     await supabaseAdmin.from('knowledge_patches').insert({
       building_type: buildingType,
       patch_note: patchNote,
-      generation_id: generationId,
     })
   } catch (e) {
     console.error('[self-teaching] patch insert error:', e)

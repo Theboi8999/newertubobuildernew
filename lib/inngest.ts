@@ -115,25 +115,34 @@ export const generateFunction = inngest.createFunction(
         .from('generations')
         .getPublicUrl(fileName)
 
-      await supabase
-        .from('generations')
-        .update({
-          status: 'complete',
-          progress: 100,
-          spec_items: result.spec || [],
-          output_url: urlData.publicUrl,
-          output_metadata: {
-            qualityScore: result.qualityScore,
-            qualityNotes: result.qualityNotes,
-            partCount: result.partCount ?? 0,
-            newScriptsGenerated: result.newScriptsGenerated || [],
-            validationWarnings: result.validationWarnings || [],
-            roomLayout: result.roomLayout || [],
-            irlImageUrls: result.irlImageUrls || [],
-          },
-          completed_at: new Date().toISOString(),
-        })
-        .eq('id', generationId)
+      try {
+        const { error: updateError } = await supabase
+          .from('generations')
+          .update({
+            status: 'complete',
+            progress: 100,
+            spec_items: result.spec || [],
+            output_url: urlData.publicUrl,
+            output_metadata: {
+              qualityScore: result.qualityScore,
+              qualityNotes: result.qualityNotes,
+              partCount: result.partCount ?? 0,
+              newScriptsGenerated: result.newScriptsGenerated || [],
+              validationWarnings: result.validationWarnings || [],
+              roomLayout: result.roomLayout || [],
+              irlImageUrls: result.irlImageUrls || [],
+            },
+            completed_at: new Date().toISOString(),
+          })
+          .eq('id', generationId)
+        if (updateError) {
+          console.error('[inngest] failed to update status to complete:', updateError.message)
+        } else {
+          console.log('[inngest] status updated to complete:', generationId)
+        }
+      } catch (e) {
+        console.error('[inngest] failed to update status to complete:', e)
+      }
 
       // Increment user generation count (non-fatal if it fails)
       try {
