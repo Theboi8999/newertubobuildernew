@@ -232,7 +232,7 @@ test('exterior color matches research', () => {
   const r = compileBlueprint(mockResearch({ exteriorColor: 'Sand yellow' }))
   const wallParts = r.exterior.filter(p => p.name.includes('Wall') || p.name.includes('Front'))
   const sandYellow = wallParts.filter(p => p.color === 'Sand yellow')
-  assert(sandYellow.length > 0, `no Sand yellow parts found. Colors: ${[...new Set(wallParts.map(p=>p.color))].join(',')}`)
+  assert(sandYellow.length > 0, `no Sand yellow parts found. Colors: ${Array.from(new Set(wallParts.map(p=>p.color))).join(',')}`)
 })
 
 test('colonial style generates colonnade', () => {
@@ -304,7 +304,7 @@ for (const [input, expected] of colorTests) {
     const r = compileBlueprint(mockResearch({ exteriorColor: input }))
     const walls = r.exterior.filter(p => p.name.includes('Wall') || p.name.includes('Front'))
     const match = walls.some(p => p.color === expected)
-    assert(match, `color ${input} did not produce ${expected}. Got: ${[...new Set(walls.map(p=>p.color))].join(',')}`)
+    assert(match, `color ${input} did not produce ${expected}. Got: ${Array.from(new Set(walls.map(p=>p.color))).join(',')}`)
   })
 }
 
