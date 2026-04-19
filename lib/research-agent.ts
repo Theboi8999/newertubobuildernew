@@ -122,7 +122,7 @@ export async function researchBuildingType(
 
       if (cached?.structured_knowledge && cached.confidence_score >= 70) {
         const ageMs = Date.now() - new Date(cached.last_researched_at).getTime()
-        if (ageMs < 30 * 24 * 60 * 60 * 1000) {
+        if (ageMs < 1 * 24 * 60 * 60 * 1000) {
           console.log(`[researchBuildingType] cache hit for "${buildingType}"`)
           return cached.structured_knowledge as ResearchResult
         }
@@ -368,46 +368,40 @@ export async function researchBuildingType(
   let result: ResearchResult = FALLBACK_RESULT(buildingType)
 
   try {
-    const systemPrompt = `You are an expert architect and Roblox game developer. Based on real research about ${humanName}, generate a REALISTIC Roblox building specification. Use ACTUAL room names and furniture from this building type. Do NOT use generic placeholders.
+    const systemPrompt = `Expert architect. Generate Roblox building spec as JSON only. No markdown.
 
-Scale: 1 stud = 28cm. Typical room: 10-20 studs wide, 8-16 studs deep, 8-12 studs tall.
-
-ROOM NAMING GUIDE:
-- Police Station: Main Entrance, Front Desk, Waiting Area, Holding Cell, Interrogation Room, Briefing Room, Locker Room, Evidence Room, Staff Room, Armory
-- Hospital: Main Entrance, Reception, Waiting Room, Triage, Emergency Bay, Ward, Operating Theatre, Pharmacy, Nurse Station, Storage
-- School: Main Entrance, Reception, Classroom A, Classroom B, Science Lab, Library, Cafeteria, Gymnasium, Staff Room, Principal Office
-- Restaurant: Main Entrance, Dining Area, Bar, Kitchen, Storage Room, Staff Room, Bathroom
-- Fire Station: Main Entrance, Apparatus Bay, Briefing Room, Dormitory, Kitchen, Locker Room, Watch Room, Gym
-
-VALID BrickColors: White, Institutional white, Ghost white, Light grey, Medium stone grey, Dark grey, Really black, Bright red, Crimson, Dark red, Rust, Bright orange, Bright yellow, Cool yellow, Bright green, Dark green, Sand green, Bright blue, Navy blue, Sand blue, Light blue, Teal, Cyan, Bright violet, Hot pink, Reddish brown, Brown, Sand yellow, Brick yellow, Fossil
-
-VALID materials: smoothplastic, wood, concrete, brick, metal, fabric, marble, neon
-
-RULES:
+Key rules:
+- floorCount: how many storeys (1-6)
+- architecturalStyle: one of: modern, colonial, victorian, chinese, japanese, art-deco, brutalist, industrial, mediterranean, gothic
+- hasColonnade: true if building has ground floor columns/pillars/arches
+- hasGlassFront: true if building has glass/glazed facade
+- exteriorMaterial: brick, concrete, smoothplastic, metal, wood
+- exteriorColor and roofColor: valid Roblox BrickColor names
 - Minimum 8 rooms, maximum 14. Each room name unique.
 - Room dimensions: width/depth 8-30, height 8-14
-- Each room: 3-10 furniture items with quantity and placement fields
+- Each room: 2-6 furniture items with quantity and placement
 - Valid placement: north_wall, south_wall, east_wall, west_wall, center, row
-- exteriorColor and roofColor must be valid BrickColors
-- confidence: 0-100
 
-Respond ONLY with valid JSON, no markdown:
-{"buildingType":"string","rooms":[{"name":"string","width":16,"depth":12,"height":10,"furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood","quantity":1,"placement":"north_wall"}],"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete"}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
+JSON schema:
+{"buildingType":"string","floorCount":1,"floorHeight":10,"architecturalStyle":"modern","hasGlassFront":false,"hasColonnade":false,"exteriorMaterial":"smoothplastic","rooms":[{"name":"string","width":16,"depth":12,"height":10,"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete","furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood","quantity":1,"placement":"north_wall"}]}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
 
-    const truncated = combinedResearch.substring(0, 2000)
+    const truncated = combinedResearch.substring(0, 1500)
     const qualityNote = qualityTarget
-      ? `\n\nQuality target: ${qualityTarget.detailLevel}/10 detail level, ${qualityTarget.interiorStyle} style. Add more furniture if detail >= 7.`
+      ? `\nQuality: ${qualityTarget.detailLevel}/10 detail, ${qualityTarget.interiorStyle} style.`
       : ''
-    const teachingNote = teachingContext ? `\n\nPrevious generation context:\n${teachingContext}` : ''
-    const userMsg = `Building type: ${buildingType}\n\nResearch:\n${truncated}${qualityNote}${teachingNote}`
+    const teachingNote = teachingContext ? `\nContext:\n${teachingContext}` : ''
+    const userMsg = `Building: ${buildingType}\n\nResearch:\n${truncated}${qualityNote}${teachingNote}`
 
     console.log(`[researchBuildingType] Groq input: ${userMsg.length} chars`)
-    await new Promise(resolve => setTimeout(resolve, 3000))
-    const rawJson = await geminiGenerate(systemPrompt, userMsg, 2000)
-    console.log(`[researchBuildingType] Groq response: ${rawJson.length} chars`)
+    await new Promise(resolve => setTimeout(resolve, 5000))
+    const rawJson = await geminiGenerate(systemPrompt, userMsg, 1500)
+    console.log('[research-agent] Groq raw response:', rawJson?.substring(0, 1000))
 
     const cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
     const parsed = JSON.parse(cleaned)
+    console.log('[research-agent] Parsed floorCount:', parsed?.floorCount)
+    console.log('[research-agent] Parsed architecturalStyle:', parsed?.architecturalStyle)
+    console.log('[research-agent] Parsed exteriorColor:', parsed?.exteriorColor)
     console.log('[researchBuildingType] rooms:', parsed.rooms?.map((r: any) => r.name).join(', '))
     result = {
       ...FALLBACK_RESULT(buildingType),

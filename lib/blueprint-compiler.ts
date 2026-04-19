@@ -319,15 +319,23 @@ function addCheckoutCounter(roomName: string, offsetX: number, offsetZ: number, 
 
 // ── Exterior ───────────────────────────────────────────────────────────────
 
-function buildExteriorWalls(
-  tw: number, td: number, height: number,
-  theme: ColorTheme, hasGlassFront: boolean,
-  exteriorFeatures?: ResearchResult['exteriorFeatures'],
+function buildDynamicExterior(
+  tw: number, td: number,
+  research: ResearchResult, theme: ColorTheme,
 ): RbxPart[] {
-  const ec = theme.exterior
-  const rc = theme.roof
+  const ec = validateColor(research.exteriorColor || 'Sand yellow')
+  const rc = validateColor(research.roofColor || 'Dark grey')
+  const style = (research.architecturalStyle || 'modern').toLowerCase()
+  const extMat = validateMaterial(research.exteriorMaterial || 'smoothplastic')
   const tc = theme.trim
-  const feat = exteriorFeatures || {}
+  const hasGlassFront = research.hasGlassFront || false
+  const hasFence = research.exteriorFeatures?.hasFence === true
+  const feat = research.exteriorFeatures || {}
+  const floorCount = Math.max(1, Number(research.floorCount) || 1)
+  const floorHeight = Math.max(8, Number(research.floorHeight) || 10)
+  const height = floorCount * floorHeight
+  console.log('[exterior] ec:', ec, 'rc:', rc, 'style:', style, 'extMat:', extMat)
+  void style; void extMat
 
   const parts: RbxPart[] = [
     // Ground slab
@@ -381,8 +389,8 @@ function buildExteriorWalls(
     parts.push(p('Flagpole_Flag',  4, 2.5, 0.2, tw / 2 - tw / 3 + 2, 13, -8, 'Bright red', 'fabric'))
   }
 
-  // Fence / perimeter barrier
-  if (feat.hasFence) {
+  // Fence / perimeter barrier — only when explicitly set in research
+  if (hasFence) {
     const fenceH = 4
     const postSpacing = 6
     const sidesData: [string, number, number, number, number][] = [
@@ -502,34 +510,6 @@ function buildDetailedExteriorOnly(tw: number, td: number, height: number, theme
   for (let i = 0; i < 8; i++) {
     parts.push(p(`EO_BayLine_${i}`, 0.2, 0.6, 6, tw + 4 + i * 3.2, 0.35, cpZ, 'White', 'smoothplastic'))
   }
-
-  // PERIMETER FENCE
-  const fH = 5
-  const fStep = 4
-  let pi = 0
-  for (let fx = -2; fx <= tw + 2; fx += fStep) {
-    parts.push(p(`EO_FencePN_${pi++}`, 0.4, fH, 0.4, fx, fH / 2, -2, 'Dark grey', 'metal'))
-  }
-  parts.push(p('EO_FenceRailNT', tw + 4, 0.2, 0.2, tw / 2, fH - 0.5, -2, 'Dark grey', 'metal'))
-  parts.push(p('EO_FenceRailNM', tw + 4, 0.2, 0.2, tw / 2, fH / 2,   -2, 'Dark grey', 'metal'))
-  pi = 0
-  for (let fx = -2; fx <= tw + 2; fx += fStep) {
-    parts.push(p(`EO_FencePS_${pi++}`, 0.4, fH, 0.4, fx, fH / 2, td + 2, 'Dark grey', 'metal'))
-  }
-  parts.push(p('EO_FenceRailST', tw + 4, 0.2, 0.2, tw / 2, fH - 0.5, td + 2, 'Dark grey', 'metal'))
-  parts.push(p('EO_FenceRailSM', tw + 4, 0.2, 0.2, tw / 2, fH / 2,   td + 2, 'Dark grey', 'metal'))
-  pi = 0
-  for (let fz = -2; fz <= td + 2; fz += fStep) {
-    parts.push(p(`EO_FencePW_${pi++}`, 0.4, fH, 0.4, -2,     fH / 2, fz, 'Dark grey', 'metal'))
-  }
-  parts.push(p('EO_FenceRailWT', 0.2, 0.2, td + 4, -2,     fH - 0.5, td / 2, 'Dark grey', 'metal'))
-  parts.push(p('EO_FenceRailWM', 0.2, 0.2, td + 4, -2,     fH / 2,   td / 2, 'Dark grey', 'metal'))
-  pi = 0
-  for (let fz = -2; fz <= td + 2; fz += fStep) {
-    parts.push(p(`EO_FencePE_${pi++}`, 0.4, fH, 0.4, tw + 2, fH / 2, fz, 'Dark grey', 'metal'))
-  }
-  parts.push(p('EO_FenceRailET', 0.2, 0.2, td + 4, tw + 2, fH - 0.5, td / 2, 'Dark grey', 'metal'))
-  parts.push(p('EO_FenceRailEM', 0.2, 0.2, td + 4, tw + 2, fH / 2,   td / 2, 'Dark grey', 'metal'))
 
   // ENTRANCE DETAIL
   const gL = tw / 2 - 5
@@ -656,10 +636,17 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
 
   const tw = Math.max(research.totalWidth || 40, cursorX + 6)
   const td = Math.max(research.totalDepth || 30, cursorZ + rowMaxDepth + 6)
+  const floorCount = Math.max(1, Number(research.floorCount) || 1)
+  const floorHeight = Math.max(8, Number(research.floorHeight) || 10)
+  const totalHeight = floorCount * floorHeight
   const tallestRoom = Math.max(...research.rooms.map(r => Math.max(5, Number(r.height) || 10)))
-  const EXTERIOR_HEIGHT = tallestRoom + 2
+  const EXTERIOR_HEIGHT = Math.max(tallestRoom + 2, totalHeight)
+  console.log('[blueprint-compiler] floorCount:', floorCount, 'totalHeight:', totalHeight)
+  console.log('[blueprint-compiler] architecturalStyle:', research.architecturalStyle)
+  console.log('[blueprint-compiler] exteriorColor:', research.exteriorColor)
+  console.log('[compileBlueprint] building exterior with research:', research.buildingType, 'floorCount:', research.floorCount, 'style:', research.architecturalStyle)
 
-  const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, hasGlassFront, research.exteriorFeatures)
+  const exterior = buildDynamicExterior(tw, td, research, theme)
 
   if (exteriorOnly) {
     exterior.push(...buildDetailedExteriorOnly(tw, td, EXTERIOR_HEIGHT, theme))
