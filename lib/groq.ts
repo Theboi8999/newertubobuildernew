@@ -64,5 +64,3 @@ export async function groqJSON<T>(
   }
 }
 
-// Backward-compat alias — generator.ts non-builder path uses this
-export const geminiGenerate = groqGenerate

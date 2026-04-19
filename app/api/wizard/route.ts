@@ -1,6 +1,6 @@
 // app/api/wizard/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { geminiGenerate } from '@/lib/groq'
+import { groqGenerate } from '@/lib/groq'
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       .map(([q, a]) => `${q}: ${a}`)
       .join('\n')
 
-    const result = await geminiGenerate(
+    const result = await groqGenerate(
       'You convert wizard answers into a single detailed Roblox asset generation prompt. Output ONLY the prompt string — no explanation, no quotes, no preamble.',
       `System type: ${systemType}\n\nUser wizard answers:\n${answerText}\n\nWrite a detailed, specific Roblox ${systemType} generation prompt based on these answers. Include key features, style, and any special requirements mentioned.`,
       400

@@ -1,4 +1,4 @@
-import { geminiGenerate } from './groq'
+import { groqGenerate } from './groq'
 import { getScriptsForPrompt } from './script-library'
 
 export interface SceneAsset {
@@ -17,7 +17,7 @@ export interface ScenePlan {
 }
 
 export async function parseSceneDescription(prompt: string): Promise<ScenePlan> {
-  const text = await geminiGenerate(
+  const text = await groqGenerate(
     `You parse complex Roblox scene descriptions into individual asset generation tasks.
 Break down the scene into separate assets, determine what type each is (builder/modeling/project),
 and identify dependencies between them.
@@ -49,7 +49,7 @@ Output JSON:
 
 export async function resolveDependencies(prompt: string, systemType: string): Promise<string[]> {
   try {
-    const text = await geminiGenerate(
+    const text = await groqGenerate(
       `You identify Roblox game system dependencies.
 Given a generation request, identify what other systems MUST exist for this to work.
 Output ONLY JSON array of dependency names. Empty array if no dependencies.`,

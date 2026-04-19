@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createServerClient, createAdminClient } from '@/lib/supabase'
-import { geminiGenerate } from '@/lib/groq'
+import { groqGenerate } from '@/lib/groq'
 
 export async function POST(req: NextRequest) {
   const cookieStore = cookies()
@@ -50,7 +50,7 @@ Output as JSON array with each fact as a separate entry:
 
 Generate 8-12 detailed, useful facts. Output ONLY the JSON array.`
 
-    const result = await geminiGenerate(
+    const result = await groqGenerate(
       'You are an expert researcher for Roblox building knowledge. Output ONLY valid JSON arrays.',
       researchPrompt,
       3000

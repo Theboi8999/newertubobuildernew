@@ -1,5 +1,5 @@
 // lib/output-validator.ts
-import { geminiGenerate } from './groq'
+import { groqGenerate } from './groq'
 
 export interface ValidationResult {
   valid: boolean
@@ -71,7 +71,7 @@ export async function checkScriptTOS(
   scriptSource: string
 ): Promise<{ safe: boolean; issues: string[] }> {
   try {
-    const text = await geminiGenerate(
+    const text = await groqGenerate(
       `You check Roblox Luau scripts for Roblox Terms of Service violations and exploits.
 Output ONLY JSON: {"safe": boolean, "issues": ["issue1", "issue2"]}`,
       `Check this script:\n${scriptSource.slice(0, 2000)}`,

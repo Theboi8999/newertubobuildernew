@@ -2,7 +2,7 @@
 // IMPORTANT: This module runs server-side only (called from generator/inngest).
 // Uses createAdminClient — never call from client components.
 
-import { geminiGenerate } from './groq'
+import { groqGenerate } from './groq'
 import { createAdminClient } from './supabase'
 
 export interface StoredScript {
@@ -30,7 +30,7 @@ const KNOWN_MODULES = [
 
 export async function detectMissingScripts(prompt: string): Promise<string[]> {
   try {
-    const text = await geminiGenerate(
+    const text = await groqGenerate(
       `You identify scripting concepts needed for a Roblox generation request that are NOT in this list of already-known concepts: ${KNOWN_MODULES.join(', ')}.
 Output ONLY a JSON array of short concept strings (2-4 words each). Empty array if nothing new needed.
 Example: ["zipline system", "voting gui", "item crafting"]`,
@@ -92,7 +92,7 @@ export async function searchLibraryByKeywords(keywords: string[]): Promise<Store
 
 export async function generateNewScript(concept: string): Promise<StoredScript | null> {
   try {
-    const text = await geminiGenerate(
+    const text = await groqGenerate(
       `You are a veteran Roblox Luau scripter. Generate a complete, reusable script pattern for the requested concept.
 The script must be:
 - Complete and working (no TODOs, no placeholders)

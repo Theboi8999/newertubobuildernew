@@ -1,6 +1,6 @@
 // app/api/criticise/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { geminiGenerate } from '@/lib/groq'
+import { groqGenerate } from '@/lib/groq'
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing originalPrompt or criticism' }, { status: 400 })
     }
 
-    const result = await geminiGenerate(
+    const result = await groqGenerate(
       'You improve Roblox asset generation prompts based on user feedback. Output ONLY the improved prompt string — no explanation, no quotes, no preamble.',
       `Original prompt: "${originalPrompt}"
 

@@ -1,5 +1,5 @@
 // lib/generator.ts
-import { geminiGenerate } from './groq'
+import { groqGenerate } from './groq'
 import { createAdminClient } from './supabase'
 import { getKnowledgeForSystem, getQualityStandards, interpretPrompt, buildQuantityInstruction, SystemType } from './knowledge/index'
 import { getKnowledgeForPrompt } from './knowledge-store'
@@ -224,7 +224,7 @@ export async function generateAsset(
   const userPrompt = buildUserPrompt(prompt, quantityInstruction, options)
 
   const trimmedKnowledge = systemPrompt.slice(0, 4000)
-  const rawOutput = await geminiGenerate(trimmedKnowledge, userPrompt, 8000)
+  const rawOutput = await groqGenerate(trimmedKnowledge, userPrompt, 8000)
 
   await onProgress?.('🔧 Validating output...', 85)
 
