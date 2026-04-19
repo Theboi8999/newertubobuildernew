@@ -1,76 +1,65 @@
-// lib/groq.ts
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
+import Groq from 'groq-sdk'
 
-async function callGroq(system: string, prompt: string, maxTokens: number): Promise<string> {
-  const res = await fetch(GROQ_API_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama-3.1-8b-instant',
-      max_tokens: Math.min(maxTokens, 1500),
-      temperature: 0.3,
-      messages: [
-        { role: 'system', content: system.slice(0, 1000) },
-        { role: 'user', content: prompt.slice(0, 1500) },
-      ],
-    }),
-  })
-
-  if (res.status === 429) {
-    throw Object.assign(new Error('Groq rate limit (429)'), { status: 429 })
-  }
-  if (!res.ok) {
-    const body = await res.text()
-    throw new Error(`Groq API error: ${res.status} ${body}`)
-  }
-
-  const data = await res.json()
-  const content = data.choices?.[0]?.message?.content
-  if (!content) throw new Error('Groq returned empty content')
-  return content
-}
+const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
 export async function groqGenerate(
-  system: string,
-  prompt: string,
-  maxTokens = 2000,
-  retries = 3,
+  systemPrompt: string,
+  userPrompt: string,
+  maxTokens = 1500
 ): Promise<string> {
-  const backoffs = [0, 3000, 6000]
-  let lastError: Error = new Error('Unknown groq error')
+  const truncSys = systemPrompt.substring(0, 800)
+  const truncUser = userPrompt.substring(0, 1500)
 
-  for (let i = 0; i < retries; i++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      if (i > 0) {
-        const extra = (lastError as any).status === 429 ? 5000 : 0
-        await new Promise(r => setTimeout(r, backoffs[i] + extra))
+      if (attempt > 0) {
+        const delay = attempt * 4000
+        console.log(`[groq] retry ${attempt}, waiting ${delay}ms`)
+        await new Promise(r => setTimeout(r, delay))
       }
-      return await callGroq(system, prompt, maxTokens)
+      const res = await client.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
+        max_tokens: Math.min(maxTokens, 1500),
+        temperature: 0.3,
+        messages: [
+          { role: 'system', content: truncSys },
+          { role: 'user', content: truncUser }
+        ]
+      })
+      const text = res.choices[0]?.message?.content || ''
+      console.log(`[groq] success attempt ${attempt + 1}, chars: ${text.length}`)
+      return text
     } catch (err: any) {
-      lastError = err
-      console.error(`[groq] attempt ${i + 1}/${retries} failed:`, err.message)
+      console.error(`[groq] attempt ${attempt + 1} failed:`, err?.status, err?.message?.substring(0, 100))
+      if (err?.status === 429) {
+        await new Promise(r => setTimeout(r, 6000 + attempt * 3000))
+        continue
+      }
+      if (attempt === 2) throw err
     }
   }
-
-  throw lastError
+  throw new Error('groq: all retries failed')
 }
 
-export async function groqJSON<T>(system: string, prompt: string, fallback: T): Promise<T> {
+export async function groqJSON<T>(
+  systemPrompt: string,
+  userPrompt: string,
+  fallback: T
+): Promise<T> {
   try {
-    const raw = await groqGenerate(system, prompt, 1500)
-    const stripped = raw.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
-    const start = stripped.indexOf('{')
-    const end = stripped.lastIndexOf('}')
+    const raw = await groqGenerate(systemPrompt, userPrompt)
+    const cleaned = raw.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    const start = cleaned.indexOf('{')
+    const end = cleaned.lastIndexOf('}')
     if (start === -1 || end === -1) {
-      console.error('[groqJSON] no JSON object found in response')
+      console.error('[groq] no JSON in response:', cleaned.substring(0, 300))
       return fallback
     }
-    return JSON.parse(stripped.slice(start, end + 1)) as T
+    const parsed = JSON.parse(cleaned.substring(start, end + 1))
+    console.log('[groq] JSON ok, keys:', Object.keys(parsed).join(', '))
+    return parsed as T
   } catch (e) {
-    console.error('[groqJSON] parse error:', e)
+    console.error('[groq] JSON parse failed:', e)
     return fallback
   }
 }

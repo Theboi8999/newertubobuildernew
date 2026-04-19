@@ -46,6 +46,7 @@ export default function AdminPage() {
     { href: '/admin/knowledge-base', icon: '📚', label: 'Knowledge Base', desc: 'Edit AI generation knowledge', badge: null },
     { href: '/admin/research', icon: '🔬', label: 'Research Queue', desc: 'Add new building/vehicle research', badge: stats?.knowledgeCount },
     { href: '/admin/library', icon: '💾', label: 'Script Library', desc: 'View auto-generated scripts', badge: stats?.scriptCount },
+    { href: '/admin/logs', icon: '📋', label: 'Generation Logs', desc: 'Recent generations, quality scores, errors', badge: stats?.genCount },
   ]
 
   return (
@@ -81,7 +82,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {tiles.map(t => (
             <a key={t.href} href={t.href} className="card card-hover p-6">
               <div className="flex items-start justify-between mb-3">

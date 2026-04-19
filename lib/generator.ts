@@ -7,10 +7,12 @@ import { getScriptsForPrompt } from './script-library'
 import { validateRbxmx, watermarkRbxmx } from './output-validator'
 import { savePromptHistory, getUserPreferences } from './prompt-memory'
 import { researchTopic } from './research'
-import { detectBuildingType } from './room-templates'
 import { buildRbxmx, RbxModel, RbxPart } from './rbxmx'
 import { researchBuildingType, ResearchResult } from './research-agent'
 import { compileBlueprint } from './blueprint-compiler'
+import { applyStyleDefaults, matchStyleLibrary } from './style-library'
+import { analysePrompt } from './prompt-intelligence'
+import { preGate, postGate } from './quality-gate'
 import type { QualityTarget } from './vision-analyzer'
 
 export interface GenerateOptions {
@@ -20,6 +22,8 @@ export interface GenerateOptions {
   variations?: number
   referenceImages?: Array<{ base64: string; mimeType: string }>
   exteriorOnly?: boolean
+  floorCountOverride?: number
+  buildingStyle?: string
 }
 
 export interface GenerateResult {
@@ -42,12 +46,13 @@ export async function generateAsset(
   generationId: string,
   onProgress?: (msg: string, percent: number) => Promise<void>
 ): Promise<GenerateResult> {
+  console.log('[generateAsset] systemType:', systemType, 'prompt:', prompt.substring(0, 50))
   await onProgress?.('🔍 Analysing prompt...', 15)
 
   // ── Builder branch: runs FIRST — no Groq/knowledge calls before this ──────
   if (systemType === 'builder') {
-    const buildingType = detectBuildingType(prompt)
-    console.log('[generateAsset] detectBuildingType result:', buildingType)
+    console.log('[generateAsset] ═══ BUILDER BRANCH START')
+    console.log('[generator] BUILDER START')
 
     let allParts: RbxPart[] = []
     let specItems: string[] = []
@@ -56,6 +61,10 @@ export async function generateAsset(
     let compiled: ReturnType<typeof compileBlueprint> | null = null
     let qualityTarget: QualityTarget | undefined
     let irlImageUrls: string[] = []
+
+    const intent = analysePrompt(prompt)
+    const buildingType = intent.buildingType
+    console.log('[generateAsset] analysePrompt result:', JSON.stringify(intent))
 
     if (options.referenceImages && options.referenceImages.length > 0) {
       try {
@@ -85,23 +94,37 @@ export async function generateAsset(
         } catch (e) {
           console.error('[generateAsset] teaching context error:', e)
         }
-        researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
-        console.log('[generateAsset] research confidence:', researchResult.confidence)
 
-        console.log('[generator] calling compileBlueprint for:', buildingType)
+        researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
+        researchResult = applyStyleDefaults(researchResult)
+
+        if (intent.floorCountHint && intent.floorCountHint > 1) {
+          researchResult = { ...researchResult, floorCount: intent.floorCountHint }
+          console.log('[generator] floor hint applied:', intent.floorCountHint)
+        }
+        if (options.floorCountOverride && options.floorCountOverride > 0) {
+          researchResult = { ...researchResult, floorCount: options.floorCountOverride }
+        }
+        if (options.buildingStyle) {
+          const sm = matchStyleLibrary('', options.buildingStyle)
+          if (sm) researchResult = { ...researchResult, ...sm }
+        }
+
+        const gate = preGate(researchResult)
+        if (!gate.passed) {
+          console.log('[generator] pre-gate failed, retrying research')
+          researchResult = await researchBuildingType(buildingType, { forceRefresh: true })
+          researchResult = applyStyleDefaults(researchResult)
+        }
+
+        console.log('[generateAsset] research confidence:', researchResult.confidence)
         compiled = compileBlueprint(researchResult)
         allParts = options.exteriorOnly
           ? [...compiled.exterior]
           : [...compiled.rooms.flat(), ...compiled.exterior]
         console.log('[generator] compiled parts count:', allParts.length)
-        console.log('[DEBUG] First 3 parts of allParts:', JSON.stringify(allParts.slice(0, 3), null, 2))
-        console.log('[DEBUG] Total parts:', allParts.length)
-        console.log('[DEBUG] Exterior parts count:', compiled.exterior.length)
-        console.log('[DEBUG] Room parts counts:', compiled.rooms.map((r, i) => `room${i}:${r.length}`).join(', '))
         specItems = researchResult.rooms.map(r => r.name)
-        console.log('[generateAsset] compiled blueprint parts:', allParts.length)
 
-        // Save compiled blueprint to cache
         try {
           const supabaseAdmin = createAdminClient()
           await supabaseAdmin.from('research_cache').update({ blueprint: compiled }).eq('building_type', buildingType)

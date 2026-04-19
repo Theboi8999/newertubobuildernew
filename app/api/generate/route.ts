@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     } catch {
       return NextResponse.json({ error: 'Invalid request body — may be too large' }, { status: 400 })
     }
-    const { prompt, systemType, style, scale, locationReference, variations, referenceImages, exteriorOnly } = body
+    const { prompt, systemType, style, scale, locationReference, variations, referenceImages, exteriorOnly, floorCount, buildingStyle } = body
 
     if (!prompt || !systemType) {
       return NextResponse.json({ error: 'Missing prompt or systemType' }, { status: 400 })
@@ -72,6 +72,8 @@ export async function POST(req: NextRequest) {
           variations: variations || 1,
           referenceImages: referenceImages || undefined,
           exteriorOnly: exteriorOnly || false,
+          floorCountOverride: floorCount || undefined,
+          buildingStyle: buildingStyle || undefined,
         },
       },
     })

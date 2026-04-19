@@ -24,40 +24,29 @@ export interface RbxModel {
   children?: RbxModel[]
 }
 
-// Correct Roblox material enum values
-const MATERIAL_MAP: Record<string, number> = {
-  'smoothplastic': 256,
-  'smooth plastic': 256,
-  'plastic': 256,
-  'glass': 256,
-  'wood': 512,
-  'woodplanks': 512,
-  'slate': 800,
-  'marble': 784,
-  'concrete': 816,
-  'granite': 832,
-  'corrodedmetal': 1040,
-  'corrugatedmetal': 1040,
-  'brick': 1040,
-  'diamondplate': 1056,
-  'diamond plate': 1056,
-  'foil': 1072,
-  'pebble': 1072,
-  'sand': 1088,
-  'ground': 1088,
-  'grass': 1280,
-  'metal': 1120,
-  'fabric': 1312,
-  'neon': 1376,
-  'cobblestone': 1392,
-  'ice': 1536,
-  'forcefield': 1408,
+const ME: Record<string, number> = {
+  smoothplastic: 256, plastic: 256,
+  wood: 512, timber: 512,
+  brick: 1040,
+  concrete: 816, stone: 816,
+  marble: 784,
+  granite: 832,
+  metal: 1280, steel: 1280,
+  fabric: 1312, carpet: 1312,
+  neon: 1376,
+  glass: 1568,
+  cobblestone: 1392,
+  ice: 1536,
+  sand: 1088,
+  forcefield: 1408,
 }
 
-// Valid Roblox BrickColors - map invalid ones to nearest valid
+function getMat(m: string): number {
+  return ME[(m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')] ?? 256
+}
+
 const VALID_COLORS: Record<string, string> = {
   'transparent': 'Institutional white',
-  'dark red': 'Bright red',
   'dark blue': 'Navy blue',
   'dark grey': 'Dark grey',
   'dark gray': 'Dark grey',
@@ -70,6 +59,7 @@ const VALID_COLORS: Record<string, string> = {
   'green': 'Bright green',
   'blue': 'Bright blue',
   'red': 'Bright red',
+  'dark red': 'Dark red',
   'pink': 'Hot pink',
   'purple': 'Bright violet',
   'brown': 'Reddish brown',
@@ -80,7 +70,7 @@ const VALID_COLORS: Record<string, string> = {
   'gold': 'Bright yellow',
   'teal': 'Teal',
   'cyan': 'Cyan',
-  // Full BrickColor names as pass-throughs (defensive: ensures casing is normalised)
+  'black': 'Really black',
   'navy blue': 'Navy blue',
   'bright green': 'Bright green',
   'bright red': 'Bright red',
@@ -95,16 +85,18 @@ const VALID_COLORS: Record<string, string> = {
   'institutional white': 'Institutional white',
   'reddish brown': 'Reddish brown',
   'medium stone grey': 'Medium stone grey',
+  'light stone grey': 'Light stone grey',
+  'dark stone grey': 'Dark stone grey',
+  'really black': 'Really black',
+  'rust': 'Rust',
+  'cashmere': 'Cashmere',
+  'dark green': 'Dark green',
+  'white': 'White',
 }
 
 function sanitizeColor(color: string): string {
   const lower = color.toLowerCase().trim()
   return VALID_COLORS[lower] || color
-}
-
-function getMaterialEnum(material: string): number {
-  const lower = material.toLowerCase().trim()
-  return MATERIAL_MAP[lower] ?? 256
 }
 
 function escapeXml(str: string): string {
@@ -117,11 +109,10 @@ function escapeXml(str: string): string {
 }
 
 function generatePart(part: RbxPart, id: number): string {
-  const materialEnum = getMaterialEnum(part.material)
+  const materialEnum = getMat(part.material)
   const color = sanitizeColor(part.color)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
 
-  // Ensure valid numbers
   const sx = Math.max(0.05, Number(part.size.x) || 1)
   const sy = Math.max(0.05, Number(part.size.y) || 1)
   const sz = Math.max(0.05, Number(part.size.z) || 1)
@@ -151,10 +142,10 @@ function generatePart(part: RbxPart, id: number): string {
     </Properties>${part.emissive ? `
     <Item class="PointLight" referent="LIGHT_RBX${id}">
       <Properties>
-        <float name="Brightness">8</float>
-        <float name="Range">40</float>
+        <float name="Brightness">5</float>
+        <float name="Range">30</float>
         <Color3 name="Color">
-          <R>1</R><G>1</G><B>0.95</B>
+          <R>1</R><G>0.98</G><B>0.9</B>
         </Color3>
         <bool name="Enabled">true</bool>
         <bool name="Shadows">true</bool>

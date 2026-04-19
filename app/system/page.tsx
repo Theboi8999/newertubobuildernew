@@ -128,6 +128,9 @@ function SystemPageInner() {
   const [criticism, setCriticism] = useState('')
   const [criticiseLoading, setCriticiseLoading] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [region, setRegion] = useState('')
+  const [buildingStyle, setBuildingStyle] = useState('')
+  const [floorCount, setFloorCount] = useState(0)
   const [rating, setRating] = useState(0)
   const [ratingDone, setRatingDone] = useState(false)
   const [referenceImages, setReferenceImages] = useState<Array<{ base64: string; mimeType: string; preview: string }>>([])
@@ -177,11 +180,12 @@ function SystemPageInner() {
     setLoading(true)
     setGeneration(null)
     try {
+      const enrichedPrompt = [prompt.trim(), region, buildingStyle, floorCount > 0 ? `${floorCount} storey` : null].filter(Boolean).join(' ')
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: prompt.trim(),
+          prompt: enrichedPrompt,
           systemType: systemId,
           style: style || undefined,
           scale,
@@ -190,6 +194,8 @@ function SystemPageInner() {
             ? referenceImages.map(i => ({ base64: i.base64, mimeType: i.mimeType }))
             : undefined,
           exteriorOnly: exteriorOnly || undefined,
+          floorCount: floorCount > 0 ? floorCount : undefined,
+          buildingStyle: buildingStyle || undefined,
         }),
       })
       const data = await res.json()
@@ -372,16 +378,45 @@ function SystemPageInner() {
                   {showAdvanced ? '▲ Hide advanced' : '▼ Advanced options'}
                 </button>
                 {showAdvanced && (
-                  <div className="mb-4">
-                    <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
-                      Location reference (optional)
-                    </label>
-                    <input
-                      value={locationRef}
-                      onChange={e => setLocationRef(e.target.value)}
-                      placeholder="e.g. London, New York, Berlin city centre"
-                      className="input text-sm"
-                    />
+                  <div className="mb-4 space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">Region</label>
+                      <select value={region} onChange={e => setRegion(e.target.value)} className="input text-sm w-full">
+                        <option value="">Auto</option>
+                        {['UK','Singapore','Japan','USA','France','Italy','China','Germany','Middle East'].map(r => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">Architectural Style</label>
+                      <select value={buildingStyle} onChange={e => setBuildingStyle(e.target.value)} className="input text-sm w-full">
+                        <option value="">Auto</option>
+                        {['Modern','Victorian','Georgian','Art Deco','Brutalist','Peranakan Colonial','Gothic','Industrial','Minimalist','Mediterranean','Japanese Traditional','Neoclassical'].map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">Floors</label>
+                      <select value={floorCount} onChange={e => setFloorCount(Number(e.target.value))} className="input text-sm w-full">
+                        <option value={0}>Auto</option>
+                        {[1,2,3,4,5,6,7,8,9,10].map(n => (
+                          <option key={n} value={n}>{n}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
+                        Location reference (optional)
+                      </label>
+                      <input
+                        value={locationRef}
+                        onChange={e => setLocationRef(e.target.value)}
+                        placeholder="e.g. London, New York, Berlin city centre"
+                        className="input text-sm"
+                      />
+                    </div>
                   </div>
                 )}
 
