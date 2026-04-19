@@ -175,3 +175,51 @@ export const PROP_LIBRARY = {
   TOILET_CUBICLE,
   RECEPTION_DESK,
 }
+
+export function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWidth: number, roomDepth: number): RbxPart[] {
+  const n = roomName.toLowerCase()
+  const insetX = roomWidth / 2 - 3
+  const insetZ = roomDepth / 2 - 3
+
+  if (n.includes('checkout') || n.includes('cashier') || n.includes('till') || n.includes('register')) {
+    return PROP_LIBRARY.CHECKOUT_COUNTER(roomX, 0, roomZ + insetZ)
+  }
+  if (n.includes('refriger') || n.includes('fridge') || n.includes('cold') || n.includes('chiller')) {
+    return [...PROP_LIBRARY.REFRIGERATOR_UNIT(roomX - 4, 0, roomZ), ...PROP_LIBRARY.REFRIGERATOR_UNIT(roomX + 4, 0, roomZ)]
+  }
+  if (n.includes('shelf') || n.includes('retail') || n.includes('sales') || n.includes('shop floor') || n.includes('showroom')) {
+    return [...PROP_LIBRARY.SHELVING_UNIT(roomX - insetX + 2, 0, roomZ), ...PROP_LIBRARY.SHELVING_UNIT(roomX, 0, roomZ), ...PROP_LIBRARY.SHELVING_UNIT(roomX + insetX - 2, 0, roomZ)]
+  }
+  if (n.includes('reception') || n.includes('lobby') || n.includes('front desk') || n.includes('welcome') || n.includes('entrance hall')) {
+    return PROP_LIBRARY.RECEPTION_DESK(roomX, 0, roomZ - insetZ + 3)
+  }
+  if (n.includes('office') || n.includes('admin') || n.includes('bureau') || n.includes('workstation') || n.includes('bullpen') || n.includes('open plan')) {
+    return [...PROP_LIBRARY.OFFICE_DESK(roomX - 3, 0, roomZ - 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX - 3, 0, roomZ + 1), ...PROP_LIBRARY.OFFICE_DESK(roomX + 3, 0, roomZ - 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 3, 0, roomZ + 1)]
+  }
+  if (n.includes('cell') || n.includes('holding') || n.includes('detention') || n.includes('custody') || n.includes('brig')) {
+    return PROP_LIBRARY.POLICE_CELL(roomX, 0, roomZ)
+  }
+  if (n.includes('toilet') || n.includes('bathroom') || n.includes('restroom') || n.includes('wc') || n.includes('lavatory') || n.includes('washroom') || n.includes('sanitary')) {
+    return [...PROP_LIBRARY.TOILET_CUBICLE(roomX - 2.5, 0, roomZ), ...PROP_LIBRARY.TOILET_CUBICLE(roomX + 2.5, 0, roomZ)]
+  }
+  if (n.includes('meeting') || n.includes('conference') || n.includes('boardroom') || n.includes('briefing') || n.includes('seminar') || n.includes('committee')) {
+    return [...PROP_LIBRARY.OFFICE_DESK(roomX, 0, roomZ), ...PROP_LIBRARY.OFFICE_CHAIR(roomX - 4, 0, roomZ - 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX - 2, 0, roomZ - 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX, 0, roomZ - 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 2, 0, roomZ - 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 4, 0, roomZ - 2)]
+  }
+  if (n.includes('locker') || n.includes('changing') || n.includes('dressing') || n.includes('cloakroom')) {
+    return PROP_LIBRARY.OFFICE_CHAIR(roomX, 0, roomZ)
+  }
+  if (n.includes('storage') || n.includes('stock') || n.includes('warehouse') || n.includes('store room') || n.includes('archive') || n.includes('evidence')) {
+    return [...PROP_LIBRARY.SHELVING_UNIT(roomX - insetX + 2, 0, roomZ), ...PROP_LIBRARY.SHELVING_UNIT(roomX + insetX - 2, 0, roomZ)]
+  }
+  if (n.includes('kitchen') || n.includes('canteen') || n.includes('cafeteria') || n.includes('break room') || n.includes('staff room') || n.includes('mess')) {
+    return [...PROP_LIBRARY.OFFICE_DESK(roomX - 2, 0, roomZ), ...PROP_LIBRARY.OFFICE_CHAIR(roomX - 2, 0, roomZ + 2), ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 2, 0, roomZ + 2)]
+  }
+  if (n.includes('ward') || n.includes('bay') || n.includes('patient') || n.includes('bed') || n.includes('recovery')) {
+    return [...PROP_LIBRARY.OFFICE_DESK(roomX - 4, 0, roomZ), ...PROP_LIBRARY.OFFICE_DESK(roomX + 4, 0, roomZ)]
+  }
+  if (n.includes('gym') || n.includes('fitness') || n.includes('exercise') || n.includes('training')) {
+    return [...PROP_LIBRARY.OFFICE_CHAIR(roomX - 3, 0, roomZ), ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 3, 0, roomZ)]
+  }
+
+  return []
+}

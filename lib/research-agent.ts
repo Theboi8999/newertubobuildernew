@@ -30,14 +30,17 @@ export interface ResearchResult {
   roofColor: string
   culturalNotes: string
   confidence: number
+  floorCount?: number
+  floorHeight?: number
+  hasGlassFront?: boolean
+  hasColonnade?: boolean
+  architecturalStyle?: string
+  exteriorMaterial?: string
   exteriorFeatures?: {
     hasFence?: boolean
     hasCarPark?: boolean
     hasFlagpole?: boolean
     hasGates?: boolean
-    floorCount?: number
-    hasGlassFront?: boolean
-    exteriorMaterial?: string
   }
 }
 
@@ -56,6 +59,9 @@ const FALLBACK_RESULT = (buildingType: string): ResearchResult => ({
   totalWidth: 50, totalDepth: 40,
   exteriorColor: 'Medium stone grey', roofColor: 'Dark grey',
   culturalNotes: '', confidence: 0,
+  floorCount: 1, floorHeight: 10,
+  hasGlassFront: false, hasColonnade: false,
+  architecturalStyle: 'modern', exteriorMaterial: 'smoothplastic',
 })
 
 const GENERIC_PAD_ROOMS: ResearchResult['rooms'] = [
@@ -68,57 +74,28 @@ const GENERIC_PAD_ROOMS: ResearchResult['rooms'] = [
 ]
 
 function getFallbackRooms(buildingType: string): ResearchResult {
-  const bt = buildingType.toLowerCase()
-  if (bt.includes('convenience') || bt.includes('konbini') || bt.includes('store') || bt.includes('shop')) {
-    return { buildingType, rooms: [
-      { name: 'Main Shopping Floor', width: 24, depth: 16, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Checkout Area',       width: 12, depth: 8,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Refrigerator Wall',   width: 12, depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Staff Room',          width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
-      { name: 'Storage Room',        width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Customer Toilet',     width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'marble' },
-    ], totalWidth: 48, totalDepth: 32, exteriorColor: 'Bright green', roofColor: 'White', culturalNotes: 'Japanese convenience store', confidence: 50 }
-  }
-  if (bt.includes('police') || (bt.includes('station') && !bt.includes('fire'))) {
-    return { buildingType, rooms: [
-      { name: 'Public Reception', width: 20, depth: 14, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Officer Bullpen',  width: 24, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Holding Cell 1',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Holding Cell 2',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Medium stone grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Interview Room',   width: 10, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Chief Office',     width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Reddish brown', floorMaterial: 'wood' },
-    ], totalWidth: 50, totalDepth: 36, exteriorColor: 'Navy blue', roofColor: 'Dark grey', culturalNotes: 'UK police station', confidence: 50 }
-  }
-  if (bt.includes('fire')) {
-    return { buildingType, rooms: [
-      { name: 'Apparatus Bay', width: 24, depth: 16, height: 12, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Watch Room',    width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Briefing Room', width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-      { name: 'Dormitory',     width: 14, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow', floorMaterial: 'wood' },
-      { name: 'Kitchen',       width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Locker Room',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
-    ], totalWidth: 50, totalDepth: 36, exteriorColor: 'Bright red', roofColor: 'Dark grey', culturalNotes: 'UK fire station', confidence: 50 }
-  }
-  if (bt.includes('hospital') || bt.includes('clinic')) {
-    return { buildingType, rooms: [
-      { name: 'Main Entrance',  width: 20, depth: 14, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Reception',      width: 16, depth: 12, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Waiting Room',   width: 16, depth: 12, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Emergency Bay',  width: 20, depth: 14, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Ward',           width: 20, depth: 14, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-      { name: 'Nurse Station',  width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'White', floorMaterial: 'smoothplastic' },
-    ], totalWidth: 52, totalDepth: 40, exteriorColor: 'White', roofColor: 'White', culturalNotes: 'NHS hospital', confidence: 50 }
-  }
   return {
-    buildingType, rooms: [
-      { name: 'Main Hall',    width: 20, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
-      { name: 'Office',       width: 14, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
-      { name: 'Meeting Room', width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
-      { name: 'Reception',    width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
-      { name: 'Staff Room',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'smoothplastic' },
-      { name: 'Toilet',       width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White',      floorColor: 'White',             floorMaterial: 'marble' },
+    buildingType,
+    floorCount: 1,
+    floorHeight: 10,
+    hasGlassFront: false,
+    hasColonnade: false,
+    architecturalStyle: 'modern',
+    exteriorMaterial: 'smoothplastic',
+    rooms: [
+      { name: 'Main Hall',    width: 20, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
+      { name: 'Office',       width: 14, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
+      { name: 'Meeting Room', width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
+      { name: 'Reception',    width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
+      { name: 'Staff Room',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
+      { name: 'Toilet',       width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White',      floorColor: 'White',             floorMaterial: 'Marble' },
     ],
-    totalWidth: 44, totalDepth: 32, exteriorColor: 'Light grey', roofColor: 'Dark grey', culturalNotes: 'Generic building', confidence: 30,
+    totalWidth: 40,
+    totalDepth: 28,
+    exteriorColor: 'Light grey',
+    roofColor: 'Dark grey',
+    culturalNotes: buildingType,
+    confidence: 20,
   }
 }
 
@@ -131,23 +108,6 @@ export async function researchBuildingType(
   teachingContext?: string,
 ): Promise<ResearchResult> {
   const humanName = buildingType.replace(/_/g, ' ')
-
-  // ── Fast path: static specs ───────────────────────────────────────────────
-  if (!forceRefresh) {
-    try {
-      const { STATIC_BUILDING_SPECS } = await import('./static-specs')
-      const staticKey = Object.keys(STATIC_BUILDING_SPECS).find(k =>
-        buildingType.toLowerCase().replace(/\s+/g, '_').includes(k) ||
-        k.split('_').every(word => buildingType.toLowerCase().includes(word))
-      )
-      if (staticKey) {
-        console.log(`[researchBuildingType] static spec hit: "${staticKey}"`)
-        return STATIC_BUILDING_SPECS[staticKey]
-      }
-    } catch (e) {
-      console.error('[researchBuildingType] static-specs import error:', e)
-    }
-  }
 
   const supabase = createAdminClient()
 
@@ -176,6 +136,9 @@ export async function researchBuildingType(
   let wikiText = ''
   let tavilyText = ''
   let exteriorFeatures: ResearchResult['exteriorFeatures'] = {}
+  let detectedFloorCount: number | undefined
+  let detectedHasGlassFront: boolean | undefined
+  let detectedExteriorMaterial: string | undefined
 
   // ── STAGE 1: Multi-query parallel Serper searches ─────────────────────────
   try {
@@ -381,10 +344,10 @@ export async function researchBuildingType(
           hasCarPark: /car park|parking|vehicle/.test(text),
           hasFlagpole: /flag/.test(text),
           hasGates: /gate|barrier|security entrance/.test(text),
-          floorCount: /two storey|two-storey|2 storey/.test(text) ? 2 : /three storey|3 storey/.test(text) ? 3 : /single storey/.test(text) ? 1 : 1,
-          hasGlassFront: /glass front|glazed|curtain wall/.test(text),
-          exteriorMaterial: /brick/.test(text) ? 'brick' : /concrete|brutalist/.test(text) ? 'concrete' : /steel|cladding/.test(text) ? 'metal' : 'smoothplastic',
         }
+        detectedFloorCount = /two storey|two-storey|2 storey/.test(text) ? 2 : /three storey|3 storey/.test(text) ? 3 : 1
+        detectedHasGlassFront = /glass front|glazed|curtain wall/.test(text)
+        detectedExteriorMaterial = /brick/.test(text) ? 'brick' : /concrete|brutalist/.test(text) ? 'concrete' : /steel|cladding/.test(text) ? 'metal' : 'smoothplastic'
         console.log(`[researchBuildingType] Stage 6 exterior features:`, exteriorFeatures)
       }
     }
@@ -446,7 +409,14 @@ Respond ONLY with valid JSON, no markdown:
     const cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
     const parsed = JSON.parse(cleaned)
     console.log('[researchBuildingType] rooms:', parsed.rooms?.map((r: any) => r.name).join(', '))
-    result = { ...FALLBACK_RESULT(buildingType), ...parsed, exteriorFeatures }
+    result = {
+      ...FALLBACK_RESULT(buildingType),
+      ...parsed,
+      exteriorFeatures,
+      ...(detectedFloorCount !== undefined ? { floorCount: detectedFloorCount } : {}),
+      ...(detectedHasGlassFront !== undefined ? { hasGlassFront: detectedHasGlassFront } : {}),
+      ...(detectedExteriorMaterial !== undefined ? { exteriorMaterial: detectedExteriorMaterial } : {}),
+    }
 
     // Pad to minimum 6 rooms
     let padIdx = 0
@@ -456,7 +426,13 @@ Respond ONLY with valid JSON, no markdown:
     }
   } catch (e) {
     console.error('[researchBuildingType] Groq synthesis error:', e)
-    result = { ...getFallbackRooms(buildingType), exteriorFeatures }
+    result = {
+      ...getFallbackRooms(buildingType),
+      exteriorFeatures,
+      ...(detectedFloorCount !== undefined ? { floorCount: detectedFloorCount } : {}),
+      ...(detectedHasGlassFront !== undefined ? { hasGlassFront: detectedHasGlassFront } : {}),
+      ...(detectedExteriorMaterial !== undefined ? { exteriorMaterial: detectedExteriorMaterial } : {}),
+    }
   }
 
   // ── Cache save ────────────────────────────────────────────────────────────

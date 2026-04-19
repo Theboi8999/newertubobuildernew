@@ -33,8 +33,9 @@ export async function evaluateGeneration(params: {
   let score = 100
   score -= missingRooms.length * 5
   if (partCount < 20) score -= 10
-  if (partCount < 10) score -= 15
-  if (partCount > 50) score += 5
+  if (partCount < 10) score -= 20
+  if (partCount > 100) score += 5
+  if (partCount > 200) score += 5
   score = Math.max(0, Math.min(100, score))
 
   const notesParts: string[] = [`${partCount} parts`]

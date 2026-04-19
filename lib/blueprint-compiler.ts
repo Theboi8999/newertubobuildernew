@@ -1,7 +1,7 @@
 // lib/blueprint-compiler.ts
 import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
-import { PROP_LIBRARY } from './model-library'
+import { PROP_LIBRARY, getPropsForRoom } from './model-library'
 import type { QualityTarget } from './vision-analyzer'
 import {
   buildDetailedWall, buildDetailedFloor, buildDetailedCeiling,
@@ -34,25 +34,6 @@ interface ColorTheme {
   floor: string
 }
 
-const BUILDING_COLOR_THEMES: Record<string, ColorTheme> = {
-  'convenience': { exterior: 'Bright green',      roof: 'White',      trim: 'White',             floor: 'White' },
-  'konbini':     { exterior: 'Bright green',      roof: 'White',      trim: 'White',             floor: 'White' },
-  'supermarket': { exterior: 'Bright blue',       roof: 'White',      trim: 'White',             floor: 'White' },
-  'police':      { exterior: 'Navy blue',         roof: 'Dark grey',  trim: 'White',             floor: 'Medium stone grey' },
-  'hospital':    { exterior: 'White',             roof: 'White',      trim: 'Bright blue',       floor: 'White' },
-  'school':      { exterior: 'Brick yellow',      roof: 'Reddish brown', trim: 'White',          floor: 'Sand yellow' },
-  'fire':        { exterior: 'Bright red',        roof: 'Dark grey',  trim: 'White',             floor: 'Medium stone grey' },
-  'restaurant':  { exterior: 'Reddish brown',     roof: 'Dark red',   trim: 'Bright yellow',     floor: 'Sand yellow' },
-  'stadium':     { exterior: 'Medium stone grey', roof: 'Dark grey',  trim: 'Bright blue',       floor: 'Bright green' },
-  'office':      { exterior: 'Medium stone grey', roof: 'Dark grey',  trim: 'Institutional white', floor: 'Medium stone grey' },
-  'hotel':       { exterior: 'Sand yellow',       roof: 'Dark grey',  trim: 'Bright yellow',     floor: 'Sand yellow' },
-  'airport':     { exterior: 'White',             roof: 'Light grey', trim: 'Bright blue',       floor: 'Light grey' },
-  'train':       { exterior: 'Medium stone grey', roof: 'Dark grey',  trim: 'Bright red',        floor: 'Medium stone grey' },
-  'bank':        { exterior: 'Sand yellow',       roof: 'Dark grey',  trim: 'Dark grey',         floor: 'Institutional white' },
-  'default':     { exterior: 'Light grey',        roof: 'Dark grey',  trim: 'White',             floor: 'Medium stone grey' },
-}
-
-const RETAIL_KEYWORDS = ['store', 'shop', 'restaurant', 'cafe', 'mall', 'market', 'convenience', 'supermarket', 'pharmacy']
 
 export const VALID_BRICK_COLORS: string[] = [
   'White', 'Institutional white', 'Ghost white', 'Lily white',
@@ -102,19 +83,13 @@ const MATERIAL_MAP: Record<string, string> = {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function getColorTheme(buildingType: string): ColorTheme {
-  const normalized = buildingType.toLowerCase().replace(/_/g, ' ')
-  for (const key of Object.keys(BUILDING_COLOR_THEMES)) {
-    if (key !== 'default' && normalized.includes(key)) {
-      return BUILDING_COLOR_THEMES[key]
-    }
+function getDynamicTheme(research: ResearchResult): ColorTheme {
+  return {
+    exterior: validateColor(research.exteriorColor || 'Light grey'),
+    roof: validateColor(research.roofColor || 'Dark grey'),
+    trim: 'White',
+    floor: validateColor(research.rooms?.[0]?.floorColor || 'Medium stone grey'),
   }
-  return BUILDING_COLOR_THEMES['default']
-}
-
-function isRetailType(buildingType: string): boolean {
-  const bt = buildingType.toLowerCase()
-  return RETAIL_KEYWORDS.some(k => bt.includes(k))
 }
 
 export function validateColor(color: string): string {
@@ -346,13 +321,12 @@ function addCheckoutCounter(roomName: string, offsetX: number, offsetZ: number, 
 
 function buildExteriorWalls(
   tw: number, td: number, height: number,
-  theme: ColorTheme, buildingType: string,
+  theme: ColorTheme, hasGlassFront: boolean,
   exteriorFeatures?: ResearchResult['exteriorFeatures'],
 ): RbxPart[] {
   const ec = theme.exterior
   const rc = theme.roof
   const tc = theme.trim
-  const retail = isRetailType(buildingType)
   const feat = exteriorFeatures || {}
 
   const parts: RbxPart[] = [
@@ -441,7 +415,7 @@ function buildExteriorWalls(
   }
 
   // Front wall + door
-  if (retail) {
+  if (hasGlassFront) {
     const pillarW = 2
     const glassW  = Math.max(4, tw - pillarW * 2 - 2)
     const glassH  = height - 3
@@ -484,52 +458,7 @@ function addDetailParts(roomData: RoomMeta[]): RbxPart[] {
   return detail
 }
 
-// ── Prop library placement ─────────────────────────────────────────────────
-
-function getPropsForRoom(roomName: string, roomX: number, roomZ: number, roomWidth: number, roomDepth: number): RbxPart[] {
-  const name = roomName.toLowerCase()
-  const insetX = roomWidth / 2 - 3
-  const insetZ = roomDepth / 2 - 3
-
-  if (name.includes('checkout') || name.includes('cashier') || name.includes('till')) {
-    return PROP_LIBRARY.CHECKOUT_COUNTER(roomX, 0, roomZ + insetZ)
-  }
-  if (name.includes('refriger') || name.includes('fridge') || name.includes('cold') || name.includes('refrigeration')) {
-    return PROP_LIBRARY.REFRIGERATOR_UNIT(roomX + Math.max(0, insetX), 0, roomZ)
-  }
-  if (name.includes('shelf') || name.includes('sales floor') || name.includes('retail') || name.includes('sales area')) {
-    const props: RbxPart[] = []
-    const slots = Math.max(1, Math.floor(roomWidth / 6))
-    for (let i = 0; i < slots; i++) {
-      const sx = roomX - insetX + i * 6
-      if (sx > roomX + insetX) break
-      props.push(...PROP_LIBRARY.SHELVING_UNIT(sx, 0, roomZ))
-    }
-    return props
-  }
-  if (name.includes('holding') || name.includes('detention') || (name.includes('cell') && !name.includes('excel'))) {
-    return PROP_LIBRARY.POLICE_CELL(roomX, 0, roomZ)
-  }
-  if (name.includes('bathroom') || name.includes('toilet') || name.includes('restroom') || name.includes('lavatory') || name.includes(' wc')) {
-    return PROP_LIBRARY.TOILET_CUBICLE(roomX, 0, roomZ)
-  }
-  if (name.includes('reception') || name.includes('lobby') || name.includes('waiting area') || name.includes('front desk')) {
-    return PROP_LIBRARY.RECEPTION_DESK(roomX, 0, roomZ - insetZ)
-  }
-  if (name.includes('meeting') || name.includes('conference') || name.includes('briefing') || name.includes('interrogation')) {
-    return [
-      ...PROP_LIBRARY.OFFICE_DESK(roomX, 0, roomZ),
-      ...PROP_LIBRARY.OFFICE_CHAIR(roomX + 2.5, 0, roomZ + 1.5),
-    ]
-  }
-  if (name.includes('office') || name.includes('admin') || name.includes('principal') || name.includes('staff room') || name.includes('locker')) {
-    return [
-      ...PROP_LIBRARY.OFFICE_DESK(roomX - Math.max(0, insetX), 0, roomZ),
-      ...PROP_LIBRARY.OFFICE_CHAIR(roomX - Math.max(0, insetX) + 2.5, 0, roomZ + 1.5),
-    ]
-  }
-  return []
-}
+// ── Prop library placement — see model-library.ts for getPropsForRoom ──────
 
 export function getRoomType(name: string): string {
   const n = name.toLowerCase()
@@ -676,19 +605,13 @@ function buildDetailedExteriorOnly(tw: number, td: number, height: number, theme
 
 export function compileBlueprint(research: ResearchResult, qualityTarget?: QualityTarget, exteriorOnly = false): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
-  let theme = getColorTheme(buildingType)
-  if (theme.exterior === 'Light grey' && research.exteriorColor) {
-    theme = {
-      exterior: validateColor(research.exteriorColor),
-      roof: validateColor(research.roofColor || 'Dark grey'),
-      trim: 'White',
-      floor: theme.floor,
-    }
-  }
+  let theme = getDynamicTheme(research)
   if (qualityTarget?.colorPalette && qualityTarget.colorPalette.length > 0) {
     theme = { ...theme, floor: validateColor(qualityTarget.colorPalette[0]) }
   }
-  const retail = isRetailType(buildingType)
+  const hasGlassFront = research.hasGlassFront || false
+  const hasColonnade = research.hasColonnade || false
+  void hasColonnade
 
   const COLS = 2
   let cursorX = 3
@@ -716,7 +639,7 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
 
     const roomParts = compileRoom(room, offsetX, offsetZ, theme)
 
-    if (retail && i === 0) {
+    if (hasGlassFront && i === 0) {
       roomParts.push(...addRetailShelving(room.name, offsetX, offsetZ, w, d))
       roomParts.push(...addCheckoutCounter(room.name, offsetX, offsetZ, d))
     }
@@ -736,7 +659,7 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
   const tallestRoom = Math.max(...research.rooms.map(r => Math.max(5, Number(r.height) || 10)))
   const EXTERIOR_HEIGHT = tallestRoom + 2
 
-  const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, buildingType, research.exteriorFeatures)
+  const exterior = buildExteriorWalls(tw, td, EXTERIOR_HEIGHT, theme, hasGlassFront, research.exteriorFeatures)
 
   if (exteriorOnly) {
     exterior.push(...buildDetailedExteriorOnly(tw, td, EXTERIOR_HEIGHT, theme))
