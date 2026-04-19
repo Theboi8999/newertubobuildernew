@@ -2,7 +2,6 @@
 import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
 import { PROP_LIBRARY, getPropsForRoom } from './model-library'
-import type { QualityTarget } from './vision-analyzer'
 import {
   buildDetailedWall, buildDetailedFloor, buildDetailedCeiling,
   buildDetailedDoor, buildWallDetails,
@@ -239,6 +238,58 @@ function placeInRows(
   return parts
 }
 
+// ── Window builder ────────────────────────────────────────────────────────
+
+function buildWindow(
+  name: string,
+  cx: number, cy: number, cz: number,
+  width: number, height: number,
+  direction: 'north' | 'south' | 'east' | 'west',
+  style: string,
+  wallColor: string,
+): RbxPart[] {
+  const isChinese = /chinese|japanese|asian|pagoda/.test(style)
+  const thickness = 0.2
+  const frameW = 0.3
+  const parts: RbxPart[] = []
+  const isNS = direction === 'north' || direction === 'south'
+  const sx = isNS ? width : thickness
+  const sz = isNS ? thickness : width
+
+  // Glass pane
+  parts.push(p(`${name}_Glass`, sx, height, sz, cx, cy, cz, 'Institutional white', 'smoothplastic', 0.35))
+
+  // Frame sides
+  const lx = isNS ? cx - width / 2 - frameW / 2 : cx
+  const rx = isNS ? cx + width / 2 + frameW / 2 : cx
+  const lz = isNS ? cz : cz - width / 2 - frameW / 2
+  const rz = isNS ? cz : cz + width / 2 + frameW / 2
+  const fsx = isNS ? frameW : thickness + 0.1
+  const fsz = isNS ? thickness + 0.1 : frameW
+  parts.push(p(`${name}_FrameL`, fsx, height + frameW * 2, fsz, lx, cy, lz, wallColor, 'smoothplastic'))
+  parts.push(p(`${name}_FrameR`, fsx, height + frameW * 2, fsz, rx, cy, rz, wallColor, 'smoothplastic'))
+
+  // Lintel
+  const lintW = isNS ? width + frameW * 2 : thickness + 0.1
+  const lintD = isNS ? thickness + 0.1 : width + frameW * 2
+  parts.push(p(`${name}_Lintel`, lintW, frameW, lintD, cx, cy + height / 2 + frameW / 2, cz, wallColor, 'smoothplastic'))
+  // Sill
+  parts.push(p(`${name}_Sill`, lintW, frameW, lintD, cx, cy - height / 2 - frameW / 2, cz, wallColor, 'smoothplastic'))
+
+  // Lattice bars for Chinese style
+  if (isChinese) {
+    const barSx = isNS ? 0.1 : thickness + 0.1
+    const barSz = isNS ? thickness + 0.1 : 0.1
+    for (let b = 1; b < 3; b++) {
+      const bx = isNS ? cx - width / 2 + (width / 3) * b : cx
+      const bz = isNS ? cz : cz - width / 2 + (width / 3) * b
+      parts.push(p(`${name}_Bar${b}`, barSx, height, barSz, bx, cy, bz, wallColor, 'smoothplastic'))
+    }
+  }
+
+  return parts
+}
+
 // ── Room compiler ──────────────────────────────────────────────────────────
 
 function compileRoom(
@@ -328,53 +379,113 @@ function buildDynamicExterior(
   const style = (research.architecturalStyle || 'modern').toLowerCase()
   const extMat = validateMaterial(research.exteriorMaterial || 'smoothplastic')
   const tc = theme.trim
-  const hasGlassFront = research.hasGlassFront || false
-  const hasFence = research.exteriorFeatures?.hasFence === true
-  const feat = research.exteriorFeatures || {}
+  const hasGlassFront = research.hasGlassFront
+  const hasColonnade = research.hasColonnade
   const floorCount = Math.max(1, Number(research.floorCount) || 1)
   const floorHeight = Math.max(8, Number(research.floorHeight) || 10)
   const height = floorCount * floorHeight
-  console.log('[exterior] ec:', ec, 'rc:', rc, 'style:', style, 'extMat:', extMat)
-  void style; void extMat
+  const isChinese = /chinese|japanese|asian|pagoda/.test(style)
+  const isColonial = /colonial|georgian|federal|mediterranean/.test(style)
+  console.log('[exterior] ec:', ec, 'rc:', rc, 'style:', style, 'extMat:', extMat, 'floors:', floorCount)
 
   const parts: RbxPart[] = [
     // Ground slab
-    p('Exterior_Ground',     tw + 30, 1, td + 30, tw / 2,  0,            td / 2,   'Medium stone grey', 'concrete'),
+    p('Exterior_Ground',    tw + 30, 1, td + 30, tw / 2,  0,           td / 2,    'Medium stone grey', 'concrete'),
     // Perimeter walls
-    p('Exterior_WallSouth',  tw, height, 1, tw / 2, height / 2, td,    ec, 'smoothplastic'),
-    p('Exterior_WallWest',   1, height, td, 0,      height / 2, td / 2, ec, 'smoothplastic'),
-    p('Exterior_WallEast',   1, height, td, tw,     height / 2, td / 2, ec, 'smoothplastic'),
-    // Roof slab
-    p('Exterior_Roof',       tw + 2, 1, td + 2, tw / 2, height + 0.5, td / 2, rc, 'smoothplastic'),
-    // Roof edge trim
-    p('Exterior_RoofTrimF',  tw + 2, 0.8, 0.8, tw / 2,    height + 0.1, -0.4,      tc, 'smoothplastic'),
-    p('Exterior_RoofTrimB',  tw + 2, 0.8, 0.8, tw / 2,    height + 0.1, td + 0.4,  tc, 'smoothplastic'),
-    p('Exterior_RoofTrimL',  0.8,   0.8, td + 2, -0.4,    height + 0.1, td / 2,    tc, 'smoothplastic'),
-    p('Exterior_RoofTrimR',  0.8,   0.8, td + 2, tw + 0.4, height + 0.1, td / 2,   tc, 'smoothplastic'),
+    p('Exterior_WallSouth', tw, height, 1, tw / 2, height / 2, td,     ec, extMat),
+    p('Exterior_WallWest',  1, height, td, 0,      height / 2, td / 2,  ec, extMat),
+    p('Exterior_WallEast',  1, height, td, tw,     height / 2, td / 2,  ec, extMat),
     // Corner pillars
-    p('Exterior_PillarNW', 1.5, height, 1.5, 0.75,      height / 2, 0.75,      ec, 'smoothplastic'),
-    p('Exterior_PillarNE', 1.5, height, 1.5, tw - 0.75, height / 2, 0.75,      ec, 'smoothplastic'),
-    p('Exterior_PillarSW', 1.5, height, 1.5, 0.75,      height / 2, td - 0.75, ec, 'smoothplastic'),
-    p('Exterior_PillarSE', 1.5, height, 1.5, tw - 0.75, height / 2, td - 0.75, ec, 'smoothplastic'),
+    p('Exterior_PillarNW', 1.5, height, 1.5, 0.75,      height / 2, 0.75,      ec, extMat),
+    p('Exterior_PillarNE', 1.5, height, 1.5, tw - 0.75, height / 2, 0.75,      ec, extMat),
+    p('Exterior_PillarSW', 1.5, height, 1.5, 0.75,      height / 2, td - 0.75, ec, extMat),
+    p('Exterior_PillarSE', 1.5, height, 1.5, tw - 0.75, height / 2, td - 0.75, ec, extMat),
   ]
 
-  // Roof details — HVAC / AC units
-  const hvacCount = Math.max(1, Math.floor(tw / 20))
-  for (let i = 0; i < hvacCount; i++) {
-    const hx = tw * 0.25 + i * (tw / (hvacCount + 1))
-    parts.push(p(`Roof_HVAC_${i}`,    4, 2, 3, hx, height + 1.5, td / 2 + i * 4, 'Dark grey', 'metal'))
-    parts.push(p(`Roof_HVAC_Fan_${i}`, 3, 0.3, 3, hx, height + 2.65, td / 2 + i * 4, 'Medium stone grey', 'metal'))
+  // ── Per-floor horizontal banding on east/west/south ───────────────────────
+  for (let fl = 1; fl < floorCount; fl++) {
+    const bandY = fl * floorHeight
+    parts.push(p(`Band_S_F${fl}`, tw, 0.4, 0.8, tw / 2, bandY, td, tc, 'smoothplastic'))
+    parts.push(p(`Band_W_F${fl}`, 0.8, 0.4, td, 0,      bandY, td / 2, tc, 'smoothplastic'))
+    parts.push(p(`Band_E_F${fl}`, 0.8, 0.4, td, tw,     bandY, td / 2, tc, 'smoothplastic'))
   }
 
-  // Bollards near entrance
-  const bollardCount = 4
-  for (let i = 0; i < bollardCount; i++) {
+  // ── Per-floor windows on south / east / west walls ────────────────────────
+  const winW = 2.5
+  const winH = Math.min(floorHeight - 3, 4)
+  const winCountS = Math.max(1, Math.floor((tw - 6) / 8))
+  const winCountE = Math.max(1, Math.floor((td - 6) / 8))
+  for (let fl = 0; fl < floorCount; fl++) {
+    const winY = fl * floorHeight + floorHeight * 0.55
+    for (let wi = 0; wi < winCountS; wi++) {
+      const wx = 4 + wi * 8
+      if (wx > tw - 4) break
+      parts.push(...buildWindow(`Win_S_F${fl}_${wi}`, wx, winY, td, winW, winH, 'south', style, ec))
+    }
+    for (let wi = 0; wi < winCountE; wi++) {
+      const wz = 4 + wi * 8
+      if (wz > td - 4) break
+      parts.push(...buildWindow(`Win_E_F${fl}_${wi}`, tw, winY, wz, winW, winH, 'east', style, ec))
+      parts.push(...buildWindow(`Win_W_F${fl}_${wi}`, 0,  winY, wz, winW, winH, 'west', style, ec))
+    }
+  }
+
+  // ── Chinese / Pagoda roof tiers ───────────────────────────────────────────
+  if (isChinese) {
+    const tierCount = Math.min(floorCount + 1, 4)
+    for (let t = 0; t < tierCount; t++) {
+      const tierW = tw + 4 - t * 3
+      const tierD = td + 4 - t * 3
+      const tierY = height + t * 3
+      parts.push(p(`Roof_Tier${t}`,      tierW,     1,   tierD,     tw / 2, tierY,         td / 2, rc, 'smoothplastic'))
+      parts.push(p(`Roof_EaveF_T${t}`,   tierW + 2, 0.4, 2,         tw / 2, tierY - 0.5,  -1,     rc, 'smoothplastic'))
+      parts.push(p(`Roof_EaveB_T${t}`,   tierW + 2, 0.4, 2,         tw / 2, tierY - 0.5,  td + 1, rc, 'smoothplastic'))
+      parts.push(p(`Roof_EaveL_T${t}`,   2,         0.4, tierD + 2, -1,     tierY - 0.5,  td / 2, rc, 'smoothplastic'))
+      parts.push(p(`Roof_EaveR_T${t}`,   2,         0.4, tierD + 2, tw + 1, tierY - 0.5,  td / 2, rc, 'smoothplastic'))
+    }
+    // Roof finial
+    parts.push(p('Roof_Finial', 0.8, 3, 0.8, tw / 2, height + tierCount * 3 + 1.5, td / 2, rc, 'smoothplastic'))
+  } else {
+    // Standard flat roof + HVAC
+    parts.push(p('Exterior_Roof', tw + 2, 1, td + 2, tw / 2, height + 0.5, td / 2, rc, 'smoothplastic'))
+    parts.push(p('Exterior_RoofTrimF', tw + 2, 0.8, 0.8, tw / 2,     height + 0.1, -0.4,     tc, 'smoothplastic'))
+    parts.push(p('Exterior_RoofTrimB', tw + 2, 0.8, 0.8, tw / 2,     height + 0.1, td + 0.4, tc, 'smoothplastic'))
+    parts.push(p('Exterior_RoofTrimL', 0.8,   0.8, td + 2, -0.4,    height + 0.1, td / 2,   tc, 'smoothplastic'))
+    parts.push(p('Exterior_RoofTrimR', 0.8,   0.8, td + 2, tw + 0.4, height + 0.1, td / 2,  tc, 'smoothplastic'))
+    const hvacCount = Math.max(1, Math.floor(tw / 20))
+    for (let i = 0; i < hvacCount; i++) {
+      const hx = tw * 0.25 + i * (tw / (hvacCount + 1))
+      parts.push(p(`Roof_HVAC_${i}`,     4, 2,   3, hx, height + 1.5,  td / 2 + i * 4, 'Dark grey', 'metal'))
+      parts.push(p(`Roof_HVAC_Fan_${i}`, 3, 0.3, 3, hx, height + 2.65, td / 2 + i * 4, 'Medium stone grey', 'metal'))
+    }
+  }
+
+  // ── Colonial colonnade (ground floor arches / columns) ───────────────────
+  if (isColonial || hasColonnade) {
+    const colSpacing = 6
+    const colCount = Math.max(2, Math.floor((tw - 4) / colSpacing))
+    for (let i = 0; i < colCount; i++) {
+      const cx = 3 + i * colSpacing
+      if (cx > tw - 3) break
+      parts.push(p(`Colonnade_Col_${i}`, 1.2, floorHeight, 1.2, cx, floorHeight / 2, -1.5, 'White', 'smoothplastic'))
+      // Arch between columns
+      if (i < colCount - 1) {
+        const archX = cx + colSpacing / 2
+        parts.push(p(`Colonnade_Arch_${i}`, colSpacing - 1, 1, 2, archX, floorHeight - 1, -1.5, 'White', 'smoothplastic'))
+      }
+    }
+    // Balcony slab above colonnade
+    parts.push(p('Colonnade_Balcony', tw, 0.6, 3, tw / 2, floorHeight, -1.5, tc, 'concrete'))
+  }
+
+  // ── Bollards near entrance ─────────────────────────────────────────────────
+  for (let i = 0; i < 4; i++) {
     const bx = tw / 2 - 6 + i * 4
-    parts.push(p(`Bollard_${i}_Post`,  0.6, 3, 0.6, bx, 1.5, -3, 'Dark grey', 'metal'))
-    parts.push(p(`Bollard_${i}_Top`,   0.8, 0.4, 0.8, bx, 3.2, -3, 'Bright yellow', 'smoothplastic'))
+    parts.push(p(`Bollard_${i}_Post`, 0.6, 3, 0.6, bx, 1.5, -3, 'Dark grey', 'metal'))
+    parts.push(p(`Bollard_${i}_Top`,  0.8, 0.4, 0.8, bx, 3.2, -3, 'Bright yellow', 'smoothplastic'))
   }
 
-  // Exterior lamp posts on each side of entrance
+  // ── Lamp posts ─────────────────────────────────────────────────────────────
   parts.push(p('LampPost_L_Pole',  0.4, 8, 0.4, tw / 2 - 8, 4, -6, 'Dark grey', 'metal'))
   parts.push(p('LampPost_L_Head',  1.5, 0.5, 1.5, tw / 2 - 8, 8.25, -6, 'Dark grey', 'metal'))
   parts.push(p('LampPost_L_Light', 1, 0.3, 1, tw / 2 - 8, 8, -6, 'Bright yellow', 'neon', 0.1))
@@ -382,66 +493,40 @@ function buildDynamicExterior(
   parts.push(p('LampPost_R_Head',  1.5, 0.5, 1.5, tw / 2 + 8, 8.25, -6, 'Dark grey', 'metal'))
   parts.push(p('LampPost_R_Light', 1, 0.3, 1, tw / 2 + 8, 8, -6, 'Bright yellow', 'neon', 0.1))
 
-  // Flagpole
-  if (feat.hasFlagpole !== false) {
-    parts.push(p('Flagpole_Base',  1, 0.5, 1, tw / 2 - tw / 3, 0.25, -8, 'Medium stone grey', 'concrete'))
-    parts.push(p('Flagpole_Pole',  0.3, 14, 0.3, tw / 2 - tw / 3, 7, -8, 'Light grey', 'metal'))
-    parts.push(p('Flagpole_Flag',  4, 2.5, 0.2, tw / 2 - tw / 3 + 2, 13, -8, 'Bright red', 'fabric'))
-  }
+  // ── Flagpole ───────────────────────────────────────────────────────────────
+  parts.push(p('Flagpole_Base', 1, 0.5, 1, tw / 2 - tw / 3, 0.25, -8, 'Medium stone grey', 'concrete'))
+  parts.push(p('Flagpole_Pole', 0.3, 14, 0.3, tw / 2 - tw / 3, 7, -8, 'Light grey', 'metal'))
+  parts.push(p('Flagpole_Flag', 4, 2.5, 0.2, tw / 2 - tw / 3 + 2, 13, -8, 'Bright red', 'fabric'))
 
-  // Fence / perimeter barrier — only when explicitly set in research
-  if (hasFence) {
-    const fenceH = 4
-    const postSpacing = 6
-    const sidesData: [string, number, number, number, number][] = [
-      ['FenceN', tw, fenceH, tw / 2, -10],
-      ['FenceS', tw, fenceH, tw / 2, td + 10],
-    ]
-    for (const [fname, fw2, fh, fx, fz2] of sidesData) {
-      parts.push(p(`${fname}_Rail`, fw2, 0.3, 0.3, fx, fh - 0.5, fz2, 'Dark grey', 'metal'))
-      parts.push(p(`${fname}_Rail2`, fw2, 0.3, 0.3, fx, fh / 2, fz2, 'Dark grey', 'metal'))
-      const postCount = Math.floor(fw2 / postSpacing)
-      for (let pi = 0; pi <= postCount; pi++) {
-        const px = fx - fw2 / 2 + pi * postSpacing
-        parts.push(p(`${fname}_Post_${pi}`, 0.4, fh, 0.4, px, fh / 2, fz2, 'Dark grey', 'metal'))
-      }
-    }
-  }
-
-  // Car park
-  if (feat.hasCarPark) {
-    const spaces = 6
-    const spaceW = 4
-    const spaceD = 8
-    const parkZ = td + 4
-    for (let i = 0; i < spaces; i++) {
-      const sx = tw / 2 - (spaces * spaceW) / 2 + i * spaceW + spaceW / 2
-      parts.push(p(`CarPark_Space_${i}`, spaceW - 0.3, 0.1, spaceD, sx, 0.55, parkZ + spaceD / 2, 'Medium stone grey', 'smoothplastic'))
-      parts.push(p(`CarPark_Line_L_${i}`, 0.2, 0.1, spaceD, sx - spaceW / 2, 0.6, parkZ + spaceD / 2, 'White', 'smoothplastic'))
-      parts.push(p(`CarPark_Line_R_${i}`, 0.2, 0.1, spaceD, sx + spaceW / 2, 0.6, parkZ + spaceD / 2, 'White', 'smoothplastic'))
-    }
-  }
-
-  // Front wall + door
+  // ── Front wall + entrance ──────────────────────────────────────────────────
   if (hasGlassFront) {
     const pillarW = 2
-    const glassW  = Math.max(4, tw - pillarW * 2 - 2)
-    const glassH  = height - 3
-
-    parts.push(p('Exterior_FrontPillarL', pillarW, height, 1, pillarW / 2 + 1,      height / 2, 0, ec, 'smoothplastic'))
-    parts.push(p('Exterior_FrontPillarR', pillarW, height, 1, tw - pillarW / 2 - 1, height / 2, 0, ec, 'smoothplastic'))
-    parts.push(p('Exterior_FrontGlass', glassW, glassH, 0.3, tw / 2, glassH / 2 + 0.5, 0, 'Institutional white', 'smoothplastic', 0.3))
-    parts.push(p('Exterior_FrontTransom', tw, height - glassH - 0.5, 1, tw / 2, glassH + (height - glassH) / 2, 0, ec, 'smoothplastic'))
-    parts.push(p('Exterior_Canopy', tw, 0.8, 4, tw / 2, height * 0.75, -2, tc, 'smoothplastic'))
-    parts.push(p('Signage_Panel', Math.max(4, tw - 4), 2.5, 0.3, tw / 2, height - 1, -0.5, ec, 'neon'))
+    const glassW = Math.max(4, tw - pillarW * 2 - 2)
+    const glassH = height - 3
+    parts.push(p('Exterior_FrontPillarL', pillarW, height, 1, pillarW / 2 + 1,      height / 2, 0, ec, extMat))
+    parts.push(p('Exterior_FrontPillarR', pillarW, height, 1, tw - pillarW / 2 - 1, height / 2, 0, ec, extMat))
+    parts.push(p('Exterior_FrontGlass',   glassW, glassH, 0.3, tw / 2, glassH / 2 + 0.5, 0, 'Institutional white', 'smoothplastic', 0.3))
+    parts.push(p('Exterior_FrontTransom', tw, height - glassH - 0.5, 1, tw / 2, glassH + (height - glassH) / 2, 0, ec, extMat))
+    parts.push(p('Exterior_Canopy',       tw, 0.8, 4, tw / 2, height * 0.75, -2, tc, 'smoothplastic'))
+    parts.push(p('Signage_Panel',         Math.max(4, tw - 4), 2.5, 0.3, tw / 2, height - 1, -0.5, ec, 'neon'))
   } else {
-    parts.push(p('Exterior_WallNorth',  tw, height, 1, tw / 2, height / 2, 0, ec, 'smoothplastic'))
+    parts.push(p('Exterior_WallNorth',  tw, height, 1, tw / 2, height / 2, 0, ec, extMat))
     parts.push(p('Exterior_DoorFrameL', 0.5, 6, 1.2, tw / 2 - 2.25, 3, -0.1, tc, 'smoothplastic'))
     parts.push(p('Exterior_DoorFrameR', 0.5, 6, 1.2, tw / 2 + 2.25, 3, -0.1, tc, 'smoothplastic'))
     parts.push(p('Exterior_DoorHeader', 4.5, 0.5, 1.2, tw / 2, 6.25, -0.1, tc, 'smoothplastic'))
     parts.push(p('Exterior_DoorGlass',  3.5, 5, 0.2, tw / 2, 3, -0.1, 'Institutional white', 'smoothplastic', 0.5))
-    parts.push(p('Exterior_Canopy', Math.min(tw, 12), 0.8, 3, tw / 2, height * 0.75, -1.5, tc, 'smoothplastic'))
-    parts.push(p('Signage_Panel', Math.max(4, tw - 6), 2.5, 0.3, tw / 2, height - 1, -0.5, ec, 'neon'))
+    // Per-floor windows on north facade (skipping entrance bay)
+    for (let fl = 0; fl < floorCount; fl++) {
+      const winY = fl * floorHeight + floorHeight * 0.55
+      for (let wi = 0; wi < winCountS; wi++) {
+        const wx = 4 + wi * 8
+        if (wx > tw - 4) break
+        if (fl === 0 && Math.abs(wx - tw / 2) < 4) continue  // skip entrance bay ground floor
+        parts.push(...buildWindow(`Win_N_F${fl}_${wi}`, wx, winY, 0, winW, winH, 'north', style, ec))
+      }
+    }
+    parts.push(p('Exterior_Canopy',  Math.min(tw, 12), 0.8, 3, tw / 2, height * 0.75, -1.5, tc, 'smoothplastic'))
+    parts.push(p('Signage_Panel',    Math.max(4, tw - 6), 2.5, 0.3, tw / 2, height - 1, -0.5, ec, 'neon'))
   }
 
   return parts
@@ -583,15 +668,9 @@ function buildDetailedExteriorOnly(tw: number, td: number, height: number, theme
 
 // ── Main entry point ───────────────────────────────────────────────────────
 
-export function compileBlueprint(research: ResearchResult, qualityTarget?: QualityTarget, exteriorOnly = false): CompiledBlueprint {
+export function compileBlueprint(research: ResearchResult): CompiledBlueprint {
   const buildingType = research.buildingType || 'building'
-  let theme = getDynamicTheme(research)
-  if (qualityTarget?.colorPalette && qualityTarget.colorPalette.length > 0) {
-    theme = { ...theme, floor: validateColor(qualityTarget.colorPalette[0]) }
-  }
-  const hasGlassFront = research.hasGlassFront || false
-  const hasColonnade = research.hasColonnade || false
-  void hasColonnade
+  const theme = getDynamicTheme(research)
 
   const COLS = 2
   let cursorX = 3
@@ -619,7 +698,7 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
 
     const roomParts = compileRoom(room, offsetX, offsetZ, theme)
 
-    if (hasGlassFront && i === 0) {
+    if (research.hasGlassFront && i === 0) {
       roomParts.push(...addRetailShelving(room.name, offsetX, offsetZ, w, d))
       roomParts.push(...addCheckoutCounter(room.name, offsetX, offsetZ, d))
     }
@@ -647,28 +726,11 @@ export function compileBlueprint(research: ResearchResult, qualityTarget?: Quali
   console.log('[compileBlueprint] building exterior with research:', research.buildingType, 'floorCount:', research.floorCount, 'style:', research.architecturalStyle)
 
   const exterior = buildDynamicExterior(tw, td, research, theme)
-
-  if (exteriorOnly) {
-    exterior.push(...buildDetailedExteriorOnly(tw, td, EXTERIOR_HEIGHT, theme))
-  }
+  exterior.push(...buildDetailedExteriorOnly(tw, td, EXTERIOR_HEIGHT, theme))
 
   const totalNow = compiledRooms.reduce((s, r) => s + r.length, 0) + exterior.length
-  const highDetail = (qualityTarget?.detailLevel ?? 0) >= 7
-  const isUltra = qualityTarget?.partDensity === 'ultra'
-
-  if (highDetail || isUltra) {
-    for (let ri = 0; ri < compiledRooms.length; ri++) {
-      compiledRooms[ri] = [...compiledRooms[ri], ...addDetailParts([roomMeta[ri]])]
-    }
-  } else if (totalNow < 40 && compiledRooms.length > 0) {
+  if (totalNow < 40 && compiledRooms.length > 0) {
     compiledRooms[0] = [...compiledRooms[0], ...addDetailParts(roomMeta)]
-  }
-
-  if (isUltra) {
-    for (let ri = 0; ri < compiledRooms.length; ri++) {
-      const m = roomMeta[ri]
-      compiledRooms[ri].push(...addRetailShelving(`${m.name}_x`, m.offsetX, m.offsetZ, m.w, m.d))
-    }
   }
 
   return { buildingType, rooms: compiledRooms, exterior, totalWidth: tw, totalDepth: td, roomLayout }

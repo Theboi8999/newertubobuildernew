@@ -22,6 +22,6 @@ export async function POST(req: NextRequest) {
   const { buildingType } = await req.json()
   if (!buildingType?.trim()) return NextResponse.json({ error: 'buildingType required' }, { status: 400 })
 
-  const result = await researchBuildingType(buildingType.trim(), true)
+  const result = await researchBuildingType(buildingType.trim(), { forceRefresh: true })
   return NextResponse.json({ success: true, result })
 }

@@ -14,7 +14,7 @@ export const researchRetryFunction = inngest.createFunction(
 
     await step.run('re-research', async () => {
       const { researchBuildingType } = await import('./research-agent')
-      const result = await researchBuildingType(buildingType, true)
+      const result = await researchBuildingType(buildingType, { forceRefresh: true })
       console.log(`[researchRetry] Re-researched "${buildingType}" — confidence: ${result.confidence}`)
       return result
     })

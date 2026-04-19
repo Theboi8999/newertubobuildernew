@@ -85,11 +85,11 @@ export async function generateAsset(
         } catch (e) {
           console.error('[generateAsset] teaching context error:', e)
         }
-        researchResult = await researchBuildingType(buildingType, false, qualityTarget, teachingContext)
+        researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
         console.log('[generateAsset] research confidence:', researchResult.confidence)
 
         console.log('[generator] calling compileBlueprint for:', buildingType)
-        compiled = compileBlueprint(researchResult, qualityTarget, options.exteriorOnly)
+        compiled = compileBlueprint(researchResult)
         allParts = options.exteriorOnly
           ? [...compiled.exterior]
           : [...compiled.rooms.flat(), ...compiled.exterior]

@@ -46,7 +46,7 @@ const MATERIAL_MAP: Record<string, number> = {
   'sand': 1088,
   'ground': 1088,
   'grass': 1280,
-  'metal': 1280,
+  'metal': 1120,
   'fabric': 1312,
   'neon': 1376,
   'cobblestone': 1392,

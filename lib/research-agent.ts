@@ -1,7 +1,6 @@
 // lib/research-agent.ts
 import { createAdminClient } from './supabase'
-import { geminiGenerate } from './groq'
-import type { QualityTarget } from './vision-analyzer'
+import { groqJSON } from './groq'
 
 export interface ResearchRoom {
   name: string
@@ -30,18 +29,12 @@ export interface ResearchResult {
   roofColor: string
   culturalNotes: string
   confidence: number
-  floorCount?: number
-  floorHeight?: number
-  hasGlassFront?: boolean
-  hasColonnade?: boolean
-  architecturalStyle?: string
-  exteriorMaterial?: string
-  exteriorFeatures?: {
-    hasFence?: boolean
-    hasCarPark?: boolean
-    hasFlagpole?: boolean
-    hasGates?: boolean
-  }
+  floorCount: number
+  floorHeight: number
+  hasGlassFront: boolean
+  hasColonnade: boolean
+  architecturalStyle: string
+  exteriorMaterial: string
 }
 
 // ── Fallbacks ──────────────────────────────────────────────────────────────
@@ -64,6 +57,7 @@ const FALLBACK_RESULT = (buildingType: string): ResearchResult => ({
   architecturalStyle: 'modern', exteriorMaterial: 'smoothplastic',
 })
 
+
 const GENERIC_PAD_ROOMS: ResearchResult['rooms'] = [
   { name: 'Corridor',     width: 10, depth: 6,  height: 10, furniture: [], wallColor: 'White', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
   { name: 'Meeting Room', width: 12, depth: 10, height: 10, furniture: [], wallColor: 'White', floorColor: 'Sand yellow',       floorMaterial: 'wood' },
@@ -83,12 +77,12 @@ function getFallbackRooms(buildingType: string): ResearchResult {
     architecturalStyle: 'modern',
     exteriorMaterial: 'smoothplastic',
     rooms: [
-      { name: 'Main Hall',    width: 20, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
-      { name: 'Office',       width: 14, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
-      { name: 'Meeting Room', width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
-      { name: 'Reception',    width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
-      { name: 'Staff Room',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'SmoothPlastic' },
-      { name: 'Toilet',       width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White',      floorColor: 'White',             floorMaterial: 'Marble' },
+      { name: 'Main Hall',    width: 20, depth: 16, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+      { name: 'Office',       width: 14, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+      { name: 'Meeting Room', width: 12, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+      { name: 'Reception',    width: 14, depth: 10, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+      { name: 'Staff Room',   width: 10, depth: 8,  height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'concrete' },
+      { name: 'Toilet',       width: 6,  depth: 6,  height: 10, furniture: [], wallColor: 'White',      floorColor: 'White',             floorMaterial: 'marble' },
     ],
     totalWidth: 40,
     totalDepth: 28,
@@ -103,10 +97,9 @@ function getFallbackRooms(buildingType: string): ResearchResult {
 
 export async function researchBuildingType(
   buildingType: string,
-  forceRefresh = false,
-  qualityTarget?: QualityTarget,
-  teachingContext?: string,
+  options: { forceRefresh?: boolean; teachingContext?: string } = {},
 ): Promise<ResearchResult> {
+  const { forceRefresh = false, teachingContext } = options
   const humanName = buildingType.replace(/_/g, ' ')
 
   const supabase = createAdminClient()
@@ -135,7 +128,6 @@ export async function researchBuildingType(
   let visionText = ''
   let wikiText = ''
   let tavilyText = ''
-  let exteriorFeatures: ResearchResult['exteriorFeatures'] = {}
   let detectedFloorCount: number | undefined
   let detectedHasGlassFront: boolean | undefined
   let detectedExteriorMaterial: string | undefined
@@ -339,16 +331,10 @@ export async function researchBuildingType(
       if (res.ok) {
         const data = await res.json()
         const text = (data.organic || []).map((r: any) => `${r.title || ''} ${r.snippet || ''}`).join(' ').toLowerCase()
-        exteriorFeatures = {
-          hasFence: /fence|railing|perimeter wall/.test(text),
-          hasCarPark: /car park|parking|vehicle/.test(text),
-          hasFlagpole: /flag/.test(text),
-          hasGates: /gate|barrier|security entrance/.test(text),
-        }
         detectedFloorCount = /two storey|two-storey|2 storey/.test(text) ? 2 : /three storey|3 storey/.test(text) ? 3 : 1
         detectedHasGlassFront = /glass front|glazed|curtain wall/.test(text)
         detectedExteriorMaterial = /brick/.test(text) ? 'brick' : /concrete|brutalist/.test(text) ? 'concrete' : /steel|cladding/.test(text) ? 'metal' : 'smoothplastic'
-        console.log(`[researchBuildingType] Stage 6 exterior features:`, exteriorFeatures)
+        console.log(`[researchBuildingType] Stage 6: floors=${detectedFloorCount} glass=${detectedHasGlassFront} mat=${detectedExteriorMaterial}`)
       }
     }
   } catch (e) {
@@ -365,68 +351,41 @@ export async function researchBuildingType(
     return getFallbackRooms(buildingType)
   }
 
-  let result: ResearchResult = FALLBACK_RESULT(buildingType)
+  const SYSTEM_PROMPT = `Expert architect. Output Roblox building spec as JSON only. No markdown fences.
+floorCount 1-6. architecturalStyle: modern|colonial|victorian|chinese|japanese|art-deco|brutalist|industrial|mediterranean|gothic.
+hasColonnade true if columns/arches on ground floor. hasGlassFront true if glazed facade.
+exteriorMaterial: brick|concrete|smoothplastic|metal|wood. Colors: valid Roblox BrickColor names.
+8-14 rooms, unique names. width/depth 8-30, height 8-14. Each room: 2-6 furniture with placement.
+Placement: north_wall|south_wall|east_wall|west_wall|center|row.
+Schema: {"buildingType":"","floorCount":1,"floorHeight":10,"architecturalStyle":"modern","hasGlassFront":false,"hasColonnade":false,"exteriorMaterial":"smoothplastic","rooms":[{"name":"","width":16,"depth":12,"height":10,"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete","furniture":[{"name":"","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood","quantity":1,"placement":"north_wall"}]}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"","confidence":75}`
 
-  try {
-    const systemPrompt = `Expert architect. Generate Roblox building spec as JSON only. No markdown.
+  const teachingNote = teachingContext ? `\nContext:\n${teachingContext.slice(0, 300)}` : ''
+  const userMsg = `Building: ${buildingType}\n\nResearch:\n${combinedResearch.slice(0, 1200)}${teachingNote}`
+  console.log(`[researchBuildingType] Groq input: ${userMsg.length} chars`)
 
-Key rules:
-- floorCount: how many storeys (1-6)
-- architecturalStyle: one of: modern, colonial, victorian, chinese, japanese, art-deco, brutalist, industrial, mediterranean, gothic
-- hasColonnade: true if building has ground floor columns/pillars/arches
-- hasGlassFront: true if building has glass/glazed facade
-- exteriorMaterial: brick, concrete, smoothplastic, metal, wood
-- exteriorColor and roofColor: valid Roblox BrickColor names
-- Minimum 8 rooms, maximum 14. Each room name unique.
-- Room dimensions: width/depth 8-30, height 8-14
-- Each room: 2-6 furniture items with quantity and placement
-- Valid placement: north_wall, south_wall, east_wall, west_wall, center, row
+  await new Promise(resolve => setTimeout(resolve, 5000))
+  const parsed = await groqJSON<ResearchResult>(SYSTEM_PROMPT, userMsg, FALLBACK_RESULT(buildingType))
+  console.log('[research-agent] Parsed floorCount:', parsed?.floorCount)
+  console.log('[research-agent] Parsed architecturalStyle:', parsed?.architecturalStyle)
+  console.log('[research-agent] Parsed exteriorColor:', parsed?.exteriorColor)
+  console.log('[researchBuildingType] rooms:', parsed.rooms?.map((r: any) => r.name).join(', '))
 
-JSON schema:
-{"buildingType":"string","floorCount":1,"floorHeight":10,"architecturalStyle":"modern","hasGlassFront":false,"hasColonnade":false,"exteriorMaterial":"smoothplastic","rooms":[{"name":"string","width":16,"depth":12,"height":10,"wallColor":"White","floorColor":"Medium stone grey","floorMaterial":"concrete","furniture":[{"name":"string","size":{"x":2,"y":1,"z":2},"color":"Reddish brown","material":"wood","quantity":1,"placement":"north_wall"}]}],"totalWidth":50,"totalDepth":40,"exteriorColor":"Medium stone grey","roofColor":"Dark grey","culturalNotes":"string","confidence":75}`
+  let result: ResearchResult = {
+    ...FALLBACK_RESULT(buildingType),
+    ...parsed,
+    ...(detectedFloorCount !== undefined ? { floorCount: detectedFloorCount } : {}),
+    ...(detectedHasGlassFront !== undefined ? { hasGlassFront: detectedHasGlassFront } : {}),
+    ...(detectedExteriorMaterial !== undefined ? { exteriorMaterial: detectedExteriorMaterial } : {}),
+  }
 
-    const truncated = combinedResearch.substring(0, 1500)
-    const qualityNote = qualityTarget
-      ? `\nQuality: ${qualityTarget.detailLevel}/10 detail, ${qualityTarget.interiorStyle} style.`
-      : ''
-    const teachingNote = teachingContext ? `\nContext:\n${teachingContext}` : ''
-    const userMsg = `Building: ${buildingType}\n\nResearch:\n${truncated}${qualityNote}${teachingNote}`
-
-    console.log(`[researchBuildingType] Groq input: ${userMsg.length} chars`)
-    await new Promise(resolve => setTimeout(resolve, 5000))
-    const rawJson = await geminiGenerate(systemPrompt, userMsg, 1500)
-    console.log('[research-agent] Groq raw response:', rawJson?.substring(0, 1000))
-
-    const cleaned = rawJson.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
-    const parsed = JSON.parse(cleaned)
-    console.log('[research-agent] Parsed floorCount:', parsed?.floorCount)
-    console.log('[research-agent] Parsed architecturalStyle:', parsed?.architecturalStyle)
-    console.log('[research-agent] Parsed exteriorColor:', parsed?.exteriorColor)
-    console.log('[researchBuildingType] rooms:', parsed.rooms?.map((r: any) => r.name).join(', '))
-    result = {
-      ...FALLBACK_RESULT(buildingType),
-      ...parsed,
-      exteriorFeatures,
-      ...(detectedFloorCount !== undefined ? { floorCount: detectedFloorCount } : {}),
-      ...(detectedHasGlassFront !== undefined ? { hasGlassFront: detectedHasGlassFront } : {}),
-      ...(detectedExteriorMaterial !== undefined ? { exteriorMaterial: detectedExteriorMaterial } : {}),
-    }
-
-    // Pad to minimum 6 rooms
-    let padIdx = 0
-    while (result.rooms.length < 6) {
-      result.rooms.push(GENERIC_PAD_ROOMS[padIdx % GENERIC_PAD_ROOMS.length])
-      padIdx++
-    }
-  } catch (e) {
-    console.error('[researchBuildingType] Groq synthesis error:', e)
-    result = {
-      ...getFallbackRooms(buildingType),
-      exteriorFeatures,
-      ...(detectedFloorCount !== undefined ? { floorCount: detectedFloorCount } : {}),
-      ...(detectedHasGlassFront !== undefined ? { hasGlassFront: detectedHasGlassFront } : {}),
-      ...(detectedExteriorMaterial !== undefined ? { exteriorMaterial: detectedExteriorMaterial } : {}),
-    }
+  // Ensure rooms array is valid and padded to minimum 6
+  if (!Array.isArray(result.rooms) || result.rooms.length === 0) {
+    result.rooms = getFallbackRooms(buildingType).rooms
+  }
+  let padIdx = 0
+  while (result.rooms.length < 6) {
+    result.rooms.push(GENERIC_PAD_ROOMS[padIdx % GENERIC_PAD_ROOMS.length])
+    padIdx++
   }
 
   // ── Cache save ────────────────────────────────────────────────────────────
