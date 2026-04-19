@@ -79,41 +79,39 @@ export const generateFunction = inngest.createFunction(
     // Step 4: Save result or record failure
     await step.run('update-complete', async () => {
       if (generationError || !result) {
-        await supabase
-          .from('generations')
-          .update({
-            status: 'failed',
-            progress: 0,
-            output_metadata: { error: generationError },
-          })
-          .eq('id', generationId)
+        try {
+          await supabase
+            .from('generations')
+            .update({ status: 'failed', progress: 0 })
+            .eq('id', generationId)
+        } catch (e) {
+          console.error('[inngest] failed to mark failed:', e)
+        }
         return { success: false, error: generationError }
       }
 
       // Upload .rbxmx to Supabase Storage
       const fileName = `${generationId}.rbxmx`
-      const { error: uploadError } = await supabase.storage
-        .from('generations')
-        .upload(fileName, result.rbxmx, {
-          contentType: 'text/xml',
-          upsert: true,
-        })
+      let fileUrl: string | null = null
 
-      if (uploadError) {
-        await supabase
+      try {
+        const { error: uploadError } = await supabase.storage
           .from('generations')
-          .update({
-            status: 'failed',
-            progress: 0,
-            output_metadata: { error: `Upload failed: ${uploadError.message}` },
+          .upload(fileName, Buffer.from(result.rbxmx), {
+            contentType: 'application/xml',
+            upsert: true,
           })
-          .eq('id', generationId)
-        return { success: false, error: uploadError.message }
-      }
 
-      const { data: urlData } = supabase.storage
-        .from('generations')
-        .getPublicUrl(fileName)
+        if (uploadError) {
+          console.error('[inngest] upload error:', uploadError.message)
+        } else {
+          const { data: urlData } = supabase.storage.from('generations').getPublicUrl(fileName)
+          fileUrl = urlData.publicUrl
+          console.log('[inngest] upload success:', fileName)
+        }
+      } catch (e) {
+        console.error('[inngest] upload threw:', e)
+      }
 
       try {
         const { error: updateError } = await supabase
@@ -121,17 +119,8 @@ export const generateFunction = inngest.createFunction(
           .update({
             status: 'complete',
             progress: 100,
-            spec_items: result.spec || [],
-            output_url: urlData.publicUrl,
-            output_metadata: {
-              qualityScore: result.qualityScore,
-              qualityNotes: result.qualityNotes,
-              partCount: result.partCount ?? 0,
-              newScriptsGenerated: result.newScriptsGenerated || [],
-              validationWarnings: result.validationWarnings || [],
-              roomLayout: result.roomLayout || [],
-              irlImageUrls: result.irlImageUrls || [],
-            },
+            file_url: fileUrl,
+            quality_score: result.qualityScore ?? 0,
             completed_at: new Date().toISOString(),
           })
           .eq('id', generationId)

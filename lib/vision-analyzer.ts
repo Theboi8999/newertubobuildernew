@@ -21,22 +21,27 @@ const VISION_PROMPT =
   'Analyze this Roblox build screenshot. Extract: 1) Part density (how many parts/detail level: low/medium/high/ultra), 2) Color palette (list up to 5 dominant Roblox BrickColor names), 3) Lighting style (bright/warm/cool/dark), 4) Interior style (modern/realistic/stylized/minimal), 5) Detail level score 1-10. Respond ONLY with JSON: {"partDensity":"high","colorPalette":["White","Light grey","Reddish brown"],"lightingStyle":"warm","interiorStyle":"realistic","detailLevel":8,"notes":"brief description"}'
 
 export async function analyzeRobloxReference(imageBase64: string, mimeType: string): Promise<QualityTarget> {
-  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'sk-ant-xxxxx') {
-    console.log('[vision] ANTHROPIC_API_KEY not set, skipping vision analysis')
-    return { partDensity: 'medium', colorPalette: [], lightingStyle: 'bright', interiorStyle: 'realistic', detailLevel: 5, notes: 'vision disabled' }
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key || !key.startsWith('sk-ant-') || key === 'sk-ant-xxxxx') {
+    console.log('[vision] ANTHROPIC_API_KEY not configured, skipping vision analysis')
+    return DEFAULT_TARGET
+  }
+  if (!imageBase64 || imageBase64.length < 100) {
+    console.log('[vision] image data too small, skipping')
+    return DEFAULT_TARGET
   }
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'x-api-key': key,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
       },
       body: JSON.stringify({
         model: 'claude-opus-4-5',
-        max_tokens: 500,
+        max_tokens: 300,
         messages: [{
           role: 'user',
           content: [
@@ -48,6 +53,7 @@ export async function analyzeRobloxReference(imageBase64: string, mimeType: stri
           ],
         }],
       }),
+      signal: AbortSignal.timeout(10000),
     })
 
     if (!res.ok) {
@@ -59,8 +65,10 @@ export async function analyzeRobloxReference(imageBase64: string, mimeType: stri
     const content = data.content?.[0]?.text
     if (!content) return DEFAULT_TARGET
 
-    const cleaned = content.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/m, '').trim()
-    const parsed = JSON.parse(cleaned)
+    const start = content.indexOf('{')
+    const end = content.lastIndexOf('}')
+    if (start === -1 || end === -1) return DEFAULT_TARGET
+    const parsed = JSON.parse(content.slice(start, end + 1))
     return { ...DEFAULT_TARGET, ...parsed }
   } catch (e) {
     console.error('[vision-analyzer] analyzeRobloxReference error:', e)
