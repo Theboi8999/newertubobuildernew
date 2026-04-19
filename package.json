@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "npx ts-node --project scripts/tsconfig.json scripts/test-all.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.0",
