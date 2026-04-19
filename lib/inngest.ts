@@ -119,9 +119,15 @@ export const generateFunction = inngest.createFunction(
           .update({
             status: 'complete',
             progress: 100,
-            file_url: fileUrl,
-            quality_score: result.qualityScore ?? 0,
+            output_url: fileUrl,
+            part_count: result.partCount || 0,
+            spec_items: result.spec || [],
             completed_at: new Date().toISOString(),
+            output_metadata: {
+              qualityScore: result.qualityScore,
+              qualityNotes: result.qualityNotes,
+              roomLayout: result.roomLayout || [],
+            },
           })
           .eq('id', generationId)
         if (updateError) {
