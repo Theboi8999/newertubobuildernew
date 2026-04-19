@@ -66,23 +66,24 @@ export async function generateAsset(
     const buildingType = intent.buildingType
     console.log('[generateAsset] analysePrompt result:', JSON.stringify(intent))
 
-    if (options.referenceImages && options.referenceImages.length > 0) {
-      try {
-        const { analyzeRobloxReference, findIRLReferences } = await import('./vision-analyzer')
-        await onProgress?.('🎨 Analysing reference images...', 30)
-        const targets = await Promise.all(
-          options.referenceImages.map(img => analyzeRobloxReference(img.base64, img.mimeType))
-        )
-        qualityTarget = targets.reduce((a, b) => a.detailLevel > b.detailLevel ? a : b)
-        console.log('[generator] qualityTarget from reference:', JSON.stringify(qualityTarget))
-        if (buildingType) {
-          irlImageUrls = await findIRLReferences(buildingType)
-          console.log('[generator] found', irlImageUrls.length, 'IRL reference URLs')
-        }
-      } catch (e) {
-        console.error('[generator] vision analysis error:', e)
-      }
-    }
+    // Vision analysis temporarily disabled — causes 400 errors
+    // if (options.referenceImages && options.referenceImages.length > 0) {
+    //   try {
+    //     const { analyzeRobloxReference, findIRLReferences } = await import('./vision-analyzer')
+    //     await onProgress?.('🎨 Analysing reference images...', 30)
+    //     const targets = await Promise.all(
+    //       options.referenceImages.map(img => analyzeRobloxReference(img.base64, img.mimeType))
+    //     )
+    //     qualityTarget = targets.reduce((a, b) => a.detailLevel > b.detailLevel ? a : b)
+    //     console.log('[generator] qualityTarget from reference:', JSON.stringify(qualityTarget))
+    //     if (buildingType) {
+    //       irlImageUrls = await findIRLReferences(buildingType)
+    //       console.log('[generator] found', irlImageUrls.length, 'IRL reference URLs')
+    //     }
+    //   } catch (e) {
+    //     console.error('[generator] vision analysis error:', e)
+    //   }
+    // }
 
     if (buildingType) {
       try {

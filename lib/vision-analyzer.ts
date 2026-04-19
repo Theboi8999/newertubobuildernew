@@ -21,13 +21,22 @@ const VISION_PROMPT =
   'Analyze this Roblox build screenshot. Extract: 1) Part density (how many parts/detail level: low/medium/high/ultra), 2) Color palette (list up to 5 dominant Roblox BrickColor names), 3) Lighting style (bright/warm/cool/dark), 4) Interior style (modern/realistic/stylized/minimal), 5) Detail level score 1-10. Respond ONLY with JSON: {"partDensity":"high","colorPalette":["White","Light grey","Reddish brown"],"lightingStyle":"warm","interiorStyle":"realistic","detailLevel":8,"notes":"brief description"}'
 
 export async function analyzeRobloxReference(imageBase64: string, mimeType: string): Promise<QualityTarget> {
+  // Vision analysis disabled — re-enable once building generation is stable
+  return DEFAULT_TARGET
+
+  // eslint-disable-next-line no-unreachable
   const key = process.env.ANTHROPIC_API_KEY
   if (!key || !key.startsWith('sk-ant-') || key === 'sk-ant-xxxxx') {
     console.log('[vision] ANTHROPIC_API_KEY not configured, skipping vision analysis')
     return DEFAULT_TARGET
   }
-  if (!imageBase64 || imageBase64.length < 100) {
-    console.log('[vision] image data too small, skipping')
+  if (!imageBase64 || imageBase64.length < 1000) {
+    console.log('[vision] image too small or empty, skipping:', imageBase64?.length)
+    return DEFAULT_TARGET
+  }
+  const validMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+  if (!validMimes.includes(mimeType)) {
+    console.log('[vision] invalid mime type:', mimeType)
     return DEFAULT_TARGET
   }
 
