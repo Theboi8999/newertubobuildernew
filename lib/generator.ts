@@ -47,7 +47,7 @@ export async function generateAsset(
   onProgress?: (msg: string, percent: number) => Promise<void>
 ): Promise<GenerateResult> {
   console.log('[generateAsset] systemType:', systemType, 'prompt:', prompt.substring(0, 50))
-  await onProgress?.('🔍 Analysing prompt...', 15)
+  await onProgress?.('🔍 Analysing prompt...', 30)
 
   // ── Builder branch: runs FIRST — no Groq/knowledge calls before this ──────
   if (systemType === 'builder') {
@@ -88,6 +88,7 @@ export async function generateAsset(
     if (buildingType) {
       try {
         await onProgress?.('🔬 Researching building type...', 50)
+
         let teachingContext = ''
         try {
           const { getTeachingContext } = await import('./self-teaching-agent')
@@ -119,6 +120,7 @@ export async function generateAsset(
         }
 
         console.log('[generateAsset] research confidence:', researchResult.confidence)
+        await onProgress?.('🏗️ Compiling blueprint...', 75)
         compiled = compileBlueprint(researchResult)
         allParts = options.exteriorOnly
           ? [...compiled.exterior]
@@ -147,6 +149,7 @@ export async function generateAsset(
       ? buildingType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
       : 'Building'
 
+    await onProgress?.('⚙️ Building model...', 90)
     const model: RbxModel = { name: modelName, parts: allParts, scripts: [] }
     const rbxmxBuilt = buildRbxmx([model])
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)

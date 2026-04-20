@@ -49,7 +49,7 @@ export const generateFunction = inngest.createFunction(
     await step.run('update-generating', async () => {
       await supabase
         .from('generations')
-        .update({ status: 'generating', progress: 35 })
+        .update({ status: 'generating', progress: 30 })
         .eq('id', generationId)
     })
 
@@ -93,51 +93,52 @@ export const generateFunction = inngest.createFunction(
 
         // Upload .rbxmx to Supabase Storage
         const fileName = `${generationId}.rbxmx`
-        let fileUrl: string | null = null
+        let fileUrl = ''
+
+        console.log('[inngest] rbxmx size:', result.rbxmx.length, 'bytes, parts:', result.partCount)
 
         try {
           const { error: uploadError } = await supabase.storage
             .from('generations')
-            .upload(fileName, Buffer.from(result.rbxmx), {
+            .upload(fileName, Buffer.from(result.rbxmx, 'utf-8'), {
               contentType: 'application/xml',
               upsert: true,
             })
 
           if (uploadError) {
-            console.error('[inngest] upload error:', uploadError.message)
+            console.error('[inngest] storage upload failed:', uploadError.message)
           } else {
             const { data: urlData } = supabase.storage.from('generations').getPublicUrl(fileName)
             fileUrl = urlData.publicUrl
-            console.log('[inngest] upload success:', fileName)
+            console.log('[inngest] uploaded successfully, url:', fileUrl)
           }
-        } catch (e) {
-          console.error('[inngest] upload threw:', e)
+        } catch (uploadErr) {
+          console.error('[inngest] upload crashed:', uploadErr)
         }
 
-        try {
-          const { error: updateError } = await supabase
-            .from('generations')
-            .update({
-              status: 'complete',
-              progress: 100,
-              output_url: fileUrl,
-              part_count: result.partCount || 0,
-              spec_items: result.spec || [],
-              completed_at: new Date().toISOString(),
-              output_metadata: {
-                qualityScore: result.qualityScore,
-                qualityNotes: result.qualityNotes,
-                roomLayout: result.roomLayout || [],
-              },
-            })
-            .eq('id', generationId)
-          if (updateError) {
-            console.error('[inngest] failed to update status to complete:', updateError.message)
-          } else {
-            console.log('[inngest] status updated to complete:', generationId)
-          }
-        } catch (e) {
-          console.error('[inngest] failed to update status to complete:', e)
+        // Always update to complete regardless of upload success
+        console.log('[inngest] updating to complete, fileUrl:', fileUrl, 'parts:', result.partCount)
+        const { error: updateError } = await supabase
+          .from('generations')
+          .update({
+            status: 'complete',
+            progress: 100,
+            output_url: fileUrl,
+            part_count: result.partCount || 0,
+            spec_items: result.spec || [],
+            completed_at: new Date().toISOString(),
+            output_metadata: {
+              qualityScore: result.qualityScore,
+              qualityNotes: result.qualityNotes,
+              roomLayout: result.roomLayout || [],
+            },
+          })
+          .eq('id', generationId)
+
+        if (updateError) {
+          console.error('[inngest] update to complete failed:', updateError.message, updateError.code)
+        } else {
+          console.log('[inngest] ✅ generation complete')
         }
 
         // Increment user generation count (non-fatal if it fails)

@@ -31,7 +31,7 @@ export async function teachFromGeneration(params: {
     return
   }
 
-  // Check failure streak — trigger re-research after 3 consecutive failures
+  // Check failure streak — trigger re-research only after 10 consecutive failures AND current gen also failed
   try {
     const { data: failures } = await supabaseAdmin
       .from('knowledge_patches')
@@ -41,7 +41,7 @@ export async function teachFromGeneration(params: {
       .order('applied_at', { ascending: false })
       .limit(10)
 
-    if (failures && failures.length >= 3) {
+    if (failures && failures.length >= 10 && qualityScore < 50) {
       await inngest.send({ name: 'research/retry', data: { buildingType, forceRefresh: true } })
       console.log(`[self-teaching] triggered re-research for "${buildingType}" after ${failures.length} failures`)
     }
