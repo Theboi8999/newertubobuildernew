@@ -142,8 +142,8 @@ function generatePart(part: RbxPart, id: number): string {
     </Properties>${part.emissive ? `
     <Item class="PointLight" referent="LIGHT_RBX${id}">
       <Properties>
-        <float name="Brightness">5</float>
-        <float name="Range">30</float>
+        <float name="Brightness">1.5</float>
+        <float name="Range">20</float>
         <Color3 name="Color">
           <R>1</R><G>0.98</G><B>0.9</B>
         </Color3>

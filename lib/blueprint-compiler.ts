@@ -14,7 +14,7 @@ function p(name:string,sx:number,sy:number,sz:number,px:number,py:number,pz:numb
 export function getRoomType(n:string):string { const l=n.toLowerCase(); if(l.includes('reception')||l.includes('lobby')||l.includes('entrance'))return 'reception'; if(l.includes('office')||l.includes('admin')||l.includes('bullpen'))return 'office'; if(l.includes('cell')||l.includes('holding'))return 'cell'; if(l.includes('toilet')||l.includes('bathroom')||l.includes('wc'))return 'toilet'; if(l.includes('shop')||l.includes('retail')||l.includes('sales'))return 'shopping'; if(l.includes('storage')||l.includes('stock'))return 'storage'; if(l.includes('kitchen')||l.includes('break')||l.includes('canteen'))return 'kitchen'; if(l.includes('meeting')||l.includes('conference'))return 'meeting'; return 'default' }
 
 function wins(prefix:string,wx:number,wy:number,wz:number,wallW:number,floorH:number,isNS:boolean,style:string,wc:string,fi:number):RbxPart[] {
-  const pts:RbxPart[]=[]; const wc2=Math.max(2,Math.floor(wallW/7)); const sp=wallW/(wc2+1); const winW=Math.min(3.5,sp*0.55); const winH=floorH*0.42; const winY=wy+floorH*0.52
+  const pts:RbxPart[]=[]; const wc2=isNS?Math.max(2,Math.floor(wallW/7)):Math.max(1,Math.floor(wallW/12)); const sp=wallW/(wc2+1); const winW=Math.min(3.5,sp*0.55); const winH=floorH*0.42; const winY=wy+floorH*0.52
   for(let i=0;i<wc2;i++){
     const off=sp*(i+1)-wallW/2; const x=isNS?wx+off:wx; const z=isNS?wz:wz+off; const n=`${prefix}_F${fi}_W${i}`
     pts.push(p(`${n}_FT`,isNS?winW+0.4:0.3,0.25,isNS?0.3:winW+0.4,x,winY+winH/2+0.12,z,wc,'smoothplastic'))
@@ -41,7 +41,7 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
   pts.push(p(`${n}_Floor`,w,0.5,d,ox,0.25,oz,fc,fm))
   const bc=fc==='White'?'Light grey':'White'; pts.push(p(`${n}_BN`,w,0.52,0.35,ox,0.26,oz-d/2+0.175,bc,fm)); pts.push(p(`${n}_BS`,w,0.52,0.35,ox,0.26,oz+d/2-0.175,bc,fm))
   pts.push(p(`${n}_Ceil`,w,0.4,d,ox,h-0.2,oz,'White','smoothplastic'))
-  const lc=Math.max(1,Math.floor(w/8)); for(let l=0;l<lc;l++){const lx=ox-w/2+(w/(lc+1))*(l+1); pts.push(p(`${n}_Light${l}`,3,0.2,1,lx,h-0.35,oz,'Institutional white','neon',0.1,true)); pts.push(p(`${n}_LightS${l}`,3.4,0.1,1.4,lx,h-0.25,oz,'White','smoothplastic'))}
+  const lc=Math.max(1,Math.floor(w/16)); for(let l=0;l<lc;l++){const lx=ox-w/2+(w/(lc+1))*(l+1); pts.push(p(`${n}_Light${l}`,3,0.2,1,lx,h-0.35,oz,'Institutional white','neon',0.6,true)); pts.push(p(`${n}_LightS${l}`,3.4,0.1,1.4,lx,h-0.25,oz,'White','smoothplastic'))}
   pts.push(p(`${n}_WN`,w,h,0.3,ox,h/2,oz-d/2,wc,'smoothplastic')); pts.push(p(`${n}_WS`,w,h,0.3,ox,h/2,oz+d/2,wc,'smoothplastic')); pts.push(p(`${n}_WW`,0.3,h,d,ox-w/2,h/2,oz,wc,'smoothplastic')); pts.push(p(`${n}_WE`,0.3,h,d,ox+w/2,h/2,oz,wc,'smoothplastic'))
   pts.push(p(`${n}_SKN`,w+0.1,0.6,0.15,ox,0.8,oz-d/2+0.075,'White','smoothplastic')); pts.push(p(`${n}_SKS`,w+0.1,0.6,0.15,ox,0.8,oz+d/2-0.075,'White','smoothplastic')); pts.push(p(`${n}_SKW`,0.15,0.6,d+0.1,ox-w/2+0.075,0.8,oz,'White','smoothplastic')); pts.push(p(`${n}_SKE`,0.15,0.6,d+0.1,ox+w/2-0.075,0.8,oz,'White','smoothplastic'))
   pts.push(p(`${n}_DFL`,0.2,7.2,0.4,ox-1.5,3.6,oz-d/2-0.05,'White','smoothplastic')); pts.push(p(`${n}_DFR`,0.2,7.2,0.4,ox+1.5,3.6,oz-d/2-0.05,'White','smoothplastic')); pts.push(p(`${n}_DFT`,3.4,0.2,0.4,ox,7.1,oz-d/2-0.05,'White','smoothplastic')); pts.push(p(`${n}_Door`,3,7,0.15,ox,3.5,oz-d/2-0.08,'Reddish brown','wood')); pts.push(p(`${n}_Hndl`,0.15,0.15,0.35,ox+1.1,3.5,oz-d/2-0.17,'Medium stone grey','metal'))
@@ -60,7 +60,8 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const hasArches=r.hasColonnade||isChinese||isColonial; const hasGlass=r.hasGlassFront&&!isChinese&&!isColonial
   console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'rc:',rc,'style:',style); console.log('[exterior] chinese:',isChinese,'colonial:',isColonial,'arches:',hasArches,'glass:',hasGlass)
   pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Light stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','smoothplastic')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
-  for(let l=0;l<2;l++){const lx=l===0?-4:tw+4; pts.push(p(`Lamp_P${l}`,0.4,14,0.4,lx,7,-5,'Dark grey','metal')); pts.push(p(`Lamp_A${l}`,0.2,0.2,2,lx,13.5,-4,'Dark grey','metal')); pts.push(p(`Lamp_H${l}`,0.8,0.5,0.8,lx,13.5,-3.2,'Institutional white','neon',0.1,true))}
+  for(let l=0;l<2;l++){const lx=l===0?-4:tw+4; pts.push(p(`Lamp_P${l}`,0.4,14,0.4,lx,7,-5,'Dark grey','metal')); pts.push(p(`Lamp_A${l}`,0.2,0.2,2,lx,13.5,-4,'Dark grey','metal')); pts.push(p(`Lamp_H${l}`,0.8,0.5,0.8,lx,13.5,-3.2,'Bright yellow','smoothplastic',0,false))}
+  console.log('[exterior] WALL COLOR:', ec, 'from research.exteriorColor:', r.exteriorColor)
   pts.push(p('WallBack',tw,th,0.8,tw/2,th/2,td,ec,em)); pts.push(p('WallLeft',0.8,th,td,0,th/2,td/2,ec,em)); pts.push(p('WallRight',0.8,th,td,tw,th/2,td/2,ec,em))
   if(hasGlass){const gh=th-3; pts.push(p('FPilL',2,th,0.8,1,th/2,0,ec,em)); pts.push(p('FPilR',2,th,0.8,tw-1,th/2,0,ec,em)); pts.push(p('FGlass',tw-4,gh,0.3,tw/2,gh/2+0.5,0,'Institutional white','smoothplastic',0.3)); pts.push(p('FTransom',tw,th-gh,0.8,tw/2,gh+(th-gh)/2,0,ec,em))} else {pts.push(p('WallFront',tw,th,0.8,tw/2,th/2,0,ec,em))}
   if(isChinese||isColonial){for(const[cx,cz] of[[0,0],[tw,0],[0,td],[tw,td]] as[number,number][]){pts.push(p(`CP_${cx}_${cz}`,2,th,2,cx,th/2,cz,ec,em)); pts.push(p(`CB_${cx}_${cz}`,2.4,1.5,2.4,cx,0.75,cz,ec,em)); pts.push(p(`CC_${cx}_${cz}`,2.4,1,2.4,cx,th+0.5,cz,ec,em))}}
@@ -77,14 +78,14 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     const fy=f*fh; const isTop=f===fc-1
     if(f>0){const bc=isChinese||isColonial?'White':ec; pts.push(p(`BandF${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,-0.25,bc,'smoothplastic')); pts.push(p(`BandB${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,td+0.25,bc,'smoothplastic')); if(isColonial||isChinese){const bn=Math.floor(tw/4); for(let b=0;b<bn;b++)pts.push(p(`BB_F${f}_${b}`,2,1,0.6,tw/(bn+1)*(b+1),fy+0.6,-0.3,ec,em))}}
     if(!(f===0&&hasArches)) pts.push(...wins('FW',tw/2,fy,0,tw,fh,true,style,ec,f))
-    const swc=Math.max(1,Math.floor(td/8)); for(let sw=0;sw<swc;sw++){const sz=td/(swc+1)*(sw+1); pts.push(...wins(`LW_${sw}`,0,fy,sz,td,fh,false,style,ec,f)); pts.push(...wins(`RW_${sw}`,tw,fy,sz,td,fh,false,style,ec,f))}
+    pts.push(...wins('LWin',0,fy,td/2,td,fh,false,style,ec,f)); pts.push(...wins('RWin',tw,fy,td/2,td,fh,false,style,ec,f))
     if(isChinese){const tw2=tw+4,td2=td+4,ry=fy+fh-0.5; pts.push(p(`Pag${f}`,tw2,1.2,td2,tw/2,ry,td/2,rc,'smoothplastic')); pts.push(p(`PagU${f}`,tw2-0.5,0.5,td2-0.5,tw/2,ry-0.5,td/2,'Dark green','smoothplastic')); pts.push(p(`PagF${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,-1.5,rc,'smoothplastic')); pts.push(p(`PagB${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,td+1.5,rc,'smoothplastic')); pts.push(p(`PagL${f}`,0.8,0.6,td2+1,-1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagR${f}`,0.8,0.6,td2+1,tw+1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagRidge${f}`,tw2,0.5,0.5,tw/2,ry+0.7,td/2,rc,'smoothplastic'))}
     else if(isTop){pts.push(p('RoofSlab',tw+2,1,td+2,tw/2,th+0.5,td/2,rc,'smoothplastic')); const parC=isColonial||isChinese?ec:ec; const parH=isColonial?2:1.5; pts.push(p('ParF',tw+2,parH,0.6,tw/2,th+parH/2,-0.3,parC,em)); pts.push(p('ParB',tw+2,parH,0.6,tw/2,th+parH/2,td+0.3,parC,em)); pts.push(p('ParL',0.6,parH,td+2,-0.3,th+parH/2,td/2,parC,em)); pts.push(p('ParR',0.6,parH,td+2,tw+0.3,th+parH/2,td/2,parC,em))}
   }
   for(const[cx,cz] of[[0.5,0.5],[tw-0.5,0.5],[0.5,td-0.5],[tw-0.5,td-0.5]] as[number,number][])pts.push(p(`Dr_${cx}_${cz}`,0.4,th+2,0.4,cx,th/2+1,cz,'Dark grey','metal'))
   pts.push(p('AC1',3,2,3,tw/3,th+2,td/3,'Dark grey','metal')); pts.push(p('AC2',3,2,3,tw*2/3,th+2,td*2/3,'Dark grey','metal'))
-  pts.push(p('Fascia',tw-4,2.5,0.5,tw/2,fh+1.5,-0.25,ec,em)); pts.push(p('FasciaL',tw-4,0.2,0.2,tw/2,fh+0.15,-0.4,'Institutional white','neon',0.1,true))
-  pts.push(p('WLL',0.5,0.3,0.8,tw/2-ew/2-1.5,eh+1.5,-0.9,'Institutional white','neon',0.1,true)); pts.push(p('WLR',0.5,0.3,0.8,tw/2+ew/2+1.5,eh+1.5,-0.9,'Institutional white','neon',0.1,true))
+  pts.push(p('Fascia',tw-4,2.5,0.5,tw/2,fh+1.5,-0.25,ec,em)); pts.push(p('FasciaL',tw-4,0.2,0.2,tw/2,fh+0.15,-0.4,'Institutional white','smoothplastic',0,false))
+  pts.push(p('WLL',0.5,0.3,0.8,tw/2-ew/2-1.5,eh+1.5,-0.9,'Dark grey','smoothplastic',0,false)); pts.push(p('WLR',0.5,0.3,0.8,tw/2+ew/2+1.5,eh+1.5,-0.9,'Dark grey','smoothplastic',0,false))
   return pts
 }
 
