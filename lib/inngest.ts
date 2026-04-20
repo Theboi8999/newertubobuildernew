@@ -68,7 +68,7 @@ export const generateFunction = inngest.createFunction(
       generationError = err?.message || 'Unknown generation error'
     }
 
-    console.log('[inngest] generation returned, rbxmx length:', result?.rbxmx?.length, 'parts:', result?.partCount)
+    console.log('[inngest] generation returned, outputUrl:', result?.outputUrl, 'parts:', result?.partCount)
 
     // Step 4: Save result or record failure
     await step.run('update-complete', async () => {
@@ -85,30 +85,8 @@ export const generateFunction = inngest.createFunction(
           return { success: false, error: generationError }
         }
 
-        // Upload .rbxmx to Supabase Storage (non-fatal)
-        const fileName = `${generationId}.rbxmx`
-        let fileUrl = ''
-
-        console.log('[inngest] rbxmx size:', result.rbxmx.length, 'bytes, parts:', result.partCount)
-
-        try {
-          const { error: uploadError } = await supabase.storage
-            .from('generations')
-            .upload(fileName, Buffer.from(result.rbxmx, 'utf-8'), {
-              contentType: 'application/xml',
-              upsert: true,
-            })
-
-          if (uploadError) {
-            console.error('[inngest] storage upload failed:', uploadError.message)
-          } else {
-            const { data: urlData } = supabase.storage.from('generations').getPublicUrl(fileName)
-            fileUrl = urlData.publicUrl
-            console.log('[inngest] uploaded successfully, url:', fileUrl)
-          }
-        } catch (uploadErr) {
-          console.error('[inngest] upload crashed:', uploadErr)
-        }
+        // Upload done inside generateAsset — result.outputUrl is the storage URL
+        console.log('[inngest] result.outputUrl:', result.outputUrl, 'parts:', result.partCount)
 
         // Update 1: mark complete with core fields
         console.log('[inngest] updating to complete, parts:', result.partCount)
@@ -133,7 +111,7 @@ export const generateFunction = inngest.createFunction(
           await supabase
             .from('generations')
             .update({
-              output_url: fileUrl,
+              output_url: result.outputUrl || '',
               spec_items: result.spec || [],
               output_metadata: {
                 qualityScore: result.qualityScore,

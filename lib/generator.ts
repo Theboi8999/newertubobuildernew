@@ -27,7 +27,7 @@ export interface GenerateOptions {
 }
 
 export interface GenerateResult {
-  rbxmx: string
+  outputUrl: string
   spec: string[]
   qualityScore: number
   qualityNotes: string
@@ -36,6 +36,26 @@ export interface GenerateResult {
   partCount: number
   roomLayout?: import('./blueprint-compiler').RoomLayoutItem[]
   irlImageUrls?: string[]
+}
+
+async function uploadRbxmx(generationId: string, rbxmx: string): Promise<string> {
+  try {
+    const supabaseAdmin = createAdminClient()
+    const fileName = `${generationId}.rbxmx`
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from('generations')
+      .upload(fileName, Buffer.from(rbxmx, 'utf-8'), { contentType: 'application/xml', upsert: true })
+    if (uploadError) {
+      console.error('[generator] upload failed:', uploadError.message)
+      return ''
+    }
+    const { data: urlData } = supabaseAdmin.storage.from('generations').getPublicUrl(fileName)
+    console.log('[generator] uploaded rbxmx, url:', urlData.publicUrl, 'size:', rbxmx.length)
+    return urlData.publicUrl
+  } catch (e) {
+    console.error('[generator] upload crashed:', e)
+    return ''
+  }
 }
 
 export async function generateAsset(
@@ -183,15 +203,17 @@ export async function generateAsset(
       scale: options.scale,
     }).catch(() => {})
 
+    const outputUrl = await uploadRbxmx(generationId, rbxmxFinal)
+
     return {
-      rbxmx: rbxmxFinal,
+      outputUrl,
       spec: specItems,
       qualityScore,
       qualityNotes,
       newScriptsGenerated: [],
       validationWarnings: [],
       partCount: allParts.length,
-      roomLayout: compiled?.roomLayout,
+      roomLayout: compiled?.roomLayout || [],
       irlImageUrls,
     }
   }
@@ -249,9 +271,10 @@ export async function generateAsset(
   }).catch(() => {})
 
   const xmlPartCount = (rbxmxFinal.match(/<Item class="Part"/g) || []).length
+  const outputUrl = await uploadRbxmx(generationId, rbxmxFinal)
 
   return {
-    rbxmx: rbxmxFinal,
+    outputUrl,
     spec,
     qualityScore: score,
     qualityNotes: notes,
