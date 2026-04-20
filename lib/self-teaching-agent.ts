@@ -1,6 +1,5 @@
 // lib/self-teaching-agent.ts
 import { createAdminClient } from './supabase'
-import { inngest } from './inngest'
 
 export async function teachFromGeneration(params: {
   buildingType: string
@@ -31,7 +30,7 @@ export async function teachFromGeneration(params: {
     return
   }
 
-  // Check failure streak — trigger re-research only after 10 consecutive failures AND current gen also failed
+  // Log failure streak — no longer sends Inngest events to avoid loops
   try {
     const { data: failures } = await supabaseAdmin
       .from('knowledge_patches')
@@ -42,8 +41,7 @@ export async function teachFromGeneration(params: {
       .limit(10)
 
     if (failures && failures.length >= 10 && qualityScore < 50) {
-      await inngest.send({ name: 'research/retry', data: { buildingType, forceRefresh: true } })
-      console.log(`[self-teaching] triggered re-research for "${buildingType}" after ${failures.length} failures`)
+      console.log('[self-teaching] would re-research:', buildingType, 'failures:', failures?.length)
     }
   } catch (e) {
     console.error('[self-teaching] failure count check error:', e)

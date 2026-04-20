@@ -9,17 +9,9 @@ export const inngest = new Inngest({
 export const researchRetryFunction = inngest.createFunction(
   { id: 'research-retry', name: 'Re-research Building Type', retries: 1 },
   { event: 'research/retry' },
-  async ({ event, step }) => {
-    const { buildingType } = event.data as { buildingType: string }
-
-    await step.run('re-research', async () => {
-      const { researchBuildingType } = await import('./research-agent')
-      const result = await researchBuildingType(buildingType, { forceRefresh: true })
-      console.log(`[researchRetry] Re-researched "${buildingType}" — confidence: ${result.confidence}`)
-      return result
-    })
-
-    return { success: true, buildingType }
+  async ({ event }) => {
+    console.log('[research-retry] disabled to prevent loops')
+    return { disabled: true }
   }
 )
 
@@ -76,6 +68,8 @@ export const generateFunction = inngest.createFunction(
       generationError = err?.message || 'Unknown generation error'
     }
 
+    console.log('[inngest] generation returned, rbxmx length:', result?.rbxmx?.length, 'parts:', result?.partCount)
+
     // Step 4: Save result or record failure
     await step.run('update-complete', async () => {
       try {
@@ -91,7 +85,7 @@ export const generateFunction = inngest.createFunction(
           return { success: false, error: generationError }
         }
 
-        // Upload .rbxmx to Supabase Storage
+        // Upload .rbxmx to Supabase Storage (non-fatal)
         const fileName = `${generationId}.rbxmx`
         let fileUrl = ''
 
@@ -116,32 +110,43 @@ export const generateFunction = inngest.createFunction(
           console.error('[inngest] upload crashed:', uploadErr)
         }
 
-        // Always update to complete regardless of upload success
-        console.log('[inngest] updating to complete, fileUrl:', fileUrl, 'parts:', result.partCount)
-        const { error: updateError } = await supabase
+        // Update 1: mark complete with core fields
+        console.log('[inngest] updating to complete, parts:', result.partCount)
+        const { error: completeError } = await supabase
           .from('generations')
           .update({
             status: 'complete',
             progress: 100,
-            output_url: fileUrl,
-            part_count: result.partCount || 0,
-            spec_items: result.spec || [],
             completed_at: new Date().toISOString(),
-            output_metadata: {
-              qualityScore: result.qualityScore,
-              qualityNotes: result.qualityNotes,
-              roomLayout: result.roomLayout || [],
-            },
+            part_count: result.partCount || 0,
           })
           .eq('id', generationId)
 
-        if (updateError) {
-          console.error('[inngest] update to complete failed:', updateError.message, updateError.code)
+        if (completeError) {
+          console.error('[inngest] completion update failed:', completeError.message, completeError.code)
         } else {
-          console.log('[inngest] ✅ generation complete')
+          console.log('[inngest] ✅ marked complete')
         }
 
-        // Increment user generation count (non-fatal if it fails)
+        // Update 2: save output fields (non-fatal if this fails)
+        try {
+          await supabase
+            .from('generations')
+            .update({
+              output_url: fileUrl,
+              spec_items: result.spec || [],
+              output_metadata: {
+                qualityScore: result.qualityScore,
+                qualityNotes: result.qualityNotes,
+                roomLayout: result.roomLayout || [],
+              },
+            })
+            .eq('id', generationId)
+        } catch (e) {
+          console.error('[inngest] output fields update failed:', e)
+        }
+
+        // Increment user generation count (non-fatal)
         try {
           await supabase.rpc('increment_generation_count', { uid: userId })
         } catch { /* ignore */ }
