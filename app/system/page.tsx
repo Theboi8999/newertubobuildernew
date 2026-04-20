@@ -576,8 +576,8 @@ function SystemPageInner() {
                         Quality: {generation.output_metadata.qualityScore}/100 — {qualityLabel(generation.output_metadata.qualityScore)}
                       </p>
                     )}
-                    {generation.output_metadata?.partCount > 0 && (
-                      <p className="text-xs text-brand-text-muted mt-0.5">{generation.output_metadata.partCount} parts generated</p>
+                    {generation.part_count > 0 && (
+                      <p className="text-xs text-brand-text-muted mt-0.5">{generation.part_count} parts generated</p>
                     )}
                     {generation.output_metadata?.qualityNotes && (
                       <p className="text-xs text-brand-text-muted mt-0.5">{generation.output_metadata.qualityNotes}</p>
