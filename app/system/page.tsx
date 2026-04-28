@@ -136,6 +136,8 @@ function SystemPageInner() {
   const [referenceImages, setReferenceImages] = useState<Array<{ base64: string; mimeType: string; preview: string }>>([])
   const [showRefImages, setShowRefImages] = useState(false)
   const [exteriorOnly, setExteriorOnly] = useState(false)
+  const [seed, setSeed] = useState<number>(Math.floor(Math.random() * 99999))
+  const [seedCopied, setSeedCopied] = useState(false)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -196,6 +198,7 @@ function SystemPageInner() {
           exteriorOnly: exteriorOnly || undefined,
           floorCount: floorCount > 0 ? floorCount : undefined,
           buildingStyle: buildingStyle || undefined,
+          seed,
         }),
       })
       const data = await res.json()
@@ -406,6 +409,20 @@ function SystemPageInner() {
                         ))}
                       </select>
                     </div>
+                    {systemId === 'builder' && (
+                      <div>
+                        <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">Layout Seed</label>
+                        <input
+                          type="number"
+                          value={seed}
+                          onChange={e => setSeed(Math.max(0, parseInt(e.target.value) || 0))}
+                          className="input text-sm w-full"
+                          min={0}
+                          max={99999}
+                        />
+                        <p className="text-xs text-brand-text-dim mt-1">Use the same seed to reproduce an identical room layout</p>
+                      </div>
+                    )}
                     <div>
                       <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
                         Location reference (optional)
@@ -582,8 +599,50 @@ function SystemPageInner() {
                     {generation.output_metadata?.qualityNotes && (
                       <p className="text-xs text-brand-text-muted mt-0.5">{generation.output_metadata.qualityNotes}</p>
                     )}
+                    {generation.output_metadata?.qualityChecks?.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-2">Quality Breakdown</p>
+                        <div className="space-y-1">
+                          {generation.output_metadata.qualityChecks.map((c: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1.5">
+                                <span className={c.passed ? 'text-green-400' : 'text-red-400'}>{c.passed ? '✓' : '✗'}</span>
+                                <span className={c.passed ? 'text-brand-text-muted' : 'text-red-400'}>{c.name}</span>
+                              </div>
+                              <span className="text-brand-text-dim">{c.note}</span>
+                            </div>
+                          ))}
+                        </div>
+                        {generation.output_metadata?.suggestions?.length > 0 && (
+                          <div className="mt-2 pt-2 border-t border-brand-border">
+                            {generation.output_metadata.suggestions.map((s: string, i: number) => (
+                              <p key={i} className="text-xs text-yellow-300 mt-0.5">💡 {s}</p>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {systemId === 'builder' && (
+                  <div className="flex items-center justify-between mb-4 p-3 rounded-xl bg-brand-surface border border-brand-border">
+                    <div>
+                      <p className="text-xs font-semibold text-brand-text-muted uppercase tracking-wider">Layout Seed</p>
+                      <p className="text-sm font-mono text-brand-purple-light mt-0.5">{seed}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(String(seed))
+                        setSeedCopied(true)
+                        setTimeout(() => setSeedCopied(false), 2000)
+                      }}
+                      className="btn btn-secondary text-xs px-3 py-1.5"
+                    >
+                      {seedCopied ? '✓ Copied' : '📋 Copy Seed'}
+                    </button>
+                  </div>
+                )}
 
                 {generation.output_url && (
                   <button
@@ -685,6 +744,7 @@ function SystemPageInner() {
                   <button
                     onClick={() => {
                       setGeneration(null); setGenerationId(null)
+                      setSeed(Math.floor(Math.random() * 99999))
                       router.replace(`/system?system=${systemId}`)
                     }}
                     className="btn btn-secondary flex-1 py-2.5 text-sm"

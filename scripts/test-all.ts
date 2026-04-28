@@ -2,7 +2,10 @@ import { analysePrompt } from '../lib/prompt-intelligence'
 import { applyStyleDefaults } from '../lib/style-library'
 import { preGate, postGate } from '../lib/quality-gate'
 import { compileBlueprint } from '../lib/blueprint-compiler'
+import { checkBuildingQuality } from '../lib/quality-checker'
 import { ResearchResult } from '../lib/research-agent'
+import { placeRoomsWithBSP, getRoomType } from '../lib/room-placer'
+import { calculateWindowPositions, buildProportionalWindow } from '../lib/window-system'
 
 // ── Test runner ──────────────────────────────────────────────────────────────
 
@@ -307,6 +310,200 @@ for (const [input, expected] of colorTests) {
     assert(match, `color ${input} did not produce ${expected}. Got: ${Array.from(new Set(walls.map(p=>p.color))).join(',')}`)
   })
 }
+
+// ── QUALITY CHECKER TESTS ────────────────────────────────────────────────────
+
+console.log('\n═══ QUALITY CHECKER ═══')
+
+test('returns checks array with items', () => {
+  const parts = compileBlueprint(mockResearch()).exterior
+  const result = checkBuildingQuality(parts, mockResearch(), 'test_building')
+  assert(Array.isArray(result.checks), 'checks should be array')
+  assert(result.checks.length > 0, 'should have at least one check')
+})
+
+test('percentage is 0-100', () => {
+  const parts = compileBlueprint(mockResearch()).exterior
+  const result = checkBuildingQuality(parts, mockResearch(), 'test_building')
+  assert(result.percentage >= 0 && result.percentage <= 100, `percentage ${result.percentage} out of range`)
+})
+
+test('good building passes quality check', () => {
+  const r = compileBlueprint(mockResearch())
+  const allParts = [...r.rooms.flat(), ...r.exterior]
+  const result = checkBuildingQuality(allParts, mockResearch(), 'test_building')
+  assert(result.percentage >= 60, `expected quality >=60%, got ${result.percentage}%`)
+})
+
+test('empty parts returns low quality', () => {
+  const result = checkBuildingQuality([], null, 'test_building')
+  assert(result.percentage < 50, `expected quality <50% for empty parts, got ${result.percentage}%`)
+})
+
+test('empty parts returns suggestions', () => {
+  const result = checkBuildingQuality([], null, 'test_building')
+  assert(result.suggestions.length > 0, 'should have suggestions for empty parts')
+})
+
+test('suggestions are strings', () => {
+  const result = checkBuildingQuality([], null, 'test_building')
+  assert(result.suggestions.every(s => typeof s === 'string'), 'all suggestions should be strings')
+})
+
+test('check names are non-empty strings', () => {
+  const parts = compileBlueprint(mockResearch()).exterior
+  const result = checkBuildingQuality(parts, mockResearch(), 'test_building')
+  assert(result.checks.every(c => typeof c.name === 'string' && c.name.length > 0), 'all checks should have names')
+})
+
+test('check scores are 0-100', () => {
+  const parts = compileBlueprint(mockResearch()).exterior
+  const result = checkBuildingQuality(parts, mockResearch(), 'test_building')
+  const invalid = result.checks.filter(c => c.score < 0 || c.score > 100)
+  assert(invalid.length === 0, `invalid scores: ${invalid.map(c => c.name + ':' + c.score).join(',')}`)
+})
+
+test('peranakan building passes floor and wall checks', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    roofColor: 'Dark green',
+    floorCount: 3,
+  }))
+  const allParts = [...r.rooms.flat(), ...r.exterior]
+  const result = checkBuildingQuality(allParts, mockResearch(), 'peranakan_shophouse')
+  const floorCheck = result.checks.find(c => c.name === 'Floor Parts')
+  const wallCheck = result.checks.find(c => c.name === 'Wall Parts')
+  assert(floorCheck?.passed === true, 'floor check should pass')
+  assert(wallCheck?.passed === true, 'wall check should pass')
+})
+
+// ── BSP ROOM PLACER TESTS ────────────────────────────────────────────────────
+
+console.log('\n═══ BSP ROOM PLACER ═══')
+
+test('BSP places all rooms', () => {
+  const specs = [
+    { name: 'Reception', width: 14, depth: 12, type: 'reception' },
+    { name: 'Office', width: 12, depth: 10, type: 'office' },
+    { name: 'Kitchen', width: 10, depth: 8, type: 'kitchen' },
+    { name: 'Toilet', width: 6, depth: 6, type: 'toilet' },
+    { name: 'Meeting', width: 12, depth: 10, type: 'meeting' },
+    { name: 'Storage', width: 8, depth: 8, type: 'storage' },
+  ]
+  const rooms = placeRoomsWithBSP(60, 40, specs, 42)
+  assert(rooms.length === specs.length, `expected ${specs.length} rooms got ${rooms.length}`)
+})
+
+test('BSP rooms stay within bounds', () => {
+  const specs = Array.from({ length: 6 }, (_, i) => ({ name: `Room${i}`, width: 10, depth: 8, type: 'default' }))
+  const rooms = placeRoomsWithBSP(60, 40, specs, 42)
+  for (const r of rooms) {
+    assert(r.x - r.width / 2 >= 0, `room ${r.name} left edge out of bounds: ${r.x - r.width / 2}`)
+    assert(r.x + r.width / 2 <= 60, `room ${r.name} right edge out of bounds: ${r.x + r.width / 2}`)
+    assert(r.z - r.depth / 2 >= 0, `room ${r.name} top edge out of bounds: ${r.z - r.depth / 2}`)
+    assert(r.z + r.depth / 2 <= 60, `room ${r.name} bottom edge out of bounds: ${r.z + r.depth / 2}`)
+  }
+})
+
+test('BSP same seed produces same layout', () => {
+  const specs = Array.from({ length: 6 }, (_, i) => ({ name: `Room${i}`, width: 10, depth: 8, type: 'default' }))
+  const r1 = placeRoomsWithBSP(60, 40, specs, 1234)
+  const r2 = placeRoomsWithBSP(60, 40, specs, 1234)
+  assert(r1[0].x === r2[0].x, 'same seed should produce same layout')
+})
+
+test('BSP different seeds produce different layouts', () => {
+  const specs = Array.from({ length: 6 }, (_, i) => ({ name: `Room${i}`, width: 10, depth: 8, type: 'default' }))
+  const r1 = placeRoomsWithBSP(60, 40, specs, 1)
+  const r2 = placeRoomsWithBSP(60, 40, specs, 9999)
+  const different = r1.some((r, i) => r.x !== r2[i]?.x || r.z !== r2[i]?.z)
+  assert(different, 'different seeds should produce different layouts')
+})
+
+test('getRoomType identifies reception', () => {
+  assert(getRoomType('Reception Lobby') === 'reception', 'should be reception')
+})
+
+test('getRoomType identifies office', () => {
+  assert(getRoomType('Main Office') === 'office', 'should be office')
+})
+
+test('getRoomType returns default for unknown', () => {
+  assert(getRoomType('Unnamed Area XYZ') === 'default', 'should be default')
+})
+
+// ── WINDOW SYSTEM TESTS ──────────────────────────────────────────────────────
+
+console.log('\n═══ WINDOW SYSTEM ═══')
+
+test('golden ratio window count for modern style', () => {
+  const positions = calculateWindowPositions(30, 10, 0, 'modern')
+  assert(positions.length >= 2, `expected >= 2 windows got ${positions.length}`)
+})
+
+test('windows stay within wall bounds', () => {
+  const positions = calculateWindowPositions(20, 10, 0, 'colonial')
+  for (const pos of positions) {
+    assert(Math.abs(pos.offset) + pos.width / 2 <= 10, `window at offset ${pos.offset} width ${pos.width} exceeds wall`)
+  }
+})
+
+test('chinese style generates lattice parts', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'north', style: 'chinese', wallColor: 'Sand yellow'
+  })
+  const hasLattice = parts.some(p => p.name.includes('Lat'))
+  assert(hasLattice, 'chinese window should have lattice parts')
+})
+
+test('victorian style generates lintel', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'north', style: 'victorian', wallColor: 'Reddish brown'
+  })
+  const hasLintel = parts.some(p => p.name.includes('Lintel'))
+  assert(hasLintel, 'victorian window should have lintel')
+})
+
+test('window parts have valid dimensions', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'north', style: 'modern', wallColor: 'Light grey'
+  })
+  const invalid = parts.filter(p => p.size.x <= 0 || p.size.y <= 0 || p.size.z <= 0)
+  assert(invalid.length === 0, `${invalid.length} window parts have invalid dimensions`)
+})
+
+test('colonial window has lattice parts', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'north', style: 'colonial', wallColor: 'White'
+  })
+  const hasLattice = parts.some(p => p.name.includes('Lat'))
+  assert(hasLattice, 'colonial window should have lattice parts')
+})
+
+test('industrial window has steel parts', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'north', style: 'industrial', wallColor: 'Dark grey'
+  })
+  const hasSteel = parts.some(p => p.name.includes('Steel'))
+  assert(hasSteel, 'industrial window should have steel parts')
+})
+
+test('window always has glass part', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'east', style: 'modern', wallColor: 'Light grey'
+  })
+  const hasGlass = parts.some(p => p.name.includes('Glass'))
+  assert(hasGlass, 'window should always have glass part')
+})
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────
 

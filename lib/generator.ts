@@ -14,6 +14,7 @@ import { applyStyleDefaults, matchStyleLibrary } from './style-library'
 import { analysePrompt } from './prompt-intelligence'
 import { preGate, postGate } from './quality-gate'
 import type { QualityTarget } from './vision-analyzer'
+import { checkBuildingQuality, QualityCheck, QualityCheckResult } from './quality-checker'
 
 export interface GenerateOptions {
   style?: string
@@ -24,6 +25,8 @@ export interface GenerateOptions {
   exteriorOnly?: boolean
   floorCountOverride?: number
   buildingStyle?: string
+  isRetry?: boolean
+  seed?: number
 }
 
 export interface GenerateResult {
@@ -31,6 +34,8 @@ export interface GenerateResult {
   spec: string[]
   qualityScore: number
   qualityNotes: string
+  qualityChecks: QualityCheck[]
+  suggestions: string[]
   newScriptsGenerated: string[]
   validationWarnings: string[]
   partCount: number
@@ -81,6 +86,7 @@ export async function generateAsset(
     let compiled: ReturnType<typeof compileBlueprint> | null = null
     let qualityTarget: QualityTarget | undefined
     let irlImageUrls: string[] = []
+    let qualityCheckResult: QualityCheckResult | undefined
 
     const intent = analysePrompt(prompt)
     const buildingType = intent.buildingType
@@ -119,6 +125,7 @@ export async function generateAsset(
 
         researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
         researchResult = applyStyleDefaults(researchResult)
+        console.log('[generator] after applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle, 'colonnade:', researchResult.hasColonnade)
 
         if (intent.floorCountHint && intent.floorCountHint > 1) {
           researchResult = { ...researchResult, floorCount: intent.floorCountHint }
@@ -137,11 +144,12 @@ export async function generateAsset(
           console.log('[generator] pre-gate failed, retrying research')
           researchResult = await researchBuildingType(buildingType, { forceRefresh: true })
           researchResult = applyStyleDefaults(researchResult)
+          console.log('[generator] after retry applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle)
         }
 
         console.log('[generateAsset] research confidence:', researchResult.confidence)
         await onProgress?.('🏗️ Compiling blueprint...', 75)
-        compiled = compileBlueprint(researchResult)
+        compiled = compileBlueprint(researchResult, options.seed)
         allParts = options.exteriorOnly
           ? [...compiled.exterior]
           : [...compiled.rooms.flat(), ...compiled.exterior]
@@ -163,6 +171,40 @@ export async function generateAsset(
       allParts = buildGenericBuilding(['Reception', 'Main Office', 'Holding Cell', 'Break Room', 'Briefing Room', 'Locker Room'])
       specItems = ['Reception', 'Main Office', 'Holding Cell', 'Break Room', 'Briefing Room', 'Locker Room']
       usedFallback = true
+    }
+
+    // FIX 5/7: Quality check + auto-retry if quality too low
+    if (!usedFallback && allParts.length > 0) {
+      try {
+        qualityCheckResult = checkBuildingQuality(allParts, researchResult, buildingType || 'building', compiled?.roomLayout)
+        console.log('[generator] quality check:', qualityCheckResult.percentage + '%', 'suggestions:', qualityCheckResult.suggestions)
+
+        if (qualityCheckResult.percentage < 50 && !options.isRetry && buildingType) {
+          console.log('[generator] quality', qualityCheckResult.percentage + '% < 50% — auto-retrying research')
+          try {
+            const retryResearch = await researchBuildingType(buildingType, { forceRefresh: true })
+            const retryResult = applyStyleDefaults(retryResearch)
+            const retryCompiled = compileBlueprint(retryResult)
+            const retryParts = options.exteriorOnly
+              ? [...retryCompiled.exterior]
+              : [...retryCompiled.rooms.flat(), ...retryCompiled.exterior]
+            const retryQc = checkBuildingQuality(retryParts, retryResult, buildingType, retryCompiled.roomLayout)
+            console.log('[generator] retry quality:', retryQc.percentage + '%')
+            if (retryQc.percentage > qualityCheckResult.percentage) {
+              allParts = retryParts
+              researchResult = retryResult
+              compiled = retryCompiled
+              qualityCheckResult = retryQc
+              specItems = retryResult.rooms.map(r => r.name)
+              console.log('[generator] using retry result, improved to', retryQc.percentage + '%')
+            }
+          } catch (retryErr) {
+            console.error('[generator] auto-retry failed:', retryErr)
+          }
+        }
+      } catch (e) {
+        console.error('[generator] quality check error:', e)
+      }
     }
 
     const modelName = buildingType
@@ -210,6 +252,8 @@ export async function generateAsset(
       spec: specItems,
       qualityScore,
       qualityNotes,
+      qualityChecks: qualityCheckResult?.checks || [],
+      suggestions: qualityCheckResult?.suggestions || [],
       newScriptsGenerated: [],
       validationWarnings: [],
       partCount: allParts.length,
@@ -278,6 +322,8 @@ export async function generateAsset(
     spec,
     qualityScore: score,
     qualityNotes: notes,
+    qualityChecks: [],
+    suggestions: [],
     newScriptsGenerated,
     validationWarnings: [...validation.warnings, ...validation.tosIssues],
     partCount: xmlPartCount,

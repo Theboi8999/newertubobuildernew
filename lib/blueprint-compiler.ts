@@ -1,5 +1,7 @@
 import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
+import { placeRoomsWithBSP, getRoomType } from './room-placer'
+import { calculateWindowPositions, buildProportionalWindow } from './window-system'
 
 export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; exterior:RbxPart[]; totalWidth:number; totalDepth:number; roomLayout:Array<{name:string;x:number;z:number;width:number;depth:number;type:string}> }
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
@@ -11,29 +13,8 @@ function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase(
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
 function p(name:string,sx:number,sy:number,sz:number,px:number,py:number,pz:number,color:string,material:string,transparency=0,emissive=false):RbxPart { return {name,size:{x:Math.max(0.1,sx),y:Math.max(0.1,sy),z:Math.max(0.1,sz)},position:{x:px,y:py,z:pz},color:vc(color),material:vm(material),anchored:true,transparency:Math.max(0,Math.min(1,transparency)),emissive} }
 
-export function getRoomType(n:string):string { const l=n.toLowerCase(); if(l.includes('reception')||l.includes('lobby')||l.includes('entrance'))return 'reception'; if(l.includes('office')||l.includes('admin')||l.includes('bullpen'))return 'office'; if(l.includes('cell')||l.includes('holding'))return 'cell'; if(l.includes('toilet')||l.includes('bathroom')||l.includes('wc'))return 'toilet'; if(l.includes('shop')||l.includes('retail')||l.includes('sales'))return 'shopping'; if(l.includes('storage')||l.includes('stock'))return 'storage'; if(l.includes('kitchen')||l.includes('break')||l.includes('canteen'))return 'kitchen'; if(l.includes('meeting')||l.includes('conference'))return 'meeting'; return 'default' }
-
-function wins(prefix:string,wx:number,wy:number,wz:number,wallW:number,floorH:number,isNS:boolean,style:string,wc:string,fi:number):RbxPart[] {
-  const pts:RbxPart[]=[]; const wc2=isNS?Math.max(2,Math.floor(wallW/7)):Math.max(1,Math.floor(wallW/12)); const sp=wallW/(wc2+1); const winW=Math.min(3.5,sp*0.55); const winH=floorH*0.42; const winY=wy+floorH*0.52
-  for(let i=0;i<wc2;i++){
-    const off=sp*(i+1)-wallW/2; const x=isNS?wx+off:wx; const z=isNS?wz:wz+off; const n=`${prefix}_F${fi}_W${i}`
-    pts.push(p(`${n}_FT`,isNS?winW+0.4:0.3,0.25,isNS?0.3:winW+0.4,x,winY+winH/2+0.12,z,wc,'smoothplastic'))
-    pts.push(p(`${n}_FB`,isNS?winW+0.4:0.3,0.25,isNS?0.3:winW+0.4,x,winY-winH/2-0.12,z,wc,'smoothplastic'))
-    pts.push(p(`${n}_FL`,isNS?0.25:0.3,winH+0.5,isNS?0.3:0.25,isNS?x-winW/2-0.12:x,winY,isNS?z:z-winW/2-0.12,wc,'smoothplastic'))
-    pts.push(p(`${n}_FR`,isNS?0.25:0.3,winH+0.5,isNS?0.3:0.25,isNS?x+winW/2+0.12:x,winY,isNS?z:z+winW/2+0.12,wc,'smoothplastic'))
-    pts.push(p(`${n}_Sill`,isNS?winW+0.6:0.4,0.2,isNS?0.4:winW+0.6,x,winY-winH/2-0.28,z,wc,'smoothplastic'))
-    pts.push(p(`${n}_Glass`,isNS?winW:0.1,winH,isNS?0.1:winW,x,winY,z,'Institutional white','smoothplastic',0.4))
-    if(style.includes('chinese')||style.includes('peranakan')||style.includes('colonial')){
-      pts.push(p(`${n}_LH1`,isNS?winW:0.08,0.08,isNS?0.08:winW,x,winY+winH*0.25,z,'White','smoothplastic'))
-      pts.push(p(`${n}_LH2`,isNS?winW:0.08,0.08,isNS?0.08:winW,x,winY-winH*0.25,z,'White','smoothplastic'))
-      pts.push(p(`${n}_LV`,isNS?0.08:0.08,winH,isNS?0.08:0.08,x,winY,z,'White','smoothplastic'))
-    } else if(style.includes('victorian')||style.includes('georgian')||style.includes('classical')){
-      pts.push(p(`${n}_Lin`,isNS?winW+0.6:0.4,0.4,isNS?0.4:winW+0.6,x,winY+winH/2+0.4,z,wc,'smoothplastic'))
-      pts.push(p(`${n}_MB`,isNS?winW:0.08,0.08,isNS?0.08:winW,x,winY,z,'White','smoothplastic'))
-    }
-  }
-  return pts
-}
+// Re-export getRoomType for backward compatibility
+export { getRoomType }
 
 function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:string):RbxPart[] {
   const pts:RbxPart[]=[]; const w=Math.max(8,Number(room.width)||12); const d=Math.max(8,Number(room.depth)||10); const h=Math.max(8,Number(room.height)||10)
@@ -55,7 +36,8 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const pts:RbxPart[]=[]; const fc=Math.max(1,parseInt(String(r.floorCount||1),10)||1); const fh=Math.max(8,parseInt(String(r.floorHeight||10),10)||10); const th=fc*fh
   const ec=vc(r.exteriorColor||'Light grey'); const rc=vc(r.roofColor||'Dark grey'); const style=(r.architecturalStyle||'modern').toLowerCase(); const em=vm(r.exteriorMaterial||'smoothplastic')
-  const isChinese=style.includes('chinese')||style.includes('peranakan')||style.includes('asian')||style.includes('japan')||style.includes('pagoda')||style.includes('singapor')
+  const bt=(r.buildingType||'').toLowerCase(); const isChinese=style.includes('chinese')||style.includes('peranakan')||style.includes('asian')||style.includes('japan')||style.includes('pagoda')||style.includes('singapor')||bt.includes('shophouse')||bt.includes('peranakan')||bt.includes('pagoda')
+  console.log('[exterior] isChinese:',isChinese,'bt:',bt,'style:',style)
   const isColonial=style.includes('colonial')||style.includes('victorian')||style.includes('georgian')||style.includes('classical')||style.includes('heritage')||style.includes('art-deco')||style.includes('baroque')||style.includes('mediterranean')
   const hasArches=r.hasColonnade||isChinese||isColonial; const hasGlass=r.hasGlassFront&&!isChinese&&!isColonial
   console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'rc:',rc,'style:',style); console.log('[exterior] chinese:',isChinese,'colonial:',isColonial,'arches:',hasArches,'glass:',hasGlass)
@@ -77,8 +59,33 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   for(let f=0;f<fc;f++){
     const fy=f*fh; const isTop=f===fc-1
     if(f>0){const bc=isChinese||isColonial?'White':ec; pts.push(p(`BandF${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,-0.25,bc,'smoothplastic')); pts.push(p(`BandB${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,td+0.25,bc,'smoothplastic')); if(isColonial||isChinese){const bn=Math.floor(tw/4); for(let b=0;b<bn;b++)pts.push(p(`BB_F${f}_${b}`,2,1,0.6,tw/(bn+1)*(b+1),fy+0.6,-0.3,ec,em))}}
-    if(!(f===0&&hasArches)) pts.push(...wins('FW',tw/2,fy,0,tw,fh,true,style,ec,f))
-    pts.push(...wins('LWin',0,fy,td/2,td,fh,false,style,ec,f)); pts.push(...wins('RWin',tw,fy,td/2,td,fh,false,style,ec,f))
+
+    // Proportional windows — front wall
+    const frontWinPositions = calculateWindowPositions(tw, fh, fy, style)
+    for (const pos of frontWinPositions) {
+      if (f === 0 && hasArches) continue
+      const winStyle = isChinese ? 'chinese' : isColonial ? 'colonial' : 'modern'
+      const winParts = buildProportionalWindow({
+        x: tw / 2 + pos.offset,
+        y: fy + fh * 0.52,
+        z: 0,
+        width: pos.width,
+        height: pos.height,
+        direction: 'north',
+        style: winStyle,
+        wallColor: ec
+      })
+      pts.push(...winParts as any[])
+    }
+
+    // Proportional windows — side walls
+    const sideWinPositions = calculateWindowPositions(td, fh, fy, style)
+    for (const pos of sideWinPositions) {
+      const winStyle = isChinese ? 'chinese' : isColonial ? 'colonial' : 'modern'
+      pts.push(...buildProportionalWindow({ x: 0, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'west', style: winStyle, wallColor: ec }) as any[])
+      pts.push(...buildProportionalWindow({ x: tw, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'east', style: winStyle, wallColor: ec }) as any[])
+    }
+
     if(isChinese){const tw2=tw+4,td2=td+4,ry=fy+fh-0.5; pts.push(p(`Pag${f}`,tw2,1.2,td2,tw/2,ry,td/2,rc,'smoothplastic')); pts.push(p(`PagU${f}`,tw2-0.5,0.5,td2-0.5,tw/2,ry-0.5,td/2,'Dark green','smoothplastic')); pts.push(p(`PagF${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,-1.5,rc,'smoothplastic')); pts.push(p(`PagB${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,td+1.5,rc,'smoothplastic')); pts.push(p(`PagL${f}`,0.8,0.6,td2+1,-1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagR${f}`,0.8,0.6,td2+1,tw+1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagRidge${f}`,tw2,0.5,0.5,tw/2,ry+0.7,td/2,rc,'smoothplastic'))}
     else if(isTop){pts.push(p('RoofSlab',tw+2,1,td+2,tw/2,th+0.5,td/2,rc,'smoothplastic')); const parC=isColonial||isChinese?ec:ec; const parH=isColonial?2:1.5; pts.push(p('ParF',tw+2,parH,0.6,tw/2,th+parH/2,-0.3,parC,em)); pts.push(p('ParB',tw+2,parH,0.6,tw/2,th+parH/2,td+0.3,parC,em)); pts.push(p('ParL',0.6,parH,td+2,-0.3,th+parH/2,td/2,parC,em)); pts.push(p('ParR',0.6,parH,td+2,tw+0.3,th+parH/2,td/2,parC,em))}
   }
@@ -89,19 +96,45 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   return pts
 }
 
-export function compileBlueprint(r:ResearchResult):CompiledBlueprint {
+export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBlueprint {
   console.log('[blueprint] START:',r.buildingType,'fc:',r.floorCount,'style:',r.architecturalStyle,'ec:',r.exteriorColor)
-  const style=(r.architecturalStyle||'modern').toLowerCase(); const COLS=2; let cx=3,cz=3,rmd=0
+  const style=(r.architecturalStyle||'modern').toLowerCase()
   const rooms:RbxPart[][]=[], layout:CompiledBlueprint['roomLayout']=[]
-  for(let i=0;i<r.rooms.length;i++){
-    const room=r.rooms[i]; const w=Math.max(8,Number(room.width)||12); const d=Math.max(8,Number(room.depth)||10); const col=i%COLS
-    if(col===0&&i>0){cz+=rmd;cx=3;rmd=0}
-    const ox=cx+w/2,oz=cz+d/2
-    rooms.push(compileRoom(room,ox,oz,style)); layout.push({name:room.name,x:ox,z:oz,width:w,depth:d,type:getRoomType(room.name)})
-    cx+=w; rmd=Math.max(rmd,d)
+
+  const tw = Math.max(r.totalWidth || 40, 40)
+  const td = Math.max(r.totalDepth || 30, 30)
+
+  // Convert research rooms to specs for BSP
+  const roomSpecs = r.rooms.map(room => ({
+    name: room.name,
+    width: Math.max(8, Number(room.width) || 12),
+    depth: Math.max(8, Number(room.depth) || 10),
+    type: getRoomType(room.name)
+  }))
+
+  // BSP placement for natural room layout
+  const placedRooms = placeRoomsWithBSP(tw, td, roomSpecs, seed)
+  console.log('[blueprint] BSP placed', placedRooms.length, 'of', r.rooms.length, 'rooms')
+
+  let fallbackZ = td + 2
+
+  for (let i = 0; i < r.rooms.length; i++) {
+    const room = r.rooms[i]
+    const placed = placedRooms[i]
+    if (placed) {
+      rooms.push(compileRoom(room, placed.x, placed.z, style))
+      layout.push({ name: room.name, x: placed.x, z: placed.z, width: placed.width, depth: placed.depth, type: placed.type })
+    } else {
+      // Fallback: place overflow rooms below building footprint
+      const w = Math.max(8, Number(room.width) || 12)
+      const d = Math.max(8, Number(room.depth) || 10)
+      rooms.push(compileRoom(room, tw / 2, fallbackZ + d / 2, style))
+      layout.push({ name: room.name, x: tw / 2, z: fallbackZ + d / 2, width: w, depth: d, type: getRoomType(room.name) })
+      fallbackZ += d + 2
+    }
   }
-  const tw=Math.max(r.totalWidth||40,cx+6); const td=Math.max(r.totalDepth||30,cz+rmd+6)
-  const exterior=buildExterior(tw,td,r)
+
+  const exterior = buildExterior(tw, td, r)
   console.log('[blueprint] rooms:',rooms.length,'ext:',exterior.length,'total:',rooms.reduce((s,r2)=>s+r2.length,0)+exterior.length)
-  return {buildingType:r.buildingType,rooms,exterior,totalWidth:tw,totalDepth:td,roomLayout:layout}
+  return { buildingType:r.buildingType, rooms, exterior, totalWidth:tw, totalDepth:td, roomLayout:layout }
 }
