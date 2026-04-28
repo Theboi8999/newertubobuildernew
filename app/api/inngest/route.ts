@@ -5,5 +5,4 @@ import { inngest, generateFunction, researchRetryFunction } from '@/lib/inngest'
 export const { GET, POST, PUT } = serve({
   client: inngest,
   functions: [generateFunction, researchRetryFunction],
-  signingKey: process.env.INNGEST_SIGNING_KEY,
 })

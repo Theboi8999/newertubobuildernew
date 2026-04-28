@@ -22,7 +22,7 @@
     "eslint": "^8.57.1",
     "eslint-config-next": "14.2.29",
     "groq-sdk": "^1.1.2",
-    "inngest": "^3.22.0",
+    "inngest": "^4.2.5",
     "lucide-react": "^0.469.0",
     "next": "14.2.29",
     "postcss": "^8.5.1",
