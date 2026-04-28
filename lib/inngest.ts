@@ -7,7 +7,8 @@ export const inngest = new Inngest({
 })
 
 export const researchRetryFunction = inngest.createFunction(
-  { id: 'research-retry', name: 'Re-research Building Type', retries: 1, triggers: [{ event: 'research/retry' }] },
+  { id: 'research-retry', name: 'Re-research Building Type', retries: 1 },
+  { event: 'research/retry' },
   async ({ event }) => {
     console.log('[research-retry] disabled to prevent loops')
     return { disabled: true }
@@ -20,16 +21,10 @@ export const generateFunction = inngest.createFunction(
     name: 'Generate Roblox Asset',
     timeouts: { finish: '10m' },
     retries: 1,
-    triggers: [{ event: 'turbobuilder/generate' }],
   },
+  { event: 'turbobuilder/generate' },
   async ({ event, step }) => {
-    const { generationId, prompt, systemType, userId, options } = event.data as {
-      generationId: string
-      prompt: string
-      systemType: string
-      userId: string
-      options: Record<string, any>
-    }
+    const { generationId, prompt, systemType, userId, options } = event.data
 
     const { createAdminClient } = await import('./supabase')
     const supabase = createAdminClient()

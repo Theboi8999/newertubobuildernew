@@ -5,7 +5,9 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(node *)",
-      "Bash(node_modules/.bin/tsc *)"
+      "Bash(node_modules/.bin/tsc *)",
+      "Bash(cmd.exe *)",
+      "Bash(npx tsc *)"
     ]
   }
 }
