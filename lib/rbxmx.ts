@@ -56,58 +56,28 @@ function getMat(m: string): number {
   return ME[(m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')] ?? 256
 }
 
-const VALID_COLORS: Record<string, string> = {
-  'transparent': 'Institutional white',
-  'dark blue': 'Navy blue',
-  'dark grey': 'Dark grey',
-  'dark gray': 'Dark grey',
-  'light gray': 'Light grey',
-  'grey': 'Medium stone grey',
-  'gray': 'Medium stone grey',
-  'orange': 'Bright orange',
-  'dark orange': 'Neon orange',
-  'yellow': 'Bright yellow',
-  'green': 'Bright green',
-  'blue': 'Bright blue',
-  'red': 'Bright red',
-  'dark red': 'Dark red',
-  'pink': 'Hot pink',
-  'purple': 'Bright violet',
-  'brown': 'Reddish brown',
-  'tan': 'Brick yellow',
-  'beige': 'Brick yellow',
-  'cream': 'White',
-  'silver': 'Medium stone grey',
-  'gold': 'Bright yellow',
-  'teal': 'Teal',
-  'cyan': 'Cyan',
-  'black': 'Really black',
-  'navy blue': 'Navy blue',
-  'bright green': 'Bright green',
-  'bright red': 'Bright red',
-  'bright blue': 'Bright blue',
-  'bright yellow': 'Bright yellow',
-  'bright orange': 'Bright orange',
-  'bright violet': 'Bright violet',
-  'light grey': 'Light grey',
-  'sand yellow': 'Sand yellow',
-  'sand blue': 'Sand blue',
-  'brick yellow': 'Brick yellow',
-  'institutional white': 'Institutional white',
-  'reddish brown': 'Reddish brown',
-  'medium stone grey': 'Medium stone grey',
-  'light stone grey': 'Light stone grey',
-  'dark stone grey': 'Dark stone grey',
-  'really black': 'Really black',
-  'rust': 'Rust',
-  'cashmere': 'Cashmere',
-  'dark green': 'Dark green',
-  'white': 'White',
-}
+const VALID_BRICK_COLORS = new Set([
+  'White', 'Institutional white', 'Light grey', 'Medium stone grey',
+  'Dark grey', 'Light stone grey', 'Dark stone grey', 'Really black',
+  'Bright red', 'Dark red', 'Rust', 'Reddish brown', 'Bright orange',
+  'Dark orange', 'Bright yellow', 'Sand yellow', 'Brick yellow',
+  'Bright green', 'Dark green', 'Sand green', 'Medium green',
+  'Bright blue', 'Navy blue', 'Sand blue', 'Light blue',
+  'Hot pink', 'Cashmere', 'Bright bluish green', 'Tan',
+  'Medium red', 'Bright violet', 'Lavender',
+])
 
 function sanitizeColor(color: string): string {
+  if (!color) return 'Light grey'
+  // If already a valid BrickColor name, use it directly
+  if (VALID_BRICK_COLORS.has(color)) return color
+  // Try case-insensitive match
   const lower = color.toLowerCase().trim()
-  return VALID_COLORS[lower] || color
+  const match = Array.from(VALID_BRICK_COLORS).find(v => v.toLowerCase() === lower)
+  if (match) return match
+  // Log and fallback
+  console.log('[rbxmx] unknown color:', color, '— falling back to Light grey')
+  return 'Light grey'
 }
 
 function escapeXml(str: string): string {
