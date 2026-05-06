@@ -85,6 +85,50 @@ export async function analyzeRobloxReference(imageBase64: string, mimeType: stri
   }
 }
 
+export interface ExtractedBuildingStyle {
+  dominantWallColor: string
+  dominantRoofColor: string
+  architecturalFeatures: string[]
+  windowStyle: string
+  hasArches: boolean
+  hasPagoda: boolean
+  hasColumns: boolean
+  estimatedFloors: number
+  styleDescription: string
+}
+
+export async function extractBuildingStyle(imageBase64: string, mimeType: string): Promise<ExtractedBuildingStyle | null> {
+  const key = process.env.ANTHROPIC_API_KEY
+  if (!key || !key.startsWith('sk-ant-')) return null
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mimeType, data: imageBase64 } },
+            { type: 'text', text: `Analyze this building image. Extract architectural details for Roblox recreation.\nReturn JSON only:\n{\n  "dominantWallColor": "closest Roblox BrickColor name e.g. Sand yellow, Reddish brown, White",\n  "dominantRoofColor": "closest Roblox BrickColor name",\n  "architecturalFeatures": ["list of features like pagoda roof, colonnade, arches, lattice windows"],\n  "windowStyle": "one of: modern, colonial, victorian, chinese, industrial",\n  "hasArches": true/false,\n  "hasPagoda": true/false,\n  "hasColumns": true/false,\n  "estimatedFloors": number,\n  "styleDescription": "brief style description e.g. peranakan chinese colonial"\n}` }
+          ]
+        }]
+      }),
+      signal: AbortSignal.timeout(15000)
+    })
+    if (!response.ok) { console.log('[vision-extract] API error:', response.status); return null }
+    const data = await response.json()
+    const text = data.content?.[0]?.text || ''
+    const s = text.indexOf('{'), e = text.lastIndexOf('}')
+    if (s === -1) return null
+    return JSON.parse(text.substring(s, e + 1)) as ExtractedBuildingStyle
+  } catch (err) {
+    console.error('[vision-extract] failed:', err)
+    return null
+  }
+}
+
 export async function findIRLReferences(buildingType: string): Promise<string[]> {
   if (!process.env.SERPER_API_KEY) return []
 

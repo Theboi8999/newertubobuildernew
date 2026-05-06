@@ -13,8 +13,89 @@ function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase(
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
 function p(name:string,sx:number,sy:number,sz:number,px:number,py:number,pz:number,color:string,material:string,transparency=0,emissive=false):RbxPart { return {name,size:{x:Math.max(0.1,sx),y:Math.max(0.1,sy),z:Math.max(0.1,sz)},position:{x:px,y:py,z:pz},color:vc(color),material:vm(material),anchored:true,transparency:Math.max(0,Math.min(1,transparency)),emissive} }
 
-// Re-export getRoomType for backward compatibility
 export { getRoomType }
+
+// ── FloorConfig system ─────────────────────────────────────────────────────────
+interface FloorConfig {
+  floorIndex: number
+  ceilingHeight: number
+  wallColor: string
+  floorColor: string
+  floorMaterial: string
+  windowStyle: string
+  isGroundFloor: boolean
+  isTopFloor: boolean
+}
+
+function getFloorConfig(floorIndex: number, totalFloors: number, research: ResearchResult, style: string): FloorConfig {
+  const isGround = floorIndex === 0
+  const isTop = floorIndex === totalFloors - 1
+  const isChinese = style.includes('chinese') || style.includes('peranakan')
+  return {
+    floorIndex,
+    ceilingHeight: isGround ? (isChinese ? 10 : 12) : (isTop ? 9 : 10),
+    wallColor: isGround ? (isChinese ? 'Dark green' : vc(research.exteriorColor)) : 'Light grey',
+    floorColor: isGround ? 'Medium stone grey' : 'Sand yellow',
+    floorMaterial: isGround ? 'concrete' : 'wood',
+    windowStyle: isChinese ? 'chinese' : style.includes('victorian') ? 'victorian' : style.includes('colonial') ? 'colonial' : 'modern',
+    isGroundFloor: isGround,
+    isTopFloor: isTop,
+  }
+}
+
+// ── Pitched roof for colonial/victorian/georgian ───────────────────────────────
+function buildPitchedRoof(name: string, tw: number, td: number, baseY: number, color: string, material: string): RbxPart[] {
+  const parts: RbxPart[] = []
+  const roofH = Math.max(1, tw * 0.15)
+  parts.push({name:`${name}_RoofFront`,size:{x:Math.max(0.1,tw+2),y:Math.max(0.1,roofH),z:Math.max(0.1,td/2+1)},position:{x:tw/2,y:baseY+roofH/2,z:td/4},color:vc(color),material:vm(material),anchored:true,transparency:0,emissive:false,partType:'WedgePart'})
+  parts.push({name:`${name}_RoofBack`,size:{x:Math.max(0.1,tw+2),y:Math.max(0.1,roofH),z:Math.max(0.1,td/2+1)},position:{x:tw/2,y:baseY+roofH/2,z:td*3/4},color:vc(color),material:vm(material),anchored:true,transparency:0,emissive:false,partType:'WedgePart'})
+  parts.push(p(`${name}_RoofRidge`,tw+2,0.5,0.8,tw/2,baseY+roofH,td/2,color,material))
+  return parts
+}
+
+// ── Terrain and street furniture ──────────────────────────────────────────────
+function buildTerrain(tw: number, td: number, _style: string, isChinese: boolean): RbxPart[] {
+  const parts: RbxPart[] = []
+  parts.push(p('Terrain_Ground',tw+60,0.4,td+60,tw/2,0.2,td/2,'Medium stone grey','concrete'))
+  if (isChinese) {
+    parts.push(p('Terrain_FiveFoot',tw+2,0.5,5,tw/2,0.55,-2.5,'Light stone grey','concrete'))
+    const colCount = Math.floor(tw/4)
+    for (let i=0;i<colCount;i++) {
+      const cx=(tw/(colCount+1))*(i+1)
+      parts.push(p(`Terrain_FiveFootCol${i}`,0.6,3.5,0.6,cx,2.25,-4.5,'Sand yellow','smoothplastic'))
+    }
+    parts.push(p('Terrain_FiveFootRoof',tw+2,0.3,5,tw/2,4,-2.5,'Sand yellow','smoothplastic'))
+  }
+  parts.push(p('Terrain_Road',tw+60,0.3,16,tw/2,0.35,-16,'Dark stone grey','smoothplastic'))
+  const lineCount=Math.floor((tw+60)/8)
+  for (let i=0;i<lineCount;i++) {
+    if(i%2===0){const lx=-30+i*8+4; parts.push(p(`Road_Line${i}`,4,0.32,0.2,lx,0.32,-16,'White','smoothplastic'))}
+  }
+  parts.push(p('Terrain_Pavement',tw+10,0.5,8,tw/2,0.5,-8,'Light stone grey','concrete'))
+  parts.push(p('Terrain_Kerb',tw+10,0.8,0.4,tw/2,0.65,-4.2,'Light stone grey','concrete'))
+  const treePositions=[{x:-5,z:-6},{x:tw+5,z:-6},{x:-8,z:td+8},{x:tw+8,z:td+8}]
+  for (let ti = 0; ti < treePositions.length; ti++) {
+    const tp = treePositions[ti]
+    parts.push(p(`Tree_Trunk${ti}`,0.8,8,0.8,tp.x,4,tp.z,'Reddish brown','wood'))
+    parts.push(p(`Tree_Can1_${ti}`,5,5,5,tp.x,10,tp.z,'Bright green','smoothplastic'))
+    parts.push(p(`Tree_Can2_${ti}`,4,4,4,tp.x+1,11,tp.z+0.5,'Medium green','smoothplastic'))
+    parts.push(p(`Tree_Can3_${ti}`,3.5,3.5,3.5,tp.x-0.8,9.5,tp.z-0.5,'Dark green','smoothplastic'))
+  }
+  for (let b=0;b<4;b++) {
+    const bx=tw/2-6+b*4
+    parts.push(p(`Bollard${b}`,0.5,1.5,0.5,bx,1.25,-3.5,'Really black','smoothplastic'))
+    parts.push(p(`BollardCap${b}`,0.7,0.3,0.7,bx,2.15,-3.5,'Dark grey','smoothplastic'))
+  }
+  parts.push(p('Bench_Seat',3,0.2,0.8,tw/2+8,1.3,-6,'Reddish brown','wood'))
+  parts.push(p('Bench_LegL',0.15,1.2,0.8,tw/2+6.6,0.7,-6,'Dark grey','metal'))
+  parts.push(p('Bench_LegR',0.15,1.2,0.8,tw/2+9.4,0.7,-6,'Dark grey','metal'))
+  parts.push(p('Bench_Back',3,0.8,0.1,tw/2+8,2,-6.3,'Reddish brown','wood'))
+  parts.push(p('Bin_Body',0.8,1.2,0.8,tw/2-8,0.9,-6,'Dark grey','smoothplastic'))
+  parts.push(p('Bin_Lid',1,0.2,1,tw/2-8,1.6,-6,'Really black','smoothplastic'))
+  parts.push(p('Sign_Post',0.2,3,0.2,tw+6,2,-5,'Dark grey','metal'))
+  parts.push(p('Sign_Board',2.5,0.8,0.1,tw+6,3.8,-5,'Bright green','smoothplastic'))
+  return parts
+}
 
 function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:string):RbxPart[] {
   const pts:RbxPart[]=[]; const w=Math.max(8,Number(room.width)||12); const d=Math.max(8,Number(room.depth)||10); const h=Math.max(8,Number(room.height)||10)
@@ -35,59 +116,80 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 
 function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const pts:RbxPart[]=[]; const fc=Math.max(1,parseInt(String(r.floorCount||1),10)||1); const fh=Math.max(8,parseInt(String(r.floorHeight||10),10)||10); const th=fc*fh
-  const ec=vc(r.exteriorColor||'Light grey'); const rc=vc(r.roofColor||'Dark grey'); const style=(r.architecturalStyle||'modern').toLowerCase(); const em=vm(r.exteriorMaterial||'smoothplastic')
-  const bt=(r.buildingType||'').toLowerCase(); const isChinese=style.includes('chinese')||style.includes('peranakan')||style.includes('asian')||style.includes('japan')||style.includes('pagoda')||style.includes('singapor')||bt.includes('shophouse')||bt.includes('peranakan')||bt.includes('pagoda')
-  console.log('[exterior] isChinese:',isChinese,'bt:',bt,'style:',style)
-  const isColonial=style.includes('colonial')||style.includes('victorian')||style.includes('georgian')||style.includes('classical')||style.includes('heritage')||style.includes('art-deco')||style.includes('baroque')||style.includes('mediterranean')
+  const st=(r.architecturalStyle||'modern').toLowerCase(); const em=vm(r.exteriorMaterial||'smoothplastic')
+
+  // FIX 2: Enhanced isChinese detection including hasColonnade
+  const bt=(r.buildingType||'').toLowerCase()
+  const isChinese=bt.includes('peranakan')||bt.includes('shophouse')||bt.includes('singapore')||bt.includes('chinese')||bt.includes('pagoda')||
+    st.includes('peranakan')||st.includes('shophouse')||st.includes('chinese')||st.includes('pagoda')||st.includes('colonial')||r.hasColonnade===true
+
+  // FIX 2: Robust color extraction with raw string guards
+  const ec = r.exteriorColor && r.exteriorColor.trim() !== '' && r.exteriorColor !== 'undefined'
+    ? vc(r.exteriorColor)
+    : 'Light grey'
+  const rc = r.roofColor && r.roofColor.trim() !== '' && r.roofColor !== 'undefined'
+    ? vc(r.roofColor)
+    : 'Dark grey'
+
+  console.log('[buildExterior] bt:', bt, 'st:', st)
+  console.log('[buildExterior] isChinese:', isChinese, 'ec:', ec, 'rc:', rc)
+  console.log('[buildExterior] floorCount:', fc, 'hasColonnade:', r.hasColonnade)
+  console.log('[exterior] WALL COLOR:', ec, 'from research.exteriorColor:', r.exteriorColor)
+
+  const isColonial=st.includes('colonial')||st.includes('victorian')||st.includes('georgian')||st.includes('classical')||st.includes('heritage')||st.includes('art-deco')||st.includes('baroque')||st.includes('mediterranean')
   const hasArches=r.hasColonnade||isChinese||isColonial; const hasGlass=r.hasGlassFront&&!isChinese&&!isColonial
-  console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'rc:',rc,'style:',style); console.log('[exterior] chinese:',isChinese,'colonial:',isColonial,'arches:',hasArches,'glass:',hasGlass)
+  console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'rc:',rc,'style:',st); console.log('[exterior] chinese:',isChinese,'colonial:',isColonial,'arches:',hasArches,'glass:',hasGlass)
+
   pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Light stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','smoothplastic')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
   for(let l=0;l<2;l++){const lx=l===0?-4:tw+4; pts.push(p(`Lamp_P${l}`,0.4,14,0.4,lx,7,-5,'Dark grey','metal')); pts.push(p(`Lamp_A${l}`,0.2,0.2,2,lx,13.5,-4,'Dark grey','metal')); pts.push(p(`Lamp_H${l}`,0.8,0.5,0.8,lx,13.5,-3.2,'Bright yellow','smoothplastic',0,false))}
-  console.log('[exterior] WALL COLOR:', ec, 'from research.exteriorColor:', r.exteriorColor)
+
   pts.push(p('WallBack',tw,th,0.8,tw/2,th/2,td,ec,em)); pts.push(p('WallLeft',0.8,th,td,0,th/2,td/2,ec,em)); pts.push(p('WallRight',0.8,th,td,tw,th/2,td/2,ec,em))
   if(hasGlass){const gh=th-3; pts.push(p('FPilL',2,th,0.8,1,th/2,0,ec,em)); pts.push(p('FPilR',2,th,0.8,tw-1,th/2,0,ec,em)); pts.push(p('FGlass',tw-4,gh,0.3,tw/2,gh/2+0.5,0,'Institutional white','smoothplastic',0.3)); pts.push(p('FTransom',tw,th-gh,0.8,tw/2,gh+(th-gh)/2,0,ec,em))} else {pts.push(p('WallFront',tw,th,0.8,tw/2,th/2,0,ec,em))}
   if(isChinese||isColonial){for(const[cx,cz] of[[0,0],[tw,0],[0,td],[tw,td]] as[number,number][]){pts.push(p(`CP_${cx}_${cz}`,2,th,2,cx,th/2,cz,ec,em)); pts.push(p(`CB_${cx}_${cz}`,2.4,1.5,2.4,cx,0.75,cz,ec,em)); pts.push(p(`CC_${cx}_${cz}`,2.4,1,2.4,cx,th+0.5,cz,ec,em))}}
   const ew=Math.min(tw*0.35,10); const eh=fh*0.85
   if(hasArches){
     pts.push(p('EnWL',(tw-ew)/2-0.5,eh+1,1.2,(tw-ew)/4+0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnWR',(tw-ew)/2-0.5,eh+1,1.2,tw-(tw-ew)/4-0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnArch',ew+1,1.5,1.2,tw/2,eh+0.75,-0.6,'White','smoothplastic')); pts.push(p('EnKey',1.2,1.8,0.8,tw/2,eh+1,-0.4,'White','smoothplastic')); pts.push(p('EnDark',ew-1,eh-0.5,3,tw/2,(eh-0.5)/2,0.5,'Really black','smoothplastic',0.8))
+    // Colonnade — renamed to Col_ prefix so quality checker can find them
     const cc=Math.max(4,Math.floor(tw/5)); const cs=tw/(cc+1); const colC=isChinese?'Reddish brown':ec; const colM=isChinese?'brick':em
-    for(let i=0;i<cc;i++){const cx=cs*(i+1); pts.push(p(`ColB${i}`,1.2,1.2,1.2,cx,0.6,-0.6,colC,colM)); pts.push(p(`ColS${i}`,0.9,fh*0.8,0.9,cx,fh*0.4,-0.6,colC,colM)); pts.push(p(`ColC${i}`,1.4,0.8,1.4,cx,fh*0.8+0.4,-0.6,colC,colM)); if(i<cc-1)pts.push(p(`ColA${i}`,cs-0.9,0.7,0.8,cx+cs/2,fh*0.8,-0.6,colC,colM))}
+    for(let i=0;i<cc;i++){const cx=cs*(i+1); pts.push(p(`Col_B${i}`,1.2,1.2,1.2,cx,0.6,-0.6,colC,colM)); pts.push(p(`Col_S${i}`,0.9,fh*0.8,0.9,cx,fh*0.4,-0.6,colC,colM)); pts.push(p(`Col_C${i}`,1.4,0.8,1.4,cx,fh*0.8+0.4,-0.6,colC,colM)); if(i<cc-1)pts.push(p(`Col_A${i}`,cs-0.9,0.7,0.8,cx+cs/2,fh*0.8,-0.6,colC,colM))}
     if(isChinese){pts.push(p('ShopL',(tw-ew)/2-1.5,fh*0.72,0.3,(tw-ew)/4+0.5,fh*0.36,-0.15,'Dark green','smoothplastic')); pts.push(p('ShopR',(tw-ew)/2-1.5,fh*0.72,0.3,tw-(tw-ew)/4-0.5,fh*0.36,-0.15,'Dark green','smoothplastic'))}
   } else {
     pts.push(p('EnFL',0.4,eh,0.5,tw/2-ew/2-0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFR',0.4,eh,0.5,tw/2+ew/2+0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFT',ew+1,0.4,0.5,tw/2,eh+0.2,-0.25,ec,'smoothplastic')); pts.push(p('EnDoor',ew,eh,0.3,tw/2,eh/2,-0.15,'Institutional white','smoothplastic',0.3))
   }
+  const isPitchedStyle = !isChinese && (isColonial || st.includes('victorian') || st.includes('georgian'))
   for(let f=0;f<fc;f++){
     const fy=f*fh; const isTop=f===fc-1
     if(f>0){const bc=isChinese||isColonial?'White':ec; pts.push(p(`BandF${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,-0.25,bc,'smoothplastic')); pts.push(p(`BandB${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,td+0.25,bc,'smoothplastic')); if(isColonial||isChinese){const bn=Math.floor(tw/4); for(let b=0;b<bn;b++)pts.push(p(`BB_F${f}_${b}`,2,1,0.6,tw/(bn+1)*(b+1),fy+0.6,-0.3,ec,em))}}
 
-    // Proportional windows — front wall
-    const frontWinPositions = calculateWindowPositions(tw, fh, fy, style)
+    // Windows — use FloorConfig for window style
+    const floorCfg = getFloorConfig(f, fc, r, st)
+    const frontWinPositions = calculateWindowPositions(tw, fh, fy, st)
     for (const pos of frontWinPositions) {
       if (f === 0 && hasArches) continue
-      const winStyle = isChinese ? 'chinese' : isColonial ? 'colonial' : 'modern'
       const winParts = buildProportionalWindow({
-        x: tw / 2 + pos.offset,
-        y: fy + fh * 0.52,
-        z: 0,
-        width: pos.width,
-        height: pos.height,
-        direction: 'north',
-        style: winStyle,
-        wallColor: ec
+        x: tw / 2 + pos.offset, y: fy + fh * 0.52, z: 0,
+        width: pos.width, height: pos.height, direction: 'north',
+        style: floorCfg.windowStyle, wallColor: ec
       })
       pts.push(...winParts as any[])
     }
-
-    // Proportional windows — side walls
-    const sideWinPositions = calculateWindowPositions(td, fh, fy, style)
+    const sideWinPositions = calculateWindowPositions(td, fh, fy, st)
     for (const pos of sideWinPositions) {
-      const winStyle = isChinese ? 'chinese' : isColonial ? 'colonial' : 'modern'
-      pts.push(...buildProportionalWindow({ x: 0, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'west', style: winStyle, wallColor: ec }) as any[])
-      pts.push(...buildProportionalWindow({ x: tw, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'east', style: winStyle, wallColor: ec }) as any[])
+      pts.push(...buildProportionalWindow({ x: 0, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'west', style: floorCfg.windowStyle, wallColor: ec }) as any[])
+      pts.push(...buildProportionalWindow({ x: tw, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'east', style: floorCfg.windowStyle, wallColor: ec }) as any[])
     }
 
     if(isChinese){const tw2=tw+4,td2=td+4,ry=fy+fh-0.5; pts.push(p(`Pag${f}`,tw2,1.2,td2,tw/2,ry,td/2,rc,'smoothplastic')); pts.push(p(`PagU${f}`,tw2-0.5,0.5,td2-0.5,tw/2,ry-0.5,td/2,'Dark green','smoothplastic')); pts.push(p(`PagF${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,-1.5,rc,'smoothplastic')); pts.push(p(`PagB${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,td+1.5,rc,'smoothplastic')); pts.push(p(`PagL${f}`,0.8,0.6,td2+1,-1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagR${f}`,0.8,0.6,td2+1,tw+1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagRidge${f}`,tw2,0.5,0.5,tw/2,ry+0.7,td/2,rc,'smoothplastic'))}
-    else if(isTop){pts.push(p('RoofSlab',tw+2,1,td+2,tw/2,th+0.5,td/2,rc,'smoothplastic')); const parC=isColonial||isChinese?ec:ec; const parH=isColonial?2:1.5; pts.push(p('ParF',tw+2,parH,0.6,tw/2,th+parH/2,-0.3,parC,em)); pts.push(p('ParB',tw+2,parH,0.6,tw/2,th+parH/2,td+0.3,parC,em)); pts.push(p('ParL',0.6,parH,td+2,-0.3,th+parH/2,td/2,parC,em)); pts.push(p('ParR',0.6,parH,td+2,tw+0.3,th+parH/2,td/2,parC,em))}
+    else if(isTop && !isPitchedStyle){
+      // Flat roof with parapet
+      pts.push(p('RoofSlab',tw+2,1,td+2,tw/2,th+0.5,td/2,rc,'smoothplastic'))
+      const parC=isColonial?ec:ec; const parH=isColonial?2:1.5
+      pts.push(p('ParF',tw+2,parH,0.6,tw/2,th+parH/2,-0.3,parC,em)); pts.push(p('ParB',tw+2,parH,0.6,tw/2,th+parH/2,td+0.3,parC,em)); pts.push(p('ParL',0.6,parH,td+2,-0.3,th+parH/2,td/2,parC,em)); pts.push(p('ParR',0.6,parH,td+2,tw+0.3,th+parH/2,td/2,parC,em))
+    }
+  }
+  // Pitched roof for Victorian/Georgian/Colonial
+  if(isPitchedStyle){
+    pts.push(...buildPitchedRoof('Main',tw,td,th,rc,vm(r.exteriorMaterial||'smoothplastic')))
   }
   for(const[cx,cz] of[[0.5,0.5],[tw-0.5,0.5],[0.5,td-0.5],[tw-0.5,td-0.5]] as[number,number][])pts.push(p(`Dr_${cx}_${cz}`,0.4,th+2,0.4,cx,th/2+1,cz,'Dark grey','metal'))
   pts.push(p('AC1',3,2,3,tw/3,th+2,td/3,'Dark grey','metal')); pts.push(p('AC2',3,2,3,tw*2/3,th+2,td*2/3,'Dark grey','metal'))
@@ -101,10 +203,12 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
   const style=(r.architecturalStyle||'modern').toLowerCase()
   const rooms:RbxPart[][]=[], layout:CompiledBlueprint['roomLayout']=[]
 
-  const tw = Math.max(r.totalWidth || 40, 40)
-  const td = Math.max(r.totalDepth || 30, 30)
+  // FIX 4: Footprint cap
+  const baseW = r.totalWidth || 40
+  const baseD = r.totalDepth || 28
+  const tw = Math.min(Math.max(baseW, 40), baseW * 1.2)
+  const td = Math.min(Math.max(baseD, 28), baseD * 1.2)
 
-  // Convert research rooms to specs for BSP
   const roomSpecs = r.rooms.map(room => ({
     name: room.name,
     width: Math.max(8, Number(room.width) || 12),
@@ -112,12 +216,24 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
     type: getRoomType(room.name)
   }))
 
-  // BSP placement for natural room layout
   const placedRooms = placeRoomsWithBSP(tw, td, roomSpecs, seed)
   console.log('[blueprint] BSP placed', placedRooms.length, 'of', r.rooms.length, 'rooms')
 
-  let fallbackZ = td + 2
+  // Section 5: Align entrance room to front of building
+  const entranceRoom = placedRooms.find(pr =>
+    pr.type === 'reception' ||
+    pr.name.toLowerCase().includes('entrance') ||
+    pr.name.toLowerCase().includes('lobby') ||
+    pr.name.toLowerCase().includes('reception') ||
+    pr.name.toLowerCase().includes('main')
+  )
+  if (entranceRoom) {
+    entranceRoom.x = tw / 2
+    entranceRoom.z = entranceRoom.depth / 2 + 3
+    console.log('[blueprint] entrance room aligned to front:', entranceRoom.name)
+  }
 
+  let fallbackZ = td + 2
   for (let i = 0; i < r.rooms.length; i++) {
     const room = r.rooms[i]
     const placed = placedRooms[i]
@@ -125,7 +241,6 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
       rooms.push(compileRoom(room, placed.x, placed.z, style))
       layout.push({ name: room.name, x: placed.x, z: placed.z, width: placed.width, depth: placed.depth, type: placed.type })
     } else {
-      // Fallback: place overflow rooms below building footprint
       const w = Math.max(8, Number(room.width) || 12)
       const d = Math.max(8, Number(room.depth) || 10)
       rooms.push(compileRoom(room, tw / 2, fallbackZ + d / 2, style))
@@ -134,7 +249,12 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
     }
   }
 
-  const exterior = buildExterior(tw, td, r)
+  // Section 10: Terrain + street furniture
+  const isChinese = style.includes('chinese') || style.includes('peranakan') ||
+    (r.buildingType||'').toLowerCase().includes('shophouse') || (r.buildingType||'').toLowerCase().includes('singapore')
+  const terrain = buildTerrain(tw, td, style, isChinese)
+
+  const exterior = [...buildExterior(tw, td, r), ...terrain]
   console.log('[blueprint] rooms:',rooms.length,'ext:',exterior.length,'total:',rooms.reduce((s,r2)=>s+r2.length,0)+exterior.length)
   return { buildingType:r.buildingType, rooms, exterior, totalWidth:tw, totalDepth:td, roomLayout:layout }
 }

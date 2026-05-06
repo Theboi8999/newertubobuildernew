@@ -5,7 +5,7 @@ export interface WindowSpec {
   width: number
   height: number
   direction: 'north' | 'south' | 'east' | 'west'
-  style: 'modern' | 'colonial' | 'victorian' | 'chinese' | 'industrial'
+  style: string
   wallColor: string
 }
 

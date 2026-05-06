@@ -138,6 +138,7 @@ function SystemPageInner() {
   const [exteriorOnly, setExteriorOnly] = useState(false)
   const [seed, setSeed] = useState<number>(Math.floor(Math.random() * 99999))
   const [seedCopied, setSeedCopied] = useState(false)
+  const [variantCount, setVariantCount] = useState(0)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -177,12 +178,13 @@ function SystemPageInner() {
     }, 2000)
   }
 
-  async function handleGenerate() {
+  async function handleGenerate(seedOverride?: number) {
     if (!prompt.trim() || loading) return
     setLoading(true)
     setGeneration(null)
     try {
       const enrichedPrompt = [prompt.trim(), region, buildingStyle, floorCount > 0 ? `${floorCount} storey` : null].filter(Boolean).join(' ')
+      const useSeed = seedOverride !== undefined ? seedOverride : seed
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -198,7 +200,7 @@ function SystemPageInner() {
           exteriorOnly: exteriorOnly || undefined,
           floorCount: floorCount > 0 ? floorCount : undefined,
           buildingStyle: buildingStyle || undefined,
-          seed,
+          seed: useSeed,
         }),
       })
       const data = await res.json()
@@ -521,7 +523,7 @@ function SystemPageInner() {
                 )}
 
                 <button
-                  onClick={handleGenerate}
+                  onClick={() => handleGenerate()}
                   disabled={loading || !prompt.trim()}
                   className="btn btn-primary w-full py-3.5 text-sm font-semibold"
                 >
@@ -745,6 +747,7 @@ function SystemPageInner() {
                     onClick={() => {
                       setGeneration(null); setGenerationId(null)
                       setSeed(Math.floor(Math.random() * 99999))
+                      setVariantCount(0)
                       router.replace(`/system?system=${systemId}`)
                     }}
                     className="btn btn-secondary flex-1 py-2.5 text-sm"
@@ -758,6 +761,18 @@ function SystemPageInner() {
                     ✏ Improve This
                   </button>
                 </div>
+                {systemId === 'builder' && (
+                  <button
+                    onClick={() => {
+                      const nextVariant = variantCount + 1
+                      setVariantCount(nextVariant)
+                      handleGenerate(seed + nextVariant)
+                    }}
+                    className="mt-3 w-full px-4 py-2.5 bg-gray-800 text-gray-300 rounded-xl text-sm hover:bg-gray-700 transition-colors border border-brand-border"
+                  >
+                    Generate Variant (same prompt, different layout)
+                  </button>
+                )}
 
                 {criticismMode && (
                   <div className="mt-4">

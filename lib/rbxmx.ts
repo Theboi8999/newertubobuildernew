@@ -9,6 +9,17 @@ export interface RbxPart {
   anchored: boolean
   transparency?: number
   emissive?: boolean
+  partType?: 'Part' | 'WedgePart' | 'CornerWedgePart'
+  textureId?: string
+}
+
+const MATERIAL_TEXTURES: Record<string, string> = {
+  'brick': 'rbxassetid://6372755229',
+  'concrete': 'rbxassetid://6372755229',
+  'wood': 'rbxassetid://6372755229',
+  'metal': 'rbxassetid://6372755229',
+  'marble': 'rbxassetid://6372755229',
+  'fabric': 'rbxassetid://6372755229',
 }
 
 export interface RbxScript {
@@ -112,6 +123,7 @@ function generatePart(part: RbxPart, id: number): string {
   const materialEnum = getMat(part.material)
   const color = sanitizeColor(part.color)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
+  const itemClass = part.partType || 'Part'
 
   const sx = Math.max(0.05, Number(part.size.x) || 1)
   const sy = Math.max(0.05, Number(part.size.y) || 1)
@@ -120,8 +132,12 @@ function generatePart(part: RbxPart, id: number): string {
   const py = Number(part.position.y) || sy / 2
   const pz = Number(part.position.z) || 0
 
+  const matLower = (part.material || '').toLowerCase()
+  const texId = part.textureId || MATERIAL_TEXTURES[matLower] || ''
+  const hasTex = !!texId && ['brick', 'wood', 'concrete', 'marble'].includes(matLower)
+
   return `
-  <Item class="Part" referent="RBX${id}">
+  <Item class="${itemClass}" referent="RBX${id}">
     <Properties>
       <string name="Name">${escapeXml(part.name)}</string>
       <Vector3 name="Size">
@@ -149,6 +165,15 @@ function generatePart(part: RbxPart, id: number): string {
         </Color3>
         <bool name="Enabled">true</bool>
         <bool name="Shadows">true</bool>
+      </Properties>
+    </Item>` : ''}${hasTex ? `
+    <Item class="Texture" referent="TEX_RBX${id}">
+      <Properties>
+        <Content name="Texture"><url>${texId}</url></Content>
+        <float name="StudsPerTileU">4</float>
+        <float name="StudsPerTileV">4</float>
+        <token name="Face">1</token>
+        <Color3 name="Color3"><R>1</R><G>1</G><B>1</B></Color3>
       </Properties>
     </Item>` : ''}
   </Item>`
@@ -188,7 +213,37 @@ function generateModel(model: RbxModel, startId: number): { xml: string; nextId:
   return { xml, nextId: id }
 }
 
-export function buildRbxmx(models: RbxModel[]): string {
+function getLightingXml(style: string): string {
+  const isAsian = style.includes('peranakan') || style.includes('chinese') || style.includes('singapore')
+  if (isAsian) {
+    return `
+  <Item class="Lighting" referent="LIGHTING">
+    <Properties>
+      <float name="Ambient">0.4</float>
+      <Color3 name="ColorShift_Bottom"><R>0.98</R><G>0.9</G><B>0.7</B></Color3>
+      <Color3 name="ColorShift_Top"><R>0.6</R><G>0.8</G><B>1</B></Color3>
+      <float name="Brightness">2</float>
+      <float name="ClockTime">15</float>
+      <bool name="GlobalShadows">true</bool>
+      <float name="OutdoorAmbient">0.5</float>
+      <Color3 name="FogColor"><R>0.8</R><G>0.85</G><B>0.9</B></Color3>
+      <float name="FogEnd">1000</float>
+      <float name="FogStart">200</float>
+    </Properties>
+  </Item>`
+  }
+  return `
+  <Item class="Lighting" referent="LIGHTING">
+    <Properties>
+      <float name="Brightness">2</float>
+      <float name="ClockTime">14</float>
+      <bool name="GlobalShadows">true</bool>
+      <float name="OutdoorAmbient">0.5</float>
+    </Properties>
+  </Item>`
+}
+
+export function buildRbxmx(models: RbxModel[], style?: string): string {
   let id = 1
   let itemsXml = ''
   for (const model of models) {
@@ -199,6 +254,6 @@ export function buildRbxmx(models: RbxModel[]): string {
 
   return `<?xml version="1.0" encoding="utf-8"?>
 <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
-  <Meta name="ExplicitAutoJoints">true</Meta>${itemsXml}
+  <Meta name="ExplicitAutoJoints">true</Meta>${itemsXml}${getLightingXml((style || '').toLowerCase())}
 </roblox>`
 }

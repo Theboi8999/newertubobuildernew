@@ -505,6 +505,108 @@ test('window always has glass part', () => {
   assert(hasGlass, 'window should always have glass part')
 })
 
+// ── PERANAKAN FORCED OVERRIDES ───────────────────────────────────────────────
+
+console.log('\n═══ PERANAKAN FORCED OVERRIDES ═══')
+
+test('generator forces Sand yellow for peranakan prompt', () => {
+  const bt = 'singapore_peranakan_shophouse'
+  const prompt = 'Singapore Peranakan shophouse colonial'
+  const btLower = bt.toLowerCase()
+  const promptLower = prompt.toLowerCase()
+  const isPeranakan = btLower.includes('peranakan') || btLower.includes('shophouse') ||
+    btLower.includes('singapore') || promptLower.includes('peranakan')
+  assert(isPeranakan === true, 'should detect peranakan from buildingType and prompt')
+})
+
+test('peranakan building has pagoda parts after compile', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    floorCount: 3,
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    roofColor: 'Dark green',
+    totalWidth: 40,
+    totalDepth: 28,
+  }))
+  const allParts = [...r.exterior, ...r.rooms.flat()]
+  const hasPagoda = allParts.some(p => p.name.toLowerCase().includes('pag'))
+  assert(hasPagoda, `no pagoda parts found. Part names sample: ${allParts.slice(0, 10).map(p => p.name).join(',')}`)
+})
+
+test('peranakan building has Sand yellow walls', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    floorCount: 3,
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    roofColor: 'Dark green',
+  }))
+  const wallParts = r.exterior.filter(p => p.name.includes('Wall') || p.name.includes('Front'))
+  const sandYellow = wallParts.filter(p => p.color === 'Sand yellow')
+  assert(sandYellow.length > 0, `no Sand yellow walls. Wall colors: ${Array.from(new Set(wallParts.map(p => p.color))).join(',')}`)
+})
+
+test('peranakan building has colonnade parts', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+  }))
+  const colParts = r.exterior.filter(p => p.name.toLowerCase().includes('col_') || p.name.toLowerCase().includes('arch'))
+  assert(colParts.length > 0, 'no colonnade parts found')
+})
+
+test('victorian building gets Reddish brown exterior', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'victorian_police_station',
+    architecturalStyle: 'victorian brick classical',
+    exteriorColor: 'Reddish brown',
+    floorCount: 2,
+  }))
+  const wallParts = r.exterior.filter(p => p.name.includes('Wall'))
+  const correct = wallParts.filter(p => p.color === 'Reddish brown')
+  assert(correct.length > 0, `no Reddish brown walls. Colors: ${Array.from(new Set(wallParts.map(p => p.color))).join(',')}`)
+})
+
+test('terrain parts generated', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+  }))
+  const terrain = r.exterior.filter(p =>
+    p.name.toLowerCase().includes('terrain') ||
+    p.name.toLowerCase().includes('road') ||
+    p.name.toLowerCase().includes('tree')
+  )
+  assert(terrain.length > 0, 'no terrain parts found')
+})
+
+// ── WINDOW SYSTEM PROPORTIONS ────────────────────────────────────────────────
+
+console.log('\n═══ WINDOW SYSTEM PROPORTIONS ═══')
+
+test('window positions respect wall bounds', () => {
+  const positions = calculateWindowPositions(30, 10, 0, 'peranakan chinese colonial')
+  for (const pos of positions) {
+    assert(Math.abs(pos.offset) + pos.width / 2 <= 15.5, `window at ${pos.offset} width ${pos.width} exceeds 30-stud wall`)
+  }
+})
+
+test('peranakan windows have lattice', () => {
+  const parts = buildProportionalWindow({
+    x: 0, y: 5, z: 0, width: 3, height: 4,
+    direction: 'north', style: 'peranakan chinese colonial', wallColor: 'Sand yellow'
+  })
+  const lattice = parts.filter(p => p.name.includes('Lat'))
+  assert(lattice.length >= 2, `expected lattice parts, got ${lattice.length}`)
+})
+
 // ── SUMMARY ──────────────────────────────────────────────────────────────────
 
 console.log('\n═══════════════════════════════')

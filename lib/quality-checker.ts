@@ -34,7 +34,10 @@ export function checkBuildingQuality(
   checks.push({ name: 'Color Variety', passed: colors.size >= 2, score: colorScore, note: `${colors.size} distinct colors` })
   if (colors.size < 3) suggestions.push('Use more varied colors for realism')
 
-  const hasFloors = parts.some(p => p.name.toLowerCase().includes('floor'))
+  const hasFloors = parts.some(p => {
+    const n = p.name.toLowerCase()
+    return n.includes('floor') || n.includes('ground') || n.includes('slab')
+  })
   checks.push({ name: 'Floor Parts', passed: hasFloors, score: hasFloors ? 100 : 0, note: hasFloors ? 'Floors present' : 'No floor parts found' })
   if (!hasFloors) suggestions.push('Building must have floor parts')
 
@@ -109,6 +112,27 @@ export function checkBuildingQuality(
     const noOverlap = overlaps === 0
     checks.push({ name: 'Room Overlap', passed: noOverlap, score: noOverlap ? 100 : Math.max(0, 100 - overlaps * 20), note: noOverlap ? 'No room overlaps' : `${overlaps} overlapping room pair(s)` })
     if (!noOverlap) suggestions.push(`${overlaps} room(s) overlap — BSP layout may need review`)
+  }
+
+  if (research) {
+    const bt = (research.buildingType || '').toLowerCase()
+    const st = (research.architecturalStyle || '').toLowerCase()
+    const needsPagoda = bt.includes('peranakan') || bt.includes('shophouse') || st.includes('chinese') || st.includes('peranakan')
+    if (needsPagoda) {
+      const partNames = parts.map(p => p.name)
+      const hasPagoda = partNames.some(n => n.toLowerCase().includes('pag'))
+      checks.push({ name: 'Pagoda Roof Tiers', passed: hasPagoda, score: hasPagoda ? 100 : 0, note: hasPagoda ? 'Pagoda parts present' : 'MISSING' })
+      if (!hasPagoda) suggestions.push('CRITICAL: Pagoda roofs missing')
+    }
+    if (research.hasColonnade) {
+      const partNames = parts.map(p => p.name)
+      const hasCol = partNames.some(n => {
+        const nl = n.toLowerCase()
+        return nl.includes('col_') || nl.includes('arch') || nl.includes('pillar')
+      })
+      checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'Column/arch parts present' : 'MISSING' })
+      if (!hasCol) suggestions.push('CRITICAL: Colonnade missing')
+    }
   }
 
   const percentage = Math.round(checks.reduce((sum, c) => sum + c.score, 0) / checks.length)

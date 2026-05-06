@@ -87,6 +87,9 @@ export async function generateAsset(
     let qualityTarget: QualityTarget | undefined
     let irlImageUrls: string[] = []
     let qualityCheckResult: QualityCheckResult | undefined
+    let isPeranakan = false
+    let isVictorian = false
+    let isModernGlass = false
 
     const intent = analysePrompt(prompt)
     const buildingType = intent.buildingType
@@ -126,6 +129,57 @@ export async function generateAsset(
         researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
         researchResult = applyStyleDefaults(researchResult)
         console.log('[generator] after applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle, 'colonnade:', researchResult.hasColonnade)
+
+        // Forced style overrides — applyStyleDefaults may not have matched
+        const btLower = researchResult.buildingType.toLowerCase()
+        const promptLower = prompt.toLowerCase()
+        isPeranakan = btLower.includes('peranakan') || btLower.includes('shophouse') ||
+          btLower.includes('singapore') || promptLower.includes('peranakan') ||
+          promptLower.includes('shophouse') || promptLower.includes('singapore')
+        isVictorian = btLower.includes('victorian') || btLower.includes('police') || promptLower.includes('victorian')
+        isModernGlass = (btLower.includes('office') || btLower.includes('corporate') || promptLower.includes('glass office')) && !isPeranakan && !isVictorian
+
+        if (isPeranakan) {
+          if (!researchResult.exteriorColor || researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Sand yellow'
+          if (!researchResult.roofColor || researchResult.roofColor === 'Dark grey') researchResult.roofColor = 'Dark green'
+          researchResult.hasColonnade = true
+          if (researchResult.floorCount < 3) researchResult.floorCount = 4
+          researchResult.architecturalStyle = 'peranakan chinese colonial'
+          console.log('[generator] peranakan overrides applied:', researchResult.exteriorColor, researchResult.roofColor)
+        }
+        if (isVictorian && !isPeranakan) {
+          if (!researchResult.exteriorColor || researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Reddish brown'
+          if (!researchResult.roofColor || researchResult.roofColor === 'Dark grey') researchResult.roofColor = 'Dark grey'
+          researchResult.exteriorMaterial = 'brick'
+          if (researchResult.floorCount < 2) researchResult.floorCount = 2
+          researchResult.architecturalStyle = 'victorian brick classical'
+        }
+        if (isModernGlass) {
+          researchResult.hasGlassFront = true
+          if (!researchResult.exteriorColor || researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Light grey'
+        }
+
+        // Reference image style extraction
+        if (options.referenceImages && options.referenceImages.length > 0) {
+          try {
+            const { extractBuildingStyle } = await import('./vision-analyzer')
+            for (const img of options.referenceImages) {
+              const extracted = await extractBuildingStyle(img.base64, img.mimeType)
+              if (extracted) {
+                console.log('[generator] extracted style from reference:', JSON.stringify(extracted))
+                if (extracted.dominantWallColor) researchResult.exteriorColor = extracted.dominantWallColor
+                if (extracted.dominantRoofColor) researchResult.roofColor = extracted.dominantRoofColor
+                if (extracted.hasArches) researchResult.hasColonnade = true
+                if (extracted.estimatedFloors > 1) researchResult.floorCount = extracted.estimatedFloors
+                if (extracted.styleDescription) researchResult.architecturalStyle = extracted.styleDescription
+                console.log('[generator] applied reference overrides - ec:', researchResult.exteriorColor, 'floors:', researchResult.floorCount)
+                break
+              }
+            }
+          } catch (e) {
+            console.error('[generator] reference style extraction error:', e)
+          }
+        }
 
         if (intent.floorCountHint && intent.floorCountHint > 1) {
           researchResult = { ...researchResult, floorCount: intent.floorCountHint }
@@ -179,27 +233,39 @@ export async function generateAsset(
         qualityCheckResult = checkBuildingQuality(allParts, researchResult, buildingType || 'building', compiled?.roomLayout)
         console.log('[generator] quality check:', qualityCheckResult.percentage + '%', 'suggestions:', qualityCheckResult.suggestions)
 
-        if (qualityCheckResult.percentage < 50 && !options.isRetry && buildingType) {
-          console.log('[generator] quality', qualityCheckResult.percentage + '% < 50% — auto-retrying research')
+        if (qualityCheckResult.percentage < 70 && !options.isRetry && buildingType && researchResult) {
+          console.log('[generator] quality', qualityCheckResult.percentage + '% — attempting auto-improvement')
+          const issues = qualityCheckResult.suggestions.join(', ')
+          const teachingContext = `Previous attempt scored ${qualityCheckResult.percentage}%. Critical issues: ${issues}. Fix these specifically.`
           try {
-            const retryResearch = await researchBuildingType(buildingType, { forceRefresh: true })
-            const retryResult = applyStyleDefaults(retryResearch)
-            const retryCompiled = compileBlueprint(retryResult)
+            let retryResearch = await researchBuildingType(researchResult.buildingType, { forceRefresh: true, teachingContext })
+            retryResearch = applyStyleDefaults(retryResearch)
+            if (isPeranakan) {
+              retryResearch.exteriorColor = 'Sand yellow'
+              retryResearch.roofColor = 'Dark green'
+              retryResearch.hasColonnade = true
+              retryResearch.floorCount = Math.max(4, retryResearch.floorCount)
+              retryResearch.architecturalStyle = 'peranakan chinese colonial'
+            }
+            if (isVictorian && !isPeranakan) {
+              retryResearch.exteriorColor = 'Reddish brown'
+              retryResearch.exteriorMaterial = 'brick'
+              retryResearch.architecturalStyle = 'victorian brick classical'
+            }
+            const retryCompiled = compileBlueprint(retryResearch, (options.seed || 42) + 1)
             const retryParts = options.exteriorOnly
               ? [...retryCompiled.exterior]
               : [...retryCompiled.rooms.flat(), ...retryCompiled.exterior]
-            const retryQc = checkBuildingQuality(retryParts, retryResult, buildingType, retryCompiled.roomLayout)
-            console.log('[generator] retry quality:', retryQc.percentage + '%')
-            if (retryQc.percentage > qualityCheckResult.percentage) {
+            if (retryParts.length > allParts.length * 0.9) {
+              console.log('[generator] using retry result:', retryParts.length, 'parts vs', allParts.length)
               allParts = retryParts
-              researchResult = retryResult
               compiled = retryCompiled
-              qualityCheckResult = retryQc
-              specItems = retryResult.rooms.map(r => r.name)
-              console.log('[generator] using retry result, improved to', retryQc.percentage + '%')
+              researchResult = retryResearch
+              specItems = retryResearch.rooms.map(r => r.name)
+              qualityCheckResult = checkBuildingQuality(retryParts, retryResearch, buildingType, retryCompiled.roomLayout)
             }
-          } catch (retryErr) {
-            console.error('[generator] auto-retry failed:', retryErr)
+          } catch (e) {
+            console.error('[generator] retry failed:', e)
           }
         }
       } catch (e) {
@@ -213,7 +279,7 @@ export async function generateAsset(
 
     await onProgress?.('⚙️ Building model...', 90)
     const model: RbxModel = { name: modelName, parts: allParts, scripts: [] }
-    const rbxmxBuilt = buildRbxmx([model])
+    const rbxmxBuilt = buildRbxmx([model], researchResult?.architecturalStyle || '')
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
 
     let qualityScore = usedFallback ? 75 : 85
