@@ -56,29 +56,6 @@ function getMat(m: string): number {
   return ME[(m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')] ?? 256
 }
 
-const VALID_BRICK_COLORS = new Set([
-  'White', 'Institutional white', 'Light grey', 'Medium stone grey',
-  'Dark grey', 'Light stone grey', 'Dark stone grey', 'Really black',
-  'Bright red', 'Dark red', 'Rust', 'Reddish brown', 'Bright orange',
-  'Dark orange', 'Bright yellow', 'Sand yellow', 'Brick yellow',
-  'Bright green', 'Dark green', 'Sand green', 'Medium green',
-  'Bright blue', 'Navy blue', 'Sand blue', 'Light blue',
-  'Hot pink', 'Cashmere', 'Bright bluish green', 'Tan',
-  'Medium red', 'Bright violet', 'Lavender',
-])
-
-function sanitizeColor(color: string): string {
-  if (!color) return 'Light grey'
-  // If already a valid BrickColor name, use it directly
-  if (VALID_BRICK_COLORS.has(color)) return color
-  // Try case-insensitive match
-  const lower = color.toLowerCase().trim()
-  const match = Array.from(VALID_BRICK_COLORS).find(v => v.toLowerCase() === lower)
-  if (match) return match
-  // Log and fallback
-  console.log('[rbxmx] unknown color:', color, '— falling back to Light grey')
-  return 'Light grey'
-}
 
 function escapeXml(str: string): string {
   return str
@@ -91,7 +68,10 @@ function escapeXml(str: string): string {
 
 function generatePart(part: RbxPart, id: number): string {
   const materialEnum = getMat(part.material)
-  const color = sanitizeColor(part.color)
+  const color = (part.color && part.color.trim() && part.color !== 'undefined' && part.color !== 'null')
+    ? part.color.trim()
+    : 'Light grey'
+  console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
   const itemClass = part.partType || 'Part'
 
@@ -213,7 +193,7 @@ function getLightingXml(style: string): string {
   </Item>`
 }
 
-export function buildRbxmx(models: RbxModel[], style?: string): string {
+export function buildRbxmx(models: RbxModel[], style?: string, rootName?: string): string {
   let id = 1
   let itemsXml = ''
   for (const model of models) {
@@ -222,8 +202,12 @@ export function buildRbxmx(models: RbxModel[], style?: string): string {
     id = result.nextId
   }
 
+  const name = rootName || `${models[0]?.name || 'TurboBuilderAsset'}_${Date.now()}`
+
+  const wrappedXml = `\n  <Item class="Model" referent="ROOT_MODEL">\n    <Properties>\n      <string name="Name">${escapeXml(name)}</string>\n    </Properties>${itemsXml}\n  </Item>`
+
   return `<?xml version="1.0" encoding="utf-8"?>
 <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
-  <Meta name="ExplicitAutoJoints">true</Meta>${itemsXml}${getLightingXml((style || '').toLowerCase())}
+  <Meta name="ExplicitAutoJoints">true</Meta>${wrappedXml}${getLightingXml((style || '').toLowerCase())}
 </roblox>`
 }

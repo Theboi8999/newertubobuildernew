@@ -1,4 +1,5 @@
 import { analysePrompt } from '../lib/prompt-intelligence'
+import { buildRbxmx } from '../lib/rbxmx'
 import { applyStyleDefaults } from '../lib/style-library'
 import { preGate, postGate } from '../lib/quality-gate'
 import { compileBlueprint } from '../lib/blueprint-compiler'
@@ -374,7 +375,7 @@ test('peranakan building passes floor and wall checks', () => {
   }))
   const allParts = [...r.rooms.flat(), ...r.exterior]
   const result = checkBuildingQuality(allParts, mockResearch(), 'peranakan_shophouse')
-  const floorCheck = result.checks.find(c => c.name === 'Floor Parts')
+  const floorCheck = result.checks.find(c => c.name === 'Floor/Ground Parts')
   const wallCheck = result.checks.find(c => c.name === 'Wall Parts')
   assert(floorCheck?.passed === true, 'floor check should pass')
   assert(wallCheck?.passed === true, 'wall check should pass')
@@ -556,7 +557,7 @@ test('peranakan building has colonnade parts', () => {
     hasColonnade: true,
     exteriorColor: 'Sand yellow',
   }))
-  const colParts = r.exterior.filter(p => p.name.toLowerCase().includes('col_') || p.name.toLowerCase().includes('arch'))
+  const colParts = r.exterior.filter(p => p.name.toLowerCase().startsWith('col') || p.name.toLowerCase().includes('arch'))
   assert(colParts.length > 0, 'no colonnade parts found')
 })
 
@@ -605,6 +606,105 @@ test('peranakan windows have lattice', () => {
   })
   const lattice = parts.filter(p => p.name.includes('Lat'))
   assert(lattice.length >= 2, `expected lattice parts, got ${lattice.length}`)
+})
+
+// ── COLOR PIPELINE ───────────────────────────────────────────────────────────
+
+console.log('\n═══ COLOR PIPELINE ═══')
+
+test('Sand yellow passes through rbxmx unchanged', () => {
+  const xml = buildRbxmx([{ name: 'Test', parts: [{
+    name: 'TestWall', size: {x:10,y:10,z:1}, position: {x:5,y:5,z:0},
+    color: 'Sand yellow', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
+  }], scripts: [] }])
+  assert(xml.includes('Sand yellow'), 'Sand yellow should appear in XML output')
+  assert(!xml.includes('>Light grey<'), 'Light grey should NOT replace Sand yellow')
+})
+
+test('Dark green passes through rbxmx unchanged', () => {
+  const xml = buildRbxmx([{ name: 'Test', parts: [{
+    name: 'TestRoof', size: {x:10,y:1,z:10}, position: {x:5,y:10,z:5},
+    color: 'Dark green', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
+  }], scripts: [] }])
+  assert(xml.includes('Dark green'), 'Dark green should appear in XML output')
+})
+
+test('peranakan compile produces Sand yellow walls', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    floorCount: 3,
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    roofColor: 'Dark green',
+    totalWidth: 40,
+    totalDepth: 28,
+  }))
+  const walls = r.exterior.filter(p => p.name.includes('Wall') || p.name.includes('Front'))
+  const sandYellow = walls.filter(p => p.color === 'Sand yellow')
+  assert(sandYellow.length > 0, `no Sand yellow walls. Colors: ${Array.from(new Set(walls.map(p=>p.color))).join(',')}`)
+})
+
+test('peranakan compile produces pagoda parts', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    floorCount: 3,
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    roofColor: 'Dark green',
+    totalWidth: 40,
+    totalDepth: 28,
+  }))
+  const pagodas = r.exterior.filter(p => p.name.toLowerCase().startsWith('pag'))
+  assert(pagodas.length > 0, `no pagoda parts. Sample names: ${r.exterior.slice(0,15).map(p=>p.name).join(',')}`)
+})
+
+test('peranakan compile produces colonnade parts', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    totalWidth: 40,
+    totalDepth: 28,
+  }))
+  const cols = r.exterior.filter(p => p.name.toLowerCase().startsWith('col'))
+  assert(cols.length > 0, `no colonnade parts. Sample: ${r.exterior.slice(0,15).map(p=>p.name).join(',')}`)
+})
+
+test('rooms stay inside building footprint', () => {
+  const r = compileBlueprint(mockResearch({
+    totalWidth: 40,
+    totalDepth: 28,
+  }))
+  for (const layout of r.roomLayout) {
+    const left = layout.x - layout.width/2
+    const right = layout.x + layout.width/2
+    const top = layout.z - layout.depth/2
+    const bottom = layout.z + layout.depth/2
+    assert(left >= 0, `room ${layout.name} left edge ${left.toFixed(1)} out of bounds`)
+    assert(right <= r.totalWidth, `room ${layout.name} right edge ${right.toFixed(1)} exceeds width ${r.totalWidth}`)
+    assert(top >= 0, `room ${layout.name} top edge ${top.toFixed(1)} out of bounds`)
+    assert(bottom <= r.totalDepth, `room ${layout.name} bottom edge ${bottom.toFixed(1)} exceeds depth ${r.totalDepth}`)
+  }
+})
+
+test('ground parts use concrete not smoothplastic', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+  }))
+  const ground = r.exterior.filter(p =>
+    p.name.toLowerCase().includes('ground') ||
+    p.name.toLowerCase().includes('terrain') ||
+    p.name.toLowerCase().includes('pavement') ||
+    p.name.toLowerCase().includes('slab')
+  )
+  const wrongMat = ground.filter(p => p.material === 'smoothplastic')
+  assert(wrongMat.length === 0, `${wrongMat.length} ground parts use smoothplastic: ${wrongMat.map(p=>p.name).join(',')}`)
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

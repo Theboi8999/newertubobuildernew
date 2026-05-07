@@ -136,23 +136,23 @@ export async function generateAsset(
         isPeranakan = btLower.includes('peranakan') || btLower.includes('shophouse') ||
           btLower.includes('singapore') || promptLower.includes('peranakan') ||
           promptLower.includes('shophouse') || promptLower.includes('singapore')
-        isVictorian = btLower.includes('victorian') || btLower.includes('police') || promptLower.includes('victorian')
+        isVictorian = btLower.includes('victorian') || btLower.includes('police') || promptLower.includes('victorian') || promptLower.includes('police station')
         isModernGlass = (btLower.includes('office') || btLower.includes('corporate') || promptLower.includes('glass office')) && !isPeranakan && !isVictorian
 
         if (isPeranakan) {
-          if (!researchResult.exteriorColor || researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Sand yellow'
-          if (!researchResult.roofColor || researchResult.roofColor === 'Dark grey') researchResult.roofColor = 'Dark green'
+          researchResult.exteriorColor = 'Sand yellow'
+          researchResult.roofColor = 'Dark green'
           researchResult.hasColonnade = true
-          if (researchResult.floorCount < 3) researchResult.floorCount = 4
           researchResult.architecturalStyle = 'peranakan chinese colonial'
-          console.log('[generator] peranakan overrides applied:', researchResult.exteriorColor, researchResult.roofColor)
+          if (researchResult.floorCount < 3) researchResult.floorCount = 4
+          console.log('[generator] ✅ peranakan overrides: ec=Sand yellow rc=Dark green colonnade=true floors=', researchResult.floorCount)
         }
         if (isVictorian && !isPeranakan) {
-          if (!researchResult.exteriorColor || researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Reddish brown'
-          if (!researchResult.roofColor || researchResult.roofColor === 'Dark grey') researchResult.roofColor = 'Dark grey'
+          if (researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Reddish brown'
           researchResult.exteriorMaterial = 'brick'
           if (researchResult.floorCount < 2) researchResult.floorCount = 2
           researchResult.architecturalStyle = 'victorian brick classical'
+          console.log('[generator] ✅ victorian overrides applied')
         }
         if (isModernGlass) {
           researchResult.hasGlassFront = true
@@ -279,7 +279,8 @@ export async function generateAsset(
 
     await onProgress?.('⚙️ Building model...', 90)
     const model: RbxModel = { name: modelName, parts: allParts, scripts: [] }
-    const rbxmxBuilt = buildRbxmx([model], researchResult?.architecturalStyle || '')
+    const rootName = `TurboBuilder_${modelName.replace(/\s+/g, '_')}_${Date.now()}`
+    const rbxmxBuilt = buildRbxmx([model], researchResult?.architecturalStyle || '', rootName)
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
 
     let qualityScore = usedFallback ? 75 : 85

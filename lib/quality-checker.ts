@@ -7,6 +7,9 @@ export interface QualityCheck {
   passed: boolean
   score: number
   note: string
+  expected?: string
+  found?: string
+  impact?: number
 }
 
 export interface QualityCheckResult {
@@ -24,6 +27,9 @@ export function checkBuildingQuality(
   const checks: QualityCheck[] = []
   const suggestions: string[] = []
 
+  const partNames = parts.map(p => p.name)
+  const colorsUsed = parts.map(p => p.color)
+
   const partCount = parts.length
   const partScore = partCount >= 500 ? 100 : partCount >= 200 ? 80 : partCount >= 100 ? 60 : partCount >= 50 ? 40 : 20
   checks.push({ name: 'Part Count', passed: partCount >= 50, score: partScore, note: `${partCount} parts` })
@@ -34,16 +40,34 @@ export function checkBuildingQuality(
   checks.push({ name: 'Color Variety', passed: colors.size >= 2, score: colorScore, note: `${colors.size} distinct colors` })
   if (colors.size < 3) suggestions.push('Use more varied colors for realism')
 
-  const hasFloors = parts.some(p => {
-    const n = p.name.toLowerCase()
-    return n.includes('floor') || n.includes('ground') || n.includes('slab')
-  })
-  checks.push({ name: 'Floor Parts', passed: hasFloors, score: hasFloors ? 100 : 0, note: hasFloors ? 'Floors present' : 'No floor parts found' })
-  if (!hasFloors) suggestions.push('Building must have floor parts')
-
   const hasWalls = parts.some(p => p.name.toLowerCase().includes('wall'))
   checks.push({ name: 'Wall Parts', passed: hasWalls, score: hasWalls ? 100 : 0, note: hasWalls ? 'Walls present' : 'No wall parts found' })
   if (!hasWalls) suggestions.push('Building must have wall parts')
+
+  const hasFloors = partNames.some(n =>
+    n.toLowerCase().includes('floor') ||
+    n.toLowerCase().includes('ground') ||
+    n.toLowerCase().includes('slab') ||
+    n.toLowerCase().includes('terrain')
+  )
+  checks.push({ name: 'Floor/Ground Parts', passed: hasFloors, score: hasFloors ? 100 : 0, note: hasFloors ? 'Floor/ground present' : 'No floor or ground parts' })
+  if (!hasFloors) suggestions.push('Add floor or ground parts')
+
+  if (research) {
+    const expectedColor = (research.exteriorColor || '').toLowerCase()
+    const wallParts = parts.filter(p => p.name.toLowerCase().includes('wall'))
+    const wallColors = Array.from(new Set(wallParts.map(p => p.color.toLowerCase())))
+    const wallColorOk = !expectedColor || wallColors.some(c => c === expectedColor || c.includes(expectedColor.split(' ')[0]))
+    checks.push({ name: 'Wall Color', passed: wallColorOk, score: wallColorOk ? 100 : 50, note: wallColorOk ? `Walls use ${research.exteriorColor}` : `Walls: ${wallColors.slice(0, 2).join(', ')} (expected ${research.exteriorColor})` })
+    if (!wallColorOk) suggestions.push(`Wall color mismatch — expected ${research.exteriorColor}`)
+  }
+
+  const hasStreetFurniture = parts.some(p => {
+    const n = p.name.toLowerCase()
+    return n.includes('terrain') || n.includes('bench') || n.includes('bollard') || n.includes('tree') || n.includes('road') || n.includes('lamp')
+  })
+  checks.push({ name: 'Street Furniture', passed: hasStreetFurniture, score: hasStreetFurniture ? 100 : 30, note: hasStreetFurniture ? 'Street elements present' : 'No street furniture' })
+  if (!hasStreetFurniture) suggestions.push('Add street furniture (trees, benches, road)')
 
   const hasExterior = parts.some(p =>
     ['ground', 'pavement', 'fascia', 'roof', 'parapet', 'slab', 'lamp', 'kerb'].some(k => p.name.toLowerCase().includes(k))
@@ -117,22 +141,31 @@ export function checkBuildingQuality(
   if (research) {
     const bt = (research.buildingType || '').toLowerCase()
     const st = (research.architecturalStyle || '').toLowerCase()
-    const needsPagoda = bt.includes('peranakan') || bt.includes('shophouse') || st.includes('chinese') || st.includes('peranakan')
+    const needsPagoda = bt.includes('peranakan') || bt.includes('shophouse') || bt.includes('singapore') || st.includes('chinese') || st.includes('peranakan')
     if (needsPagoda) {
-      const partNames = parts.map(p => p.name)
-      const hasPagoda = partNames.some(n => n.toLowerCase().includes('pag'))
-      checks.push({ name: 'Pagoda Roof Tiers', passed: hasPagoda, score: hasPagoda ? 100 : 0, note: hasPagoda ? 'Pagoda parts present' : 'MISSING' })
+      const hasPagoda = partNames.some(n => n.toLowerCase().startsWith('pag'))
+      checks.push({ name: 'Pagoda Roof Tiers', passed: hasPagoda, score: hasPagoda ? 100 : 0, note: hasPagoda ? 'found' : 'MISSING — isChinese not triggering', expected: 'Pag* parts on each floor', found: hasPagoda ? 'found' : 'MISSING — isChinese not triggering', impact: 25 })
       if (!hasPagoda) suggestions.push('CRITICAL: Pagoda roofs missing')
     }
     if (research.hasColonnade) {
-      const partNames = parts.map(p => p.name)
       const hasCol = partNames.some(n => {
         const nl = n.toLowerCase()
-        return nl.includes('col_') || nl.includes('arch') || nl.includes('pillar')
+        return nl.startsWith('col') || nl.includes('arch') || nl.includes('pillar')
       })
-      checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'Column/arch parts present' : 'MISSING' })
+      checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'found' : 'MISSING', expected: 'Col* or Arch* parts', found: hasCol ? 'found' : 'MISSING', impact: 20 })
       if (!hasCol) suggestions.push('CRITICAL: Colonnade missing')
     }
+    const colorApplied = colorsUsed.includes(research.exteriorColor)
+    checks.push({
+      name: 'Exterior Color Applied',
+      passed: colorApplied,
+      score: colorApplied ? 100 : 0,
+      note: colorApplied ? research.exteriorColor : `not found — colors used: ${Array.from(new Set(colorsUsed)).slice(0,6).join(', ')}`,
+      expected: research.exteriorColor,
+      found: colorApplied ? research.exteriorColor : `not found`,
+      impact: 20
+    })
+    if (!colorApplied) suggestions.push(`CRITICAL: ${research.exteriorColor} not in output — color pipeline broken`)
   }
 
   const percentage = Math.round(checks.reduce((sum, c) => sum + c.score, 0) / checks.length)

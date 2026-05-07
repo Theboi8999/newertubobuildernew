@@ -56,22 +56,22 @@ function buildPitchedRoof(name: string, tw: number, td: number, baseY: number, c
 // ── Terrain and street furniture ──────────────────────────────────────────────
 function buildTerrain(tw: number, td: number, _style: string, isChinese: boolean): RbxPart[] {
   const parts: RbxPart[] = []
-  parts.push(p('Terrain_Ground',tw+60,0.4,td+60,tw/2,0.2,td/2,'Medium stone grey','concrete'))
+  parts.push(p('Terrain_Ground',tw+80,0.5,td+80,tw/2,0.25,td/2,'Medium stone grey','concrete'))
   if (isChinese) {
     parts.push(p('Terrain_FiveFoot',tw+2,0.5,5,tw/2,0.55,-2.5,'Light stone grey','concrete'))
     const colCount = Math.floor(tw/4)
     for (let i=0;i<colCount;i++) {
       const cx=(tw/(colCount+1))*(i+1)
-      parts.push(p(`Terrain_FiveFootCol${i}`,0.6,3.5,0.6,cx,2.25,-4.5,'Sand yellow','smoothplastic'))
+      parts.push(p(`FiveFootCol${i}`,0.6,3.5,0.6,cx,2.25,-4.5,'Sand yellow','concrete'))
     }
-    parts.push(p('Terrain_FiveFootRoof',tw+2,0.3,5,tw/2,4,-2.5,'Sand yellow','smoothplastic'))
+    parts.push(p('FiveFootRoof',tw+2,0.3,5,tw/2,4,-2.5,'Sand yellow','concrete'))
   }
-  parts.push(p('Terrain_Road',tw+60,0.3,16,tw/2,0.35,-16,'Dark stone grey','smoothplastic'))
+  parts.push(p('Terrain_Road',tw+80,0.4,18,tw/2,0.4,-18,'Dark stone grey','concrete'))
   const lineCount=Math.floor((tw+60)/8)
   for (let i=0;i<lineCount;i++) {
     if(i%2===0){const lx=-30+i*8+4; parts.push(p(`Road_Line${i}`,4,0.32,0.2,lx,0.32,-16,'White','smoothplastic'))}
   }
-  parts.push(p('Terrain_Pavement',tw+10,0.5,8,tw/2,0.5,-8,'Light stone grey','concrete'))
+  parts.push(p('Terrain_Pavement',tw+10,0.6,12,tw/2,0.6,-6,'Light stone grey','concrete'))
   parts.push(p('Terrain_Kerb',tw+10,0.8,0.4,tw/2,0.65,-4.2,'Light stone grey','concrete'))
   const treePositions=[{x:-5,z:-6},{x:tw+5,z:-6},{x:-8,z:td+8},{x:tw+8,z:td+8}]
   for (let ti = 0; ti < treePositions.length; ti++) {
@@ -118,12 +118,24 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const pts:RbxPart[]=[]; const fc=Math.max(1,parseInt(String(r.floorCount||1),10)||1); const fh=Math.max(8,parseInt(String(r.floorHeight||10),10)||10); const th=fc*fh
   const st=(r.architecturalStyle||'modern').toLowerCase(); const em=vm(r.exteriorMaterial||'smoothplastic')
 
-  // FIX 2: Enhanced isChinese detection including hasColonnade
-  const bt=(r.buildingType||'').toLowerCase()
-  const isChinese=bt.includes('peranakan')||bt.includes('shophouse')||bt.includes('singapore')||bt.includes('chinese')||bt.includes('pagoda')||
-    st.includes('peranakan')||st.includes('shophouse')||st.includes('chinese')||st.includes('pagoda')||st.includes('colonial')||r.hasColonnade===true
+  const bt = (r.buildingType || '').toLowerCase()
 
-  // FIX 2: Robust color extraction with raw string guards
+  const isChinese =
+    bt.includes('peranakan') || bt.includes('shophouse') ||
+    bt.includes('singapore') || bt.includes('chinese') ||
+    bt.includes('pagoda') || bt.includes('asian') ||
+    st.includes('peranakan') || st.includes('shophouse') ||
+    st.includes('chinese') || st.includes('pagoda') ||
+    st.includes('colonial') || st.includes('singapor') ||
+    r.hasColonnade === true
+
+  const isColonial = !isChinese && (
+    st.includes('victorian') || st.includes('georgian') ||
+    st.includes('classical') || st.includes('heritage') ||
+    st.includes('art-deco') || st.includes('baroque') ||
+    st.includes('mediterranean') || st.includes('neoclassical')
+  )
+
   const ec = r.exteriorColor && r.exteriorColor.trim() !== '' && r.exteriorColor !== 'undefined'
     ? vc(r.exteriorColor)
     : 'Light grey'
@@ -131,16 +143,15 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     ? vc(r.roofColor)
     : 'Dark grey'
 
-  console.log('[buildExterior] bt:', bt, 'st:', st)
-  console.log('[buildExterior] isChinese:', isChinese, 'ec:', ec, 'rc:', rc)
-  console.log('[buildExterior] floorCount:', fc, 'hasColonnade:', r.hasColonnade)
-  console.log('[exterior] WALL COLOR:', ec, 'from research.exteriorColor:', r.exteriorColor)
+  const hasArches = r.hasColonnade || isChinese || isColonial
+  const hasGlass = r.hasGlassFront && !isChinese && !isColonial
 
-  const isColonial=st.includes('colonial')||st.includes('victorian')||st.includes('georgian')||st.includes('classical')||st.includes('heritage')||st.includes('art-deco')||st.includes('baroque')||st.includes('mediterranean')
-  const hasArches=r.hasColonnade||isChinese||isColonial; const hasGlass=r.hasGlassFront&&!isChinese&&!isColonial
-  console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'rc:',rc,'style:',st); console.log('[exterior] chinese:',isChinese,'colonial:',isColonial,'arches:',hasArches,'glass:',hasGlass)
+  console.log('[exterior] bt:', bt)
+  console.log('[exterior] st:', st)
+  console.log('[exterior] isChinese:', isChinese, 'isColonial:', isColonial, 'hasArches:', hasArches)
+  console.log('[exterior] ec:', ec, 'rc:', rc, 'fc:', fc)
 
-  pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Light stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','smoothplastic')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
+  pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Ground_Slab',tw+6,0.6,td+6,tw/2,0.3,td/2,'Light stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Light stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','concrete')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
   for(let l=0;l<2;l++){const lx=l===0?-4:tw+4; pts.push(p(`Lamp_P${l}`,0.4,14,0.4,lx,7,-5,'Dark grey','metal')); pts.push(p(`Lamp_A${l}`,0.2,0.2,2,lx,13.5,-4,'Dark grey','metal')); pts.push(p(`Lamp_H${l}`,0.8,0.5,0.8,lx,13.5,-3.2,'Bright yellow','smoothplastic',0,false))}
 
   pts.push(p('WallBack',tw,th,0.8,tw/2,th/2,td,ec,em)); pts.push(p('WallLeft',0.8,th,td,0,th/2,td/2,ec,em)); pts.push(p('WallRight',0.8,th,td,tw,th/2,td/2,ec,em))
@@ -149,10 +160,28 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const ew=Math.min(tw*0.35,10); const eh=fh*0.85
   if(hasArches){
     pts.push(p('EnWL',(tw-ew)/2-0.5,eh+1,1.2,(tw-ew)/4+0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnWR',(tw-ew)/2-0.5,eh+1,1.2,tw-(tw-ew)/4-0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnArch',ew+1,1.5,1.2,tw/2,eh+0.75,-0.6,'White','smoothplastic')); pts.push(p('EnKey',1.2,1.8,0.8,tw/2,eh+1,-0.4,'White','smoothplastic')); pts.push(p('EnDark',ew-1,eh-0.5,3,tw/2,(eh-0.5)/2,0.5,'Really black','smoothplastic',0.8))
-    // Colonnade — renamed to Col_ prefix so quality checker can find them
-    const cc=Math.max(4,Math.floor(tw/5)); const cs=tw/(cc+1); const colC=isChinese?'Reddish brown':ec; const colM=isChinese?'brick':em
-    for(let i=0;i<cc;i++){const cx=cs*(i+1); pts.push(p(`Col_B${i}`,1.2,1.2,1.2,cx,0.6,-0.6,colC,colM)); pts.push(p(`Col_S${i}`,0.9,fh*0.8,0.9,cx,fh*0.4,-0.6,colC,colM)); pts.push(p(`Col_C${i}`,1.4,0.8,1.4,cx,fh*0.8+0.4,-0.6,colC,colM)); if(i<cc-1)pts.push(p(`Col_A${i}`,cs-0.9,0.7,0.8,cx+cs/2,fh*0.8,-0.6,colC,colM))}
-    if(isChinese){pts.push(p('ShopL',(tw-ew)/2-1.5,fh*0.72,0.3,(tw-ew)/4+0.5,fh*0.36,-0.15,'Dark green','smoothplastic')); pts.push(p('ShopR',(tw-ew)/2-1.5,fh*0.72,0.3,tw-(tw-ew)/4-0.5,fh*0.36,-0.15,'Dark green','smoothplastic'))}
+    const colCount = Math.max(4, Math.floor(tw / 5))
+    const cs = tw / (colCount + 1)
+    const colC = isChinese ? 'Reddish brown' : ec
+    const colM = isChinese ? 'brick' : vm(r.exteriorMaterial || 'smoothplastic')
+    const colZ = 0.45
+
+    for (let i = 0; i < colCount; i++) {
+      const cx = cs * (i + 1)
+      pts.push(p(`ColBase${i}`, 1.4, 1.2, 1.4, cx, 0.6, colZ, colC, colM))
+      pts.push(p(`ColShaft${i}`, 1.0, fh * 0.80, 1.0, cx, fh * 0.40, colZ, colC, colM))
+      pts.push(p(`ColCap${i}`, 1.6, 0.8, 1.6, cx, fh * 0.80 + 0.4, colZ, colC, colM))
+      if (i < colCount - 1) {
+        const archW = cs - 1.0
+        const archH = 0.9
+        pts.push(p(`ColArch${i}`, archW, archH, 0.9, cx + cs/2, fh * 0.82, colZ, colC, colM))
+      }
+    }
+
+    if (isChinese) {
+      pts.push(p('FiveFootRoof', tw + 1, 0.4, 3, tw/2, fh * 0.85, -1, ec, 'smoothplastic'))
+      pts.push(p('FiveFootFloor', tw + 1, 0.3, 3, tw/2, 0.45, -1, 'Light stone grey', 'concrete'))
+    }
   } else {
     pts.push(p('EnFL',0.4,eh,0.5,tw/2-ew/2-0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFR',0.4,eh,0.5,tw/2+ew/2+0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFT',ew+1,0.4,0.5,tw/2,eh+0.2,-0.25,ec,'smoothplastic')); pts.push(p('EnDoor',ew,eh,0.3,tw/2,eh/2,-0.15,'Institutional white','smoothplastic',0.3))
   }
@@ -164,6 +193,7 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     // Windows — use FloorConfig for window style
     const floorCfg = getFloorConfig(f, fc, r, st)
     const frontWinPositions = calculateWindowPositions(tw, fh, fy, st)
+    if (f === 0) console.log('[windows] front count:', frontWinPositions.length, 'tw:', tw, 'fh:', fh)
     for (const pos of frontWinPositions) {
       if (f === 0 && hasArches) continue
       const winParts = buildProportionalWindow({
@@ -179,7 +209,24 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
       pts.push(...buildProportionalWindow({ x: tw, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'east', style: floorCfg.windowStyle, wallColor: ec }) as any[])
     }
 
-    if(isChinese){const tw2=tw+4,td2=td+4,ry=fy+fh-0.5; pts.push(p(`Pag${f}`,tw2,1.2,td2,tw/2,ry,td/2,rc,'smoothplastic')); pts.push(p(`PagU${f}`,tw2-0.5,0.5,td2-0.5,tw/2,ry-0.5,td/2,'Dark green','smoothplastic')); pts.push(p(`PagF${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,-1.5,rc,'smoothplastic')); pts.push(p(`PagB${f}`,tw2+1,0.6,0.8,tw/2,ry-0.8,td+1.5,rc,'smoothplastic')); pts.push(p(`PagL${f}`,0.8,0.6,td2+1,-1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagR${f}`,0.8,0.6,td2+1,tw+1.5,ry-0.8,td/2,rc,'smoothplastic')); pts.push(p(`PagRidge${f}`,tw2,0.5,0.5,tw/2,ry+0.7,td/2,rc,'smoothplastic'))}
+    if (isChinese) {
+      const ry = fy + fh
+      const pw = tw + 5
+      const pd = td + 5
+      pts.push(p(`Pag${f}`, pw, 1.5, pd, tw/2, ry + 0.75, td/2, rc, 'smoothplastic'))
+      pts.push(p(`PagU${f}`, pw - 0.5, 0.5, pd - 0.5, tw/2, ry + 0.1, td/2, 'Dark green', 'smoothplastic'))
+      pts.push(p(`PagLF${f}`, pw + 2, 0.8, 1.5, tw/2, ry - 0.3, -2, rc, 'smoothplastic'))
+      pts.push(p(`PagLB${f}`, pw + 2, 0.8, 1.5, tw/2, ry - 0.3, td + 2, rc, 'smoothplastic'))
+      pts.push(p(`PagLL${f}`, 1.5, 0.8, pd + 2, -2, ry - 0.3, td/2, rc, 'smoothplastic'))
+      pts.push(p(`PagLR${f}`, 1.5, 0.8, pd + 2, tw + 2, ry - 0.3, td/2, rc, 'smoothplastic'))
+      pts.push(p(`PagRidge${f}`, pw, 0.6, 0.8, tw/2, ry + 1.6, td/2, rc, 'smoothplastic'))
+      const corners: [number,number][] = [[-2.5,-2.5],[tw+2.5,-2.5],[-2.5,td+2.5],[tw+2.5,td+2.5]]
+      for (let ci = 0; ci < corners.length; ci++) {
+        const [cx, cz] = corners[ci]
+        pts.push(p(`PagCorn${f}_${ci}`, 2, 0.5, 2, cx, ry - 0.6, cz, rc, 'smoothplastic'))
+      }
+      console.log('[pagoda] generated for floor', f, 'at ry:', ry, 'rc:', rc)
+    }
     else if(isTop && !isPitchedStyle){
       // Flat roof with parapet
       pts.push(p('RoofSlab',tw+2,1,td+2,tw/2,th+0.5,td/2,rc,'smoothplastic'))
@@ -203,11 +250,16 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
   const style=(r.architecturalStyle||'modern').toLowerCase()
   const rooms:RbxPart[][]=[], layout:CompiledBlueprint['roomLayout']=[]
 
-  // FIX 4: Footprint cap
-  const baseW = r.totalWidth || 40
-  const baseD = r.totalDepth || 28
-  const tw = Math.min(Math.max(baseW, 40), baseW * 1.2)
-  const td = Math.min(Math.max(baseD, 28), baseD * 1.2)
+  const tw = Math.min(
+    Math.max(r.totalWidth || 40, 30),
+    55
+  )
+  const td = Math.min(
+    Math.max(r.totalDepth || 28, 20),
+    40
+  )
+
+  console.log('[blueprint] footprint:', tw, 'x', td)
 
   const roomSpecs = r.rooms.map(room => ({
     name: room.name,
@@ -216,8 +268,16 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
     type: getRoomType(room.name)
   }))
 
-  const placedRooms = placeRoomsWithBSP(tw, td, roomSpecs, seed)
-  console.log('[blueprint] BSP placed', placedRooms.length, 'of', r.rooms.length, 'rooms')
+  const placedRooms = placeRoomsWithBSP(tw, td, roomSpecs, seed || 42)
+
+  for (const room of placedRooms) {
+    const hw = room.width / 2
+    const hd = room.depth / 2
+    room.x = Math.max(hw + 2, Math.min(tw - hw - 2, room.x))
+    room.z = Math.max(hd + 2, Math.min(td - hd - 2, room.z))
+  }
+
+  console.log('[blueprint] rooms clamped, count:', placedRooms.length)
 
   // Section 5: Align entrance room to front of building
   const entranceRoom = placedRooms.find(pr =>
