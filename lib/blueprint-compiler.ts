@@ -196,12 +196,14 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     if (f === 0) console.log('[windows] front count:', frontWinPositions.length, 'tw:', tw, 'fh:', fh)
     for (const pos of frontWinPositions) {
       if (f === 0 && hasArches) continue
+      const winY = fy + fh * 0.5
+      const winStyle = (isChinese && f > 0) ? 'peranakan chinese colonial' : floorCfg.windowStyle
       const winParts = buildProportionalWindow({
-        x: tw / 2 + pos.offset, y: fy + fh * 0.52, z: 0,
+        x: tw / 2 + pos.offset, y: winY, z: -0.5,
         width: pos.width, height: pos.height, direction: 'north',
-        style: floorCfg.windowStyle, wallColor: ec
+        style: winStyle, wallColor: 'White'
       })
-      console.log('[windows] floor', f, 'north part count:', winParts.length, 'at x:', (tw/2+pos.offset).toFixed(1), 'y:', (fy+fh*0.52).toFixed(1))
+      console.log('[windows] floor', f, 'north part count:', winParts.length, 'at x:', (tw/2+pos.offset).toFixed(1), 'y:', winY.toFixed(1))
       pts.push(...winParts as any[])
     }
     if (isChinese && f > 0) {
@@ -215,9 +217,10 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
       }
     }
     const sideWinPositions = calculateWindowPositions(td, fh, fy, st)
+    const sideWinY = fy + fh * 0.5
     for (const pos of sideWinPositions) {
-      pts.push(...buildProportionalWindow({ x: 0, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'west', style: floorCfg.windowStyle, wallColor: ec }) as any[])
-      pts.push(...buildProportionalWindow({ x: tw, y: fy + fh * 0.52, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'east', style: floorCfg.windowStyle, wallColor: ec }) as any[])
+      pts.push(...buildProportionalWindow({ x: -0.5, y: sideWinY, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'west', style: floorCfg.windowStyle, wallColor: 'White' }) as any[])
+      pts.push(...buildProportionalWindow({ x: tw + 0.5, y: sideWinY, z: td / 2 + pos.offset, width: pos.width, height: pos.height, direction: 'east', style: floorCfg.windowStyle, wallColor: 'White' }) as any[])
     }
 
     if (isChinese) {

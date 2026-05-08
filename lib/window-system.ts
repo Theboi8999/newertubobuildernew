@@ -22,14 +22,14 @@ export function calculateWindowPositions(
     colonial:   { ratio: 0.50, heightRatio: 0.55, minCount: 2 },
     victorian:  { ratio: 0.35, heightRatio: 0.55, minCount: 2 },
     chinese:    { ratio: 0.48, heightRatio: 0.52, minCount: 2 },
-    peranakan:  { ratio: 0.48, heightRatio: 0.52, minCount: 2 },
+    peranakan:  { ratio: 0.55, heightRatio: 0.50, minCount: 3 },
     industrial: { ratio: 0.60, heightRatio: 0.55, minCount: 1 },
   }
 
   const detectedStyle = Object.keys(styleConfig).find(k => style.toLowerCase().includes(k)) || 'modern'
   const config = styleConfig[detectedStyle]
 
-  const count = Math.max(2, Math.round(wallLength / (floorHeight * PHI)))
+  const count = Math.max(config.minCount, Math.round(wallLength / (floorHeight * PHI)))
 
   if (count === 0) return []
 
@@ -81,7 +81,7 @@ export function buildProportionalWindow(
   const glassInset = 0.08
   const glassX = isNS ? x : x + (direction === 'west' ? glassInset : -glassInset)
   const glassZ = isNS ? z + (direction === 'north' ? glassInset : -glassInset) : z
-  parts.push(mkPart(`${direction}_WinGlass`, isNS ? width : 0.06, height, isNS ? 0.06 : width, glassX, y, glassZ, 'Light blue', 'smoothplastic', 0.15))
+  parts.push(mkPart(`${direction}_WinGlass`, isNS ? width : 0.06, height, isNS ? 0.06 : width, glassX, y, glassZ, 'Light blue', 'smoothplastic', 0.2))
 
   // Style-specific details
   if (style === 'chinese' || style.includes('peranakan') || style.includes('colonial')) {
