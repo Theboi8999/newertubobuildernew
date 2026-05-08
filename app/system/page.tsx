@@ -154,6 +154,23 @@ function SystemPageInner() {
     setReferenceImages(prev => [...prev, ...newImages].slice(0, 3))
   }, [referenceImages.length])
 
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url)
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(blobUrl)
+    } catch (e) {
+      window.open(url, '_blank')
+    }
+  }
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) router.push('/auth/login')
@@ -648,13 +665,12 @@ function SystemPageInner() {
 
                 {/* Download Button */}
                 {generation?.output_url ? (
-                  <a
-                    href={generation.output_url}
-                    download
+                  <button
+                    onClick={() => handleDownload(generation.output_url, `${generation.prompt?.substring(0, 30)}.rbxmx`)}
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors text-sm mb-4"
                   >
                     ⬇️ Download .rbxmx ({generation.part_count || 0} parts)
-                  </a>
+                  </button>
                 ) : generation?.status === 'complete' ? (
                   <p className="text-xs text-center text-red-400 py-2">
                     File not found — try regenerating
