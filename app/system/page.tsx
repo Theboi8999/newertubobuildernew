@@ -646,24 +646,20 @@ function SystemPageInner() {
                   </div>
                 )}
 
-                {generation.output_url && (
-                  <button
-                    onClick={async () => {
-                      const res = await fetch(generation.output_url)
-                      const blob = await res.blob()
-                      const blobUrl = URL.createObjectURL(blob)
-                      const a = document.createElement('a')
-                      a.href = blobUrl
-                      a.download = `turbobuilder-${generationId}.rbxmx`
-                      document.body.appendChild(a)
-                      a.click()
-                      document.body.removeChild(a)
-                      URL.revokeObjectURL(blobUrl)
-                    }}
-                    className="btn btn-primary w-full py-3.5 text-sm font-semibold mb-4 text-center block">
-                    ⬇ Download .rbxmx File
-                  </button>
-                )}
+                {/* Download Button */}
+                {generation?.output_url ? (
+                  <a
+                    href={generation.output_url}
+                    download
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-lg font-semibold transition-colors text-sm mb-4"
+                  >
+                    ⬇️ Download .rbxmx ({generation.part_count || 0} parts)
+                  </a>
+                ) : generation?.status === 'complete' ? (
+                  <p className="text-xs text-center text-red-400 py-2">
+                    File not found — try regenerating
+                  </p>
+                ) : null}
 
                 {generation.output_metadata?.roomLayout?.length > 0 && (
                   <FloorPlanSVG

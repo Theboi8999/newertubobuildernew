@@ -119,15 +119,12 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const st=(r.architecturalStyle||'modern').toLowerCase(); const em=vm(r.exteriorMaterial||'smoothplastic')
 
   const bt = (r.buildingType || '').toLowerCase()
+  const isChinese = bt.includes('peranakan') || bt.includes('shophouse') ||
+    bt.includes('singapore') || bt.includes('chinese') || bt.includes('pagoda') ||
+    st.includes('peranakan') || st.includes('shophouse') || st.includes('chinese') ||
+    st.includes('pagoda') || st.includes('colonial') || r.hasColonnade === true
 
-  const isChinese =
-    bt.includes('peranakan') || bt.includes('shophouse') ||
-    bt.includes('singapore') || bt.includes('chinese') ||
-    bt.includes('pagoda') || bt.includes('asian') ||
-    st.includes('peranakan') || st.includes('shophouse') ||
-    st.includes('chinese') || st.includes('pagoda') ||
-    st.includes('colonial') || st.includes('singapor') ||
-    r.hasColonnade === true
+  console.log('[exterior] isChinese:', isChinese, 'bt:', bt, 'st:', st, 'ec:', r.exteriorColor, 'rc:', r.roofColor)
 
   const isColonial = !isChinese && (
     st.includes('victorian') || st.includes('georgian') ||
@@ -136,20 +133,13 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     st.includes('mediterranean') || st.includes('neoclassical')
   )
 
-  const ec = r.exteriorColor && r.exteriorColor.trim() !== '' && r.exteriorColor !== 'undefined'
-    ? vc(r.exteriorColor)
-    : 'Light grey'
-  const rc = r.roofColor && r.roofColor.trim() !== '' && r.roofColor !== 'undefined'
-    ? vc(r.roofColor)
-    : 'Dark grey'
+  const ec = (r.exteriorColor && r.exteriorColor !== 'undefined' && r.exteriorColor.trim()) ? r.exteriorColor.trim() : 'Light grey'
+  const rc = (r.roofColor && r.roofColor !== 'undefined' && r.roofColor.trim()) ? r.roofColor.trim() : 'Dark grey'
+
+  console.log('[exterior] ec:', ec, 'rc:', rc, 'fc:', fc, 'fh:', fh)
 
   const hasArches = r.hasColonnade || isChinese || isColonial
   const hasGlass = r.hasGlassFront && !isChinese && !isColonial
-
-  console.log('[exterior] bt:', bt)
-  console.log('[exterior] st:', st)
-  console.log('[exterior] isChinese:', isChinese, 'isColonial:', isColonial, 'hasArches:', hasArches)
-  console.log('[exterior] ec:', ec, 'rc:', rc, 'fc:', fc)
 
   pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Ground_Slab',tw+6,0.6,td+6,tw/2,0.3,td/2,'Light stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Light stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','concrete')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
   for(let l=0;l<2;l++){const lx=l===0?-4:tw+4; pts.push(p(`Lamp_P${l}`,0.4,14,0.4,lx,7,-5,'Dark grey','metal')); pts.push(p(`Lamp_A${l}`,0.2,0.2,2,lx,13.5,-4,'Dark grey','metal')); pts.push(p(`Lamp_H${l}`,0.8,0.5,0.8,lx,13.5,-3.2,'Bright yellow','smoothplastic',0,false))}
@@ -164,23 +154,21 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     const cs = tw / (colCount + 1)
     const colC = isChinese ? 'Reddish brown' : ec
     const colM = isChinese ? 'brick' : vm(r.exteriorMaterial || 'smoothplastic')
-    const colZ = 0.45
+    const colZ = 0.5
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
       pts.push(p(`ColBase${i}`, 1.4, 1.2, 1.4, cx, 0.6, colZ, colC, colM))
       pts.push(p(`ColShaft${i}`, 1.0, fh * 0.80, 1.0, cx, fh * 0.40, colZ, colC, colM))
-      pts.push(p(`ColCap${i}`, 1.6, 0.8, 1.6, cx, fh * 0.80 + 0.4, colZ, colC, colM))
+      pts.push(p(`ColCap${i}`, 1.6, 0.9, 1.6, cx, fh * 0.80 + 0.45, colZ, colC, colM))
       if (i < colCount - 1) {
-        const archW = cs - 1.0
-        const archH = 0.9
-        pts.push(p(`ColArch${i}`, archW, archH, 0.9, cx + cs/2, fh * 0.82, colZ, colC, colM))
+        pts.push(p(`ColArch${i}`, cs - 1, 0.9, 0.9, cx + cs / 2, fh * 0.83, colZ, colC, colM))
       }
     }
 
     if (isChinese) {
-      pts.push(p('FiveFootRoof', tw + 1, 0.4, 3, tw/2, fh * 0.85, -1, ec, 'smoothplastic'))
-      pts.push(p('FiveFootFloor', tw + 1, 0.3, 3, tw/2, 0.45, -1, 'Light stone grey', 'concrete'))
+      pts.push(p('FiveFootRoof', tw + 1, 0.4, 3, tw/2, fh * 0.85, -1.5, ec, 'smoothplastic'))
+      pts.push(p('FiveFootFloor', tw + 1, 0.3, 3, tw/2, 0.45, -1.5, 'Light stone grey', 'concrete'))
     }
   } else {
     pts.push(p('EnFL',0.4,eh,0.5,tw/2-ew/2-0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFR',0.4,eh,0.5,tw/2+ew/2+0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFT',ew+1,0.4,0.5,tw/2,eh+0.2,-0.25,ec,'smoothplastic')); pts.push(p('EnDoor',ew,eh,0.3,tw/2,eh/2,-0.15,'Institutional white','smoothplastic',0.3))
@@ -214,7 +202,7 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
       const pw = tw + 5
       const pd = td + 5
       pts.push(p(`Pag${f}`, pw, 1.5, pd, tw/2, ry + 0.75, td/2, rc, 'smoothplastic'))
-      pts.push(p(`PagU${f}`, pw - 0.5, 0.5, pd - 0.5, tw/2, ry + 0.1, td/2, 'Dark green', 'smoothplastic'))
+      pts.push(p(`PagU${f}`, pw - 0.5, 0.6, pd - 0.5, tw/2, ry + 0.1, td/2, 'Dark green', 'smoothplastic'))
       pts.push(p(`PagLF${f}`, pw + 2, 0.8, 1.5, tw/2, ry - 0.3, -2, rc, 'smoothplastic'))
       pts.push(p(`PagLB${f}`, pw + 2, 0.8, 1.5, tw/2, ry - 0.3, td + 2, rc, 'smoothplastic'))
       pts.push(p(`PagLL${f}`, 1.5, 0.8, pd + 2, -2, ry - 0.3, td/2, rc, 'smoothplastic'))
@@ -225,7 +213,7 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
         const [cx, cz] = corners[ci]
         pts.push(p(`PagCorn${f}_${ci}`, 2, 0.5, 2, cx, ry - 0.6, cz, rc, 'smoothplastic'))
       }
-      console.log('[pagoda] generated for floor', f, 'at ry:', ry, 'rc:', rc)
+      console.log('[pagoda] floor', f, 'ry:', ry, 'ec:', ec, 'rc:', rc)
     }
     else if(isTop && !isPitchedStyle){
       // Flat roof with parapet
