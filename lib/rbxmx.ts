@@ -52,7 +52,8 @@ const BRICKCOLOR_IDS: Record<string, number> = {
   'Dark grey': 26,
   'Really black': 26,
   'Light grey': 1003,
-  'Medium stone grey': 1002,
+  'Medium stone grey': 194,
+  'Medium stone gray': 194,
   'Light stone grey': 1025,
   'Dark stone grey': 1040,
 }

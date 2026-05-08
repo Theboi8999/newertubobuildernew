@@ -150,7 +150,7 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const ew=Math.min(tw*0.35,10); const eh=fh*0.85
   if(hasArches){
     pts.push(p('EnWL',(tw-ew)/2-0.5,eh+1,1.2,(tw-ew)/4+0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnWR',(tw-ew)/2-0.5,eh+1,1.2,tw-(tw-ew)/4-0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnArch',ew+1,1.5,1.2,tw/2,eh+0.75,-0.6,'White','smoothplastic')); pts.push(p('EnKey',1.2,1.8,0.8,tw/2,eh+1,-0.4,'White','smoothplastic')); pts.push(p('EnDark',ew-1,eh-0.5,3,tw/2,(eh-0.5)/2,0.5,'Really black','smoothplastic',0.8))
-    const colCount = Math.max(4, Math.floor(tw / 5))
+    const colCount = Math.max(3, Math.floor(tw / 7))
     const cs = tw / (colCount + 1)
     const colC = isChinese ? 'Reddish brown' : ec
     const colM = isChinese ? 'brick' : vm(r.exteriorMaterial || 'smoothplastic')
@@ -158,9 +158,9 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
-      pts.push(p(`ColBase${i}`, 1.4, 1.2, 1.4, cx, 0.6, colZ, colC, colM))
-      pts.push(p(`ColShaft${i}`, 1.0, fh * 0.80, 1.0, cx, fh * 0.40, colZ, colC, colM))
-      pts.push(p(`ColCap${i}`, 1.6, 0.9, 1.6, cx, fh * 0.80 + 0.45, colZ, colC, colM))
+      pts.push(p(`ColBase${i}`, 1.8, 1.5, 1.8, cx, 0.75, colZ, colC, colM))
+      pts.push(p(`ColShaft${i}`, 1.4, fh * 0.78, 1.4, cx, fh * 0.39, colZ, colC, colM))
+      pts.push(p(`ColCap${i}`, 2.0, 1.0, 2.0, cx, fh * 0.78 + 0.5, colZ, colC, colM))
       if (i < colCount - 1) {
         pts.push(p(`ColArch${i}`, cs - 1, 0.9, 0.9, cx + cs / 2, fh * 0.83, colZ, colC, colM))
       }
@@ -169,6 +169,12 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
     if (isChinese) {
       pts.push(p('FiveFootRoof', tw + 1, 0.4, 3, tw/2, fh * 0.85, -1.5, ec, 'smoothplastic'))
       pts.push(p('FiveFootFloor', tw + 1, 0.3, 3, tw/2, 0.45, -1.5, 'Light stone grey', 'concrete'))
+      const shopW = cs - 1.5
+      for (let i = 0; i < colCount; i++) {
+        const sx = cs * (i + 1)
+        if (sx > tw / 2 - 6 && sx < tw / 2 + 6) continue
+        pts.push(p(`Shop${i}`, shopW, fh * 0.65, 0.2, sx, fh * 0.325, 0.1, 'Dark green', 'smoothplastic'))
+      }
     }
   } else {
     pts.push(p('EnFL',0.4,eh,0.5,tw/2-ew/2-0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFR',0.4,eh,0.5,tw/2+ew/2+0.2,eh/2,-0.25,ec,'smoothplastic')); pts.push(p('EnFT',ew+1,0.4,0.5,tw/2,eh+0.2,-0.25,ec,'smoothplastic')); pts.push(p('EnDoor',ew,eh,0.3,tw/2,eh/2,-0.15,'Institutional white','smoothplastic',0.3))
@@ -176,7 +182,7 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const isPitchedStyle = !isChinese && (isColonial || st.includes('victorian') || st.includes('georgian'))
   for(let f=0;f<fc;f++){
     const fy=f*fh; const isTop=f===fc-1
-    if(f>0){const bc=isChinese||isColonial?'White':ec; pts.push(p(`BandF${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,-0.25,bc,'smoothplastic')); pts.push(p(`BandB${f}`,tw+0.4,1.2,0.5,tw/2,fy+0.6,td+0.25,bc,'smoothplastic')); if(isColonial||isChinese){const bn=Math.floor(tw/4); for(let b=0;b<bn;b++)pts.push(p(`BB_F${f}_${b}`,2,1,0.6,tw/(bn+1)*(b+1),fy+0.6,-0.3,ec,em))}}
+    if(f>0){const bandC=isChinese||isColonial?'White':ec; pts.push(p(`BandF${f}`,tw+1,1.5,0.6,tw/2,fy+0.75,-0.3,bandC,'smoothplastic')); pts.push(p(`BandB${f}`,tw+1,1.5,0.6,tw/2,fy+0.75,td+0.3,bandC,'smoothplastic')); if(isColonial||isChinese){const bn=Math.floor(tw/4); for(let b=0;b<bn;b++)pts.push(p(`BB_F${f}_${b}`,2,1,0.6,tw/(bn+1)*(b+1),fy+0.6,-0.3,ec,em))}}
 
     // Windows — use FloorConfig for window style
     const floorCfg = getFloorConfig(f, fc, r, st)
@@ -199,20 +205,18 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
 
     if (isChinese) {
       const ry = fy + fh
-      const pw = tw + 5
-      const pd = td + 5
-      pts.push(p(`Pag${f}`, pw, 1.5, pd, tw/2, ry + 0.75, td/2, rc, 'smoothplastic'))
-      pts.push(p(`PagU${f}`, pw - 0.5, 0.6, pd - 0.5, tw/2, ry + 0.1, td/2, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagLF${f}`, pw + 2, 0.8, 1.5, tw/2, ry - 0.3, -2, rc, 'smoothplastic'))
-      pts.push(p(`PagLB${f}`, pw + 2, 0.8, 1.5, tw/2, ry - 0.3, td + 2, rc, 'smoothplastic'))
-      pts.push(p(`PagLL${f}`, 1.5, 0.8, pd + 2, -2, ry - 0.3, td/2, rc, 'smoothplastic'))
-      pts.push(p(`PagLR${f}`, 1.5, 0.8, pd + 2, tw + 2, ry - 0.3, td/2, rc, 'smoothplastic'))
+      const pw = tw + 3
+      const pd = td + 3
+      pts.push(p(`Pag${f}`, pw, 0.8, pd, tw/2, ry + 0.4, td/2, rc, 'smoothplastic'))
+      pts.push(p(`PagLF${f}`, pw + 1, 0.8, 1.2, tw/2, ry - 0.3, -1.2, rc, 'smoothplastic'))
+      pts.push(p(`PagLB${f}`, pw + 1, 0.8, 1.2, tw/2, ry - 0.3, td + 1.2, rc, 'smoothplastic'))
+      pts.push(p(`PagLL${f}`, 1.2, 0.8, pd + 1, -1.2, ry - 0.3, td/2, rc, 'smoothplastic'))
+      pts.push(p(`PagLR${f}`, 1.2, 0.8, pd + 1, tw + 1.2, ry - 0.3, td/2, rc, 'smoothplastic'))
       pts.push(p(`PagRidge${f}`, pw, 0.6, 0.8, tw/2, ry + 1.6, td/2, rc, 'smoothplastic'))
-      const corners: [number,number][] = [[-2.5,-2.5],[tw+2.5,-2.5],[-2.5,td+2.5],[tw+2.5,td+2.5]]
-      for (let ci = 0; ci < corners.length; ci++) {
-        const [cx, cz] = corners[ci]
-        pts.push(p(`PagCorn${f}_${ci}`, 2, 0.5, 2, cx, ry - 0.6, cz, rc, 'smoothplastic'))
-      }
+      pts.push(p(`PagCorn${f}_0`, 3, 0.5, 3, -1, ry + 0.1, -1, rc, 'smoothplastic'))
+      pts.push(p(`PagCorn${f}_1`, 3, 0.5, 3, tw + 1, ry + 0.1, -1, rc, 'smoothplastic'))
+      pts.push(p(`PagCorn${f}_2`, 3, 0.5, 3, -1, ry + 0.1, td + 1, rc, 'smoothplastic'))
+      pts.push(p(`PagCorn${f}_3`, 3, 0.5, 3, tw + 1, ry + 0.1, td + 1, rc, 'smoothplastic'))
       console.log('[pagoda] floor', f, 'ry:', ry, 'ec:', ec, 'rc:', rc)
     }
     else if(isTop && !isPitchedStyle){
