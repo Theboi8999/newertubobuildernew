@@ -48,6 +48,7 @@ const BRICKCOLOR_IDS: Record<string, number> = {
   'Medium stone gray': 194,
   'Light stone grey': 1025,
   'Dark stone grey': 1040,
+  'Light blue': 44,
 }
 
 const BRICKCOLOR_TO_COLOR3: Record<string, number> = {
@@ -70,6 +71,7 @@ const BRICKCOLOR_TO_COLOR3: Record<string, number> = {
   'Medium stone grey': 4288716960,
   'Light stone grey': 4291546826,
   'Dark stone grey': 4285098345,
+  'Light blue': 4289580518,
 }
 
 const ME: Record<string, number> = {

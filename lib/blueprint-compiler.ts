@@ -115,7 +115,9 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 }
 
 function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
-  const pts:RbxPart[]=[]; const fc=Math.max(1,parseInt(String(r.floorCount||1),10)||1); const fh=Math.max(8,parseInt(String(r.floorHeight||10),10)||10); const th=fc*fh
+  const pts:RbxPart[]=[]
+  try {
+  const fc=Math.max(1,parseInt(String(r.floorCount||1),10)||1); const fh=Math.max(8,parseInt(String(r.floorHeight||10),10)||10); const th=fc*fh
   const st=(r.architecturalStyle||'modern').toLowerCase(); const em=vm(r.exteriorMaterial||'smoothplastic')
 
   const bt = (r.buildingType || '').toLowerCase()
@@ -250,9 +252,15 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   pts.push(p('Fascia',tw-4,2.5,0.5,tw/2,fh+1.5,-0.25,ec,em)); pts.push(p('FasciaL',tw-4,0.2,0.2,tw/2,fh+0.15,-0.4,'Institutional white','smoothplastic',0,false))
   pts.push(p('WLL',0.5,0.3,0.8,tw/2-ew/2-1.5,eh+1.5,-0.9,'Dark grey','smoothplastic',0,false)); pts.push(p('WLR',0.5,0.3,0.8,tw/2+ew/2+1.5,eh+1.5,-0.9,'Dark grey','smoothplastic',0,false))
   return pts
+  } catch (e) {
+    console.error('[buildExterior] CRASH at part generation:', e)
+    console.error('[buildExterior] parts generated before crash:', pts.length)
+  }
+  return pts
 }
 
 export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBlueprint {
+  try {
   console.log('[blueprint] START:',r.buildingType,'fc:',r.floorCount,'style:',r.architecturalStyle,'ec:',r.exteriorColor)
   const style=(r.architecturalStyle||'modern').toLowerCase()
   const rooms:RbxPart[][]=[], layout:CompiledBlueprint['roomLayout']=[]
@@ -324,4 +332,8 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
   const exterior = [...buildExterior(tw, td, r), ...terrain]
   console.log('[blueprint] rooms:',rooms.length,'ext:',exterior.length,'total:',rooms.reduce((s,r2)=>s+r2.length,0)+exterior.length)
   return { buildingType:r.buildingType, rooms, exterior, totalWidth:tw, totalDepth:td, roomLayout:layout }
+  } catch (e) {
+    console.error('[blueprint] CRASH:', e)
+    throw e
+  }
 }
