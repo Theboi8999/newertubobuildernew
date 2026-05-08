@@ -35,6 +35,50 @@ export interface RbxModel {
   children?: RbxModel[]
 }
 
+const BRICKCOLOR_IDS: Record<string, number> = {
+  'White': 1,
+  'Institutional white': 1,
+  'Bright red': 21,
+  'Dark red': 11,
+  'Bright blue': 23,
+  'Navy blue': 108,
+  'Dark green': 28,
+  'Bright green': 37,
+  'Medium green': 37,
+  'Sand yellow': 226,
+  'Brick yellow': 1031,
+  'Reddish brown': 1014,
+  'Rust': 1007,
+  'Dark grey': 26,
+  'Really black': 26,
+  'Light grey': 1003,
+  'Medium stone grey': 1002,
+  'Light stone grey': 1025,
+  'Dark stone grey': 1040,
+}
+
+const BRICKCOLOR_TO_COLOR3: Record<string, number> = {
+  'White': 4294967295,
+  'Institutional white': 4294572537,
+  'Bright red': 4294901760,
+  'Dark red': 4287102976,
+  'Bright blue': 4278190335,
+  'Navy blue': 4278190208,
+  'Dark green': 4278231066,
+  'Bright green': 4278222848,
+  'Medium green': 4281543993,
+  'Sand yellow': 4294634286,
+  'Brick yellow': 4293848780,
+  'Reddish brown': 4287299584,
+  'Rust': 4290166784,
+  'Dark grey': 4283914271,
+  'Really black': 4278190080,
+  'Light grey': 4292664540,
+  'Medium stone grey': 4288716960,
+  'Light stone grey': 4291546826,
+  'Dark stone grey': 4285098345,
+}
+
 const ME: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
   wood: 512, timber: 512,
@@ -99,7 +143,8 @@ function generatePart(part: RbxPart, id: number): string {
         <R10>0</R10><R11>1</R11><R12>0</R12>
         <R20>0</R20><R21>0</R21><R22>1</R22>
       </CoordinateFrame>
-      <BrickColor name="BrickColor">${escapeXml(color)}</BrickColor>
+      <int name="BrickColor">${BRICKCOLOR_IDS[color] ?? 194}</int>
+      <Color3uint8 name="Color3">${BRICKCOLOR_TO_COLOR3[color] ?? 4292664540}</Color3uint8>
       <token name="Material">${materialEnum}</token>
       <bool name="Anchored">${part.anchored ? 'true' : 'false'}</bool>
       <float name="Transparency">${transparency}</float>
