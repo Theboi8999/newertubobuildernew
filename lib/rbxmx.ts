@@ -13,14 +13,6 @@ export interface RbxPart {
   textureId?: string
 }
 
-const MATERIAL_TEXTURES: Record<string, string> = {
-  'brick': 'rbxassetid://6372755229',
-  'concrete': 'rbxassetid://6372755229',
-  'wood': 'rbxassetid://6372755229',
-  'metal': 'rbxassetid://6372755229',
-  'marble': 'rbxassetid://6372755229',
-  'fabric': 'rbxassetid://6372755229',
-}
 
 export interface RbxScript {
   name: string
@@ -95,6 +87,9 @@ const ME: Record<string, number> = {
   ice: 1536,
   sand: 1088,
   forcefield: 1408,
+  pebble: 1072,
+  slate: 800,
+  woodplanks: 512,
 }
 
 function getMat(m: string): number {
@@ -127,10 +122,6 @@ function generatePart(part: RbxPart, id: number): string {
   const py = Number(part.position.y) || sy / 2
   const pz = Number(part.position.z) || 0
 
-  const matLower = (part.material || '').toLowerCase()
-  const texId = part.textureId || MATERIAL_TEXTURES[matLower] || ''
-  const hasTex = !!texId && ['brick', 'wood', 'concrete', 'marble'].includes(matLower)
-
   return `
   <Item class="${itemClass}" referent="RBX${id}">
     <Properties>
@@ -154,22 +145,13 @@ function generatePart(part: RbxPart, id: number): string {
     </Properties>${part.emissive ? `
     <Item class="PointLight" referent="LIGHT_RBX${id}">
       <Properties>
-        <float name="Brightness">1.5</float>
-        <float name="Range">20</float>
+        <float name="Brightness">3</float>
+        <float name="Range">25</float>
         <Color3 name="Color">
           <R>1</R><G>0.98</G><B>0.9</B>
         </Color3>
         <bool name="Enabled">true</bool>
         <bool name="Shadows">true</bool>
-      </Properties>
-    </Item>` : ''}${hasTex ? `
-    <Item class="Texture" referent="TEX_RBX${id}">
-      <Properties>
-        <Content name="Texture"><url>${texId}</url></Content>
-        <float name="StudsPerTileU">4</float>
-        <float name="StudsPerTileV">4</float>
-        <token name="Face">1</token>
-        <Color3 name="Color3"><R>1</R><G>1</G><B>1</B></Color3>
       </Properties>
     </Item>` : ''}
   </Item>`

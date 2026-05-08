@@ -19,21 +19,17 @@ export function calculateWindowPositions(
 ): Array<{ offset: number; width: number; height: number }> {
   const styleConfig: Record<string, { ratio: number; heightRatio: number; minCount: number }> = {
     modern:     { ratio: 0.55, heightRatio: 0.45, minCount: 2 },
-    colonial:   { ratio: 0.40, heightRatio: 0.50, minCount: 2 },
+    colonial:   { ratio: 0.50, heightRatio: 0.55, minCount: 2 },
     victorian:  { ratio: 0.35, heightRatio: 0.55, minCount: 2 },
-    chinese:    { ratio: 0.38, heightRatio: 0.48, minCount: 2 },
-    peranakan:  { ratio: 0.38, heightRatio: 0.48, minCount: 2 },
+    chinese:    { ratio: 0.48, heightRatio: 0.52, minCount: 2 },
+    peranakan:  { ratio: 0.48, heightRatio: 0.52, minCount: 2 },
     industrial: { ratio: 0.60, heightRatio: 0.55, minCount: 1 },
   }
 
   const detectedStyle = Object.keys(styleConfig).find(k => style.toLowerCase().includes(k)) || 'modern'
   const config = styleConfig[detectedStyle]
 
-  const optimalCount = Math.max(
-    config.minCount,
-    Math.round(wallLength / (floorHeight * PHI))
-  )
-  const count = Math.min(optimalCount, Math.floor(wallLength / 4))
+  const count = Math.max(2, Math.round(wallLength / (floorHeight * PHI)))
 
   if (count === 0) return []
 
@@ -85,7 +81,7 @@ export function buildProportionalWindow(
   const glassInset = 0.08
   const glassX = isNS ? x : x + (direction === 'west' ? glassInset : -glassInset)
   const glassZ = isNS ? z + (direction === 'north' ? glassInset : -glassInset) : z
-  parts.push(mkPart(`${direction}_WinGlass`, isNS ? width : 0.06, height, isNS ? 0.06 : width, glassX, y, glassZ, 'Institutional white', 'smoothplastic', 0.4))
+  parts.push(mkPart(`${direction}_WinGlass`, isNS ? width : 0.06, height, isNS ? 0.06 : width, glassX, y, glassZ, 'Institutional white', 'smoothplastic', 0.35))
 
   // Style-specific details
   if (style === 'chinese' || style.includes('peranakan') || style.includes('colonial')) {

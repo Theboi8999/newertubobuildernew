@@ -3,9 +3,9 @@ import { ResearchResult } from './research-agent'
 interface StyleDef { floorCount:number; floorHeight:number; hasColonnade:boolean; hasGlassFront:boolean; exteriorColor:string; roofColor:string; exteriorMaterial:string; architecturalStyle:string }
 
 export const STYLE_LIBRARY: Record<string,StyleDef> = {
-  'peranakan':{floorCount:3,floorHeight:10,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
-  'shophouse':{floorCount:3,floorHeight:10,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
-  'chinese colonial':{floorCount:3,floorHeight:10,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
+  'peranakan':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
+  'shophouse':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
+  'chinese colonial':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
   'pagoda':{floorCount:4,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark green',exteriorMaterial:'brick',architecturalStyle:'japanese pagoda'},
   'victorian':{floorCount:3,floorHeight:11,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'victorian brick classical'},
   'georgian':{floorCount:3,floorHeight:11,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'georgian brick classical'},
