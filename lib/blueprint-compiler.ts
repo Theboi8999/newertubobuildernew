@@ -71,7 +71,7 @@ function buildTerrain(tw: number, td: number, _style: string, isChinese: boolean
   for (let i=0;i<lineCount;i++) {
     if(i%2===0){const lx=-30+i*8+4; parts.push(p(`Road_Line${i}`,4,0.32,0.2,lx,0.32,-16,'White','smoothplastic'))}
   }
-  parts.push(p('Terrain_Pavement',tw+10,0.6,12,tw/2,0.6,-6,'Light stone grey','concrete'))
+  parts.push(p('Terrain_Pavement',tw+10,0.6,12,tw/2,0.6,-6,'Medium stone grey','concrete'))
   parts.push(p('Terrain_Kerb',tw+10,0.8,0.4,tw/2,0.65,-4.2,'Light stone grey','concrete'))
   const treePositions=[{x:-5,z:-6},{x:tw+5,z:-6},{x:-8,z:td+8},{x:tw+8,z:td+8}]
   for (let ti = 0; ti < treePositions.length; ti++) {
@@ -141,7 +141,7 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const hasArches = r.hasColonnade || isChinese || isColonial
   const hasGlass = r.hasGlassFront && !isChinese && !isColonial
 
-  pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Ground_Slab',tw+6,0.6,td+6,tw/2,0.3,td/2,'Light stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Light stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','concrete')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
+  pts.push(p('Ground',tw+30,0.5,td+30,tw/2,0.25,td/2,'Medium stone grey','concrete')); pts.push(p('Ground_Slab',tw+6,0.6,td+6,tw/2,0.3,td/2,'Medium stone grey','concrete')); pts.push(p('Pavement',tw+8,0.6,10,tw/2,0.6,-5,'Medium stone grey','concrete')); pts.push(p('Road',tw+40,0.4,14,tw/2,0.45,-16,'Dark stone grey','concrete')); pts.push(p('RoadLine',tw+40,0.46,0.2,tw/2,0.46,-16,'White','smoothplastic')); pts.push(p('Kerb',tw+10,0.8,0.5,tw/2,0.9,-0.25,'Light stone grey','concrete'))
   for(let l=0;l<2;l++){const lx=l===0?-4:tw+4; pts.push(p(`Lamp_P${l}`,0.4,14,0.4,lx,7,-5,'Dark grey','metal')); pts.push(p(`Lamp_A${l}`,0.2,0.2,2,lx,13.5,-4,'Dark grey','metal')); pts.push(p(`Lamp_H${l}`,0.8,0.5,0.8,lx,13.5,-3.2,'Bright yellow','smoothplastic',0,false))}
 
   pts.push(p('WallBack',tw,th,0.8,tw/2,th/2,td,ec,em)); pts.push(p('WallLeft',0.8,th,td,0,th/2,td/2,ec,em)); pts.push(p('WallRight',0.8,th,td,tw,th/2,td/2,ec,em))
@@ -150,6 +150,8 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
   const ew=Math.min(tw*0.35,10); const eh=fh*0.85
   if(hasArches){
     pts.push(p('EnWL',(tw-ew)/2-0.5,eh+1,1.2,(tw-ew)/4+0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnWR',(tw-ew)/2-0.5,eh+1,1.2,tw-(tw-ew)/4-0.25,(eh+1)/2,-0.6,ec,em)); pts.push(p('EnArch',ew+1,1.5,1.2,tw/2,eh+0.75,-0.6,'White','smoothplastic')); pts.push(p('EnKey',1.2,1.8,0.8,tw/2,eh+1,-0.4,'White','smoothplastic')); pts.push(p('EnDark',ew-1,eh-0.5,3,tw/2,(eh-0.5)/2,0.5,'Really black','smoothplastic',0.8))
+    pts.push(p('EntranceDoorL', ew/2 - 0.2, eh * 0.8, 0.2, tw/2 - ew/4, eh * 0.4, -0.1, 'Dark green', 'wood'))
+    pts.push(p('EntranceDoorR', ew/2 - 0.2, eh * 0.8, 0.2, tw/2 + ew/4, eh * 0.4, -0.1, 'Dark green', 'wood'))
     const colCount = Math.max(3, Math.floor(tw / 7))
     const cs = tw / (colCount + 1)
     const colC = isChinese ? 'Reddish brown' : ec
@@ -165,6 +167,8 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
         pts.push(p(`ColArch${i}`, cs - 1, 0.9, 0.9, cx + cs / 2, fh * 0.83, colZ, colC, colM))
       }
     }
+    // Entablature beam connecting column caps
+    pts.push(p('ColBeamTop', tw, 0.8, 1.0, tw/2, fh * 0.82, colZ, colC, colM))
 
     if (isChinese) {
       pts.push(p('FiveFootRoof', tw + 1, 0.4, 3, tw/2, fh * 0.85, -1.5, ec, 'smoothplastic'))
@@ -195,7 +199,18 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
         width: pos.width, height: pos.height, direction: 'north',
         style: floorCfg.windowStyle, wallColor: ec
       })
+      console.log('[windows] floor', f, 'north part count:', winParts.length, 'at x:', (tw/2+pos.offset).toFixed(1), 'y:', (fy+fh*0.52).toFixed(1))
       pts.push(...winParts as any[])
+    }
+    if (isChinese && f > 0) {
+      // Cornice band and decorative tile panels on upper floors
+      pts.push(p(`CorniceF${f}`, tw + 0.5, 0.5, 0.4, tw/2, fy + fh - 0.25, -0.2, 'White', 'smoothplastic'))
+      pts.push(p(`CorniceB${f}`, tw + 0.5, 0.5, 0.4, tw/2, fy + fh - 0.25, td + 0.2, 'White', 'smoothplastic'))
+      const tileCount = Math.floor(tw / 5)
+      for (let ti = 0; ti < tileCount; ti++) {
+        const tx = (tw / (tileCount + 1)) * (ti + 1)
+        pts.push(p(`TileF${f}_${ti}`, 2.5, fh * 0.3, 0.15, tx, fy + fh * 0.6, -0.05, 'Bright blue', 'smoothplastic'))
+      }
     }
     const sideWinPositions = calculateWindowPositions(td, fh, fy, st)
     for (const pos of sideWinPositions) {
@@ -205,14 +220,14 @@ function buildExterior(tw:number,td:number,r:ResearchResult):RbxPart[] {
 
     if (isChinese) {
       const ry = fy + fh
-      const pw = tw + 3
-      const pd = td + 3
+      const pw = tw + 1.5
+      const pd = td + 1.5
       pts.push(p(`Pag${f}`, pw, 0.8, pd, tw/2, ry + 0.4, td/2, rc, 'smoothplastic'))
       pts.push(p(`PagLF${f}`, pw + 1, 0.8, 1.2, tw/2, ry - 0.3, -1.2, rc, 'smoothplastic'))
       pts.push(p(`PagLB${f}`, pw + 1, 0.8, 1.2, tw/2, ry - 0.3, td + 1.2, rc, 'smoothplastic'))
       pts.push(p(`PagLL${f}`, 1.2, 0.8, pd + 1, -1.2, ry - 0.3, td/2, rc, 'smoothplastic'))
       pts.push(p(`PagLR${f}`, 1.2, 0.8, pd + 1, tw + 1.2, ry - 0.3, td/2, rc, 'smoothplastic'))
-      pts.push(p(`PagRidge${f}`, pw, 0.6, 0.8, tw/2, ry + 1.6, td/2, rc, 'smoothplastic'))
+      pts.push(p(`PagRidge${f}`, tw - 2, 1.2, 1.5, tw/2, ry + 1.0, td/2, rc, 'smoothplastic'))
       pts.push(p(`PagCorn${f}_0`, 3, 0.5, 3, -1, ry + 0.1, -1, rc, 'smoothplastic'))
       pts.push(p(`PagCorn${f}_1`, 3, 0.5, 3, tw + 1, ry + 0.1, -1, rc, 'smoothplastic'))
       pts.push(p(`PagCorn${f}_2`, 3, 0.5, 3, -1, ry + 0.1, td + 1, rc, 'smoothplastic'))

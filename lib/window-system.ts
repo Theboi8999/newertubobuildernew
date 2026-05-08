@@ -69,19 +69,19 @@ export function buildProportionalWindow(
   })
 
   // Frame — 4 sides
-  parts.push(mkPart(`${direction}_WinFT`, isNS ? width + frameW * 2 : depth, frameW, isNS ? depth : width + frameW * 2, x, y + height / 2 + frameW / 2, z, wallColor, 'smoothplastic'))
-  parts.push(mkPart(`${direction}_WinFB`, isNS ? width + frameW * 2 : depth, frameW, isNS ? depth : width + frameW * 2, x, y - height / 2 - frameW / 2, z, wallColor, 'smoothplastic'))
-  parts.push(mkPart(`${direction}_WinFL`, isNS ? frameW : depth, height + frameW * 2, isNS ? depth : frameW, isNS ? x - width / 2 - frameW / 2 : x, y, isNS ? z : z - width / 2 - frameW / 2, wallColor, 'smoothplastic'))
-  parts.push(mkPart(`${direction}_WinFR`, isNS ? frameW : depth, height + frameW * 2, isNS ? depth : frameW, isNS ? x + width / 2 + frameW / 2 : x, y, isNS ? z : z + width / 2 + frameW / 2, wallColor, 'smoothplastic'))
+  parts.push(mkPart(`${direction}_WinFT`, isNS ? width + frameW * 2 : depth, frameW, isNS ? depth : width + frameW * 2, x, y + height / 2 + frameW / 2, z, 'White', 'smoothplastic'))
+  parts.push(mkPart(`${direction}_WinFB`, isNS ? width + frameW * 2 : depth, frameW, isNS ? depth : width + frameW * 2, x, y - height / 2 - frameW / 2, z, 'White', 'smoothplastic'))
+  parts.push(mkPart(`${direction}_WinFL`, isNS ? frameW : depth, height + frameW * 2, isNS ? depth : frameW, isNS ? x - width / 2 - frameW / 2 : x, y, isNS ? z : z - width / 2 - frameW / 2, 'White', 'smoothplastic'))
+  parts.push(mkPart(`${direction}_WinFR`, isNS ? frameW : depth, height + frameW * 2, isNS ? depth : frameW, isNS ? x + width / 2 + frameW / 2 : x, y, isNS ? z : z + width / 2 + frameW / 2, 'White', 'smoothplastic'))
 
   // Sill
-  parts.push(mkPart(`${direction}_WinSill`, isNS ? width + frameW * 2 + 0.2 : sillDepth, sillHeight, isNS ? sillDepth : width + frameW * 2 + 0.2, x, y - height / 2 - frameW - sillHeight / 2, z, wallColor, 'smoothplastic'))
+  parts.push(mkPart(`${direction}_WinSill`, isNS ? width + frameW * 2 + 0.2 : sillDepth, sillHeight, isNS ? sillDepth : width + frameW * 2 + 0.2, x, y - height / 2 - frameW - sillHeight / 2, z, 'White', 'smoothplastic'))
 
   // Glass
   const glassInset = 0.08
   const glassX = isNS ? x : x + (direction === 'west' ? glassInset : -glassInset)
   const glassZ = isNS ? z + (direction === 'north' ? glassInset : -glassInset) : z
-  parts.push(mkPart(`${direction}_WinGlass`, isNS ? width : 0.06, height, isNS ? 0.06 : width, glassX, y, glassZ, 'Institutional white', 'smoothplastic', 0.35))
+  parts.push(mkPart(`${direction}_WinGlass`, isNS ? width : 0.06, height, isNS ? 0.06 : width, glassX, y, glassZ, 'Light blue', 'smoothplastic', 0.15))
 
   // Style-specific details
   if (style === 'chinese' || style.includes('peranakan') || style.includes('colonial')) {
