@@ -91,7 +91,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'chinese:',isChinese)
 
   // ── TERRAIN ─────────────────────────────────────────────────
-  pts.push(p('Ground', tw+20, 0.5, td+20, tw/2, -0.25, td/2, 'Medium stone grey', 'concrete'))
+  pts.push(p('Ground', tw+20, 1.0, td+20, tw/2, 0.0, td/2, 'Medium stone grey', 'concrete'))
 
   // ── FOUNDATION ──────────────────────────────────────────────
   pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, 'concrete'))
@@ -258,7 +258,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       }
     }
 
-    pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+gfh*0.9, -2.5, 'White', 'smoothplastic'))
+    pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+gfh*0.9, -2.5, 'Medium stone grey', 'concrete'))
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
 
     const entrW = Math.min(tw*0.32, 9)
@@ -268,12 +268,12 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     for (let i = 0; i < colCount; i++) {
       const sx = cs * (i + 1)
       if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
-      pts.push(p(`Shut_${i}`, shutW, shutH, 0.2, sx, wallBase+shutH/2, 0.15, 'Dark green', 'smoothplastic'))
+      pts.push(p(`Shut_${i}`, shutW, shutH, 0.2, sx, wallBase+shutH/2, -0.45, 'Dark green', 'smoothplastic'))
     }
-    pts.push(p('EnArch', entrW+2, 1.5, 0.8, tw/2, wallBase+gfh*0.82, -0.4, 'White', 'smoothplastic'))
-    pts.push(p('EnKey', 1.6, 2.0, 0.6, tw/2, wallBase+gfh*0.88, -0.4, 'White', 'smoothplastic'))
-    pts.push(p('DoorL', entrW/2-0.3, gfh*0.76, 0.15, tw/2-entrW/4, wallBase+gfh*0.38, 0.08, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorR', entrW/2-0.3, gfh*0.76, 0.15, tw/2+entrW/4, wallBase+gfh*0.38, 0.08, 'Dark green', 'smoothplastic'))
+    pts.push(p('EnArch', entrW+2, 1.5, 0.8, tw/2, wallBase+gfh*0.82, -0.7, 'White', 'smoothplastic'))
+    pts.push(p('EnKey', 1.6, 2.0, 0.6, tw/2, wallBase+gfh*0.88, -0.7, 'White', 'smoothplastic'))
+    pts.push(p('DoorL', entrW/2-0.3, gfh*0.76, 0.2, tw/2-entrW/4, wallBase+gfh*0.38, -0.5, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorR', entrW/2-0.3, gfh*0.76, 0.2, tw/2+entrW/4, wallBase+gfh*0.38, -0.5, 'Dark green', 'smoothplastic'))
     pts.push(p('EnShadow', entrW, gfh*0.78, 1.0, tw/2, wallBase+gfh*0.39, 0.5, 'Really black', 'smoothplastic', 0.8))
   }
 
