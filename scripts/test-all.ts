@@ -581,9 +581,9 @@ test('terrain parts generated', () => {
     exteriorColor: 'Sand yellow',
   }))
   const terrain = r.exterior.filter(p =>
+    p.name.toLowerCase().includes('ground') ||
     p.name.toLowerCase().includes('terrain') ||
-    p.name.toLowerCase().includes('road') ||
-    p.name.toLowerCase().includes('tree')
+    p.name.toLowerCase().includes('pavement')
   )
   assert(terrain.length > 0, 'no terrain parts found')
 })
@@ -750,7 +750,7 @@ test('window reveals are darker than wall', () => {
   assert(recesses.every(p => p.color === 'Really black'), 'recesses should be black')
 })
 
-test('brick columns for peranakan', () => {
+test('white columns for peranakan', () => {
   const r = compileBlueprint(mockResearch({
     buildingType: 'peranakan_shophouse',
     architecturalStyle: 'peranakan chinese colonial',
@@ -759,7 +759,8 @@ test('brick columns for peranakan', () => {
   }))
   const cols = r.exterior.filter(p => p.name.startsWith('ColSh'))
   assert(cols.length > 0, 'should have column shafts')
-  assert(cols.every(p => p.material === 'brick'), `columns should be brick, got: ${cols.map(p=>p.material).join(',')}`)
+  assert(cols.every(p => p.material === 'smoothplastic'), `columns should be smoothplastic, got: ${cols.map(p=>p.material).join(',')}`)
+  assert(cols.every(p => p.color === 'White'), `columns should be White, got: ${cols.map(p=>p.color).join(',')}`)
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

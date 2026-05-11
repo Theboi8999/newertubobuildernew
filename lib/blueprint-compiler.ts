@@ -53,48 +53,9 @@ function buildPitchedRoof(name: string, tw: number, td: number, baseY: number, c
   return parts
 }
 
-// ── Terrain and street furniture ──────────────────────────────────────────────
-function buildTerrain(tw: number, td: number, _style: string, isChinese: boolean): RbxPart[] {
-  const parts: RbxPart[] = []
-  parts.push(p('Terrain_Ground',tw+80,0.5,td+80,tw/2,0.25,td/2,'Medium stone grey','concrete'))
-  if (isChinese) {
-    parts.push(p('Terrain_FiveFoot',tw+2,0.5,5,tw/2,0.55,-2.5,'Light stone grey','concrete'))
-    const colCount = Math.floor(tw/4)
-    for (let i=0;i<colCount;i++) {
-      const cx=(tw/(colCount+1))*(i+1)
-      parts.push(p(`FiveFootCol${i}`,0.6,3.5,0.6,cx,2.25,-4.5,'Sand yellow','concrete'))
-    }
-    parts.push(p('FiveFootRoof',tw+2,0.3,5,tw/2,4,-2.5,'Sand yellow','concrete'))
-  }
-  parts.push(p('Terrain_Road',tw+80,0.4,18,tw/2,0.4,-18,'Dark stone grey','concrete'))
-  const lineCount=Math.floor((tw+60)/8)
-  for (let i=0;i<lineCount;i++) {
-    if(i%2===0){const lx=-30+i*8+4; parts.push(p(`Road_Line${i}`,4,0.32,0.2,lx,0.32,-16,'White','smoothplastic'))}
-  }
-  parts.push(p('Terrain_Pavement',tw+10,0.6,12,tw/2,0.6,-6,'Medium stone grey','concrete'))
-  parts.push(p('Terrain_Kerb',tw+10,0.8,0.4,tw/2,0.65,-4.2,'Light stone grey','concrete'))
-  const treePositions=[{x:-5,z:-6},{x:tw+5,z:-6},{x:-8,z:td+8},{x:tw+8,z:td+8}]
-  for (let ti = 0; ti < treePositions.length; ti++) {
-    const tp = treePositions[ti]
-    parts.push(p(`Tree_Trunk${ti}`,0.8,8,0.8,tp.x,4,tp.z,'Reddish brown','wood'))
-    parts.push(p(`Tree_Can1_${ti}`,5,5,5,tp.x,10,tp.z,'Bright green','smoothplastic'))
-    parts.push(p(`Tree_Can2_${ti}`,4,4,4,tp.x+1,11,tp.z+0.5,'Medium green','smoothplastic'))
-    parts.push(p(`Tree_Can3_${ti}`,3.5,3.5,3.5,tp.x-0.8,9.5,tp.z-0.5,'Dark green','smoothplastic'))
-  }
-  for (let b=0;b<4;b++) {
-    const bx=tw/2-6+b*4
-    parts.push(p(`Bollard${b}`,0.5,1.5,0.5,bx,1.25,-3.5,'Really black','smoothplastic'))
-    parts.push(p(`BollardCap${b}`,0.7,0.3,0.7,bx,2.15,-3.5,'Dark grey','smoothplastic'))
-  }
-  parts.push(p('Bench_Seat',3,0.2,0.8,tw/2+8,1.3,-6,'Reddish brown','wood'))
-  parts.push(p('Bench_LegL',0.15,1.2,0.8,tw/2+6.6,0.7,-6,'Dark grey','metal'))
-  parts.push(p('Bench_LegR',0.15,1.2,0.8,tw/2+9.4,0.7,-6,'Dark grey','metal'))
-  parts.push(p('Bench_Back',3,0.8,0.1,tw/2+8,2,-6.3,'Reddish brown','wood'))
-  parts.push(p('Bin_Body',0.8,1.2,0.8,tw/2-8,0.9,-6,'Dark grey','smoothplastic'))
-  parts.push(p('Bin_Lid',1,0.2,1,tw/2-8,1.6,-6,'Really black','smoothplastic'))
-  parts.push(p('Sign_Post',0.2,3,0.2,tw+6,2,-5,'Dark grey','metal'))
-  parts.push(p('Sign_Board',2.5,0.8,0.1,tw+6,3.8,-5,'Bright green','smoothplastic'))
-  return parts
+// ── Terrain ───────────────────────────────────────────────────────────────────
+function buildTerrain(_tw: number, _td: number, _style: string, _isChinese: boolean): RbxPart[] {
+  return []
 }
 
 function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:string):RbxPart[] {
@@ -117,7 +78,7 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   const pts: RbxPart[] = []
   const fc = Math.max(3, Math.min(4, r.floorCount || 3))
-  const fh = 12
+  const fh = 13
   const th = fc * fh
   const base = 1.8
   const ec = r.exteriorColor || 'Sand yellow'
@@ -130,14 +91,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   console.log('[exterior] fc:',fc,'fh:',fh,'th:',th,'ec:',ec,'chinese:',isChinese)
 
   // ── TERRAIN ─────────────────────────────────────────────────
-  pts.push(p('Ground', tw+120, 0.5, td+120, tw/2, -0.25, td/2, 'Medium stone grey', 'concrete'))
-  pts.push(p('Pavement', tw+16, 0.8, 14, tw/2, 0.1, -7, 'Light stone grey', 'concrete'))
-  pts.push(p('Road', tw+120, 0.5, 24, tw/2, -0.05, -22, 'Dark stone grey', 'concrete'))
-  pts.push(p('RoadLine', tw+120, 0.55, 0.35, tw/2, -0.02, -22, 'White', 'smoothplastic'))
-  pts.push(p('RoadLine2', tw+120, 0.55, 0.35, tw/2, -0.02, -26, 'White', 'smoothplastic'))
-  pts.push(p('Kerb_F', tw+16, 1.2, 0.5, tw/2, 0.4, -0.25, 'Medium stone grey', 'concrete'))
-  pts.push(p('Grass_L', 20, 0.5, 24, -10, -0.1, -22, 'Bright green', 'grass'))
-  pts.push(p('Grass_R', 20, 0.5, 24, tw+10, -0.1, -22, 'Bright green', 'grass'))
+  pts.push(p('Ground', tw+20, 0.5, td+20, tw/2, -0.25, td/2, 'Medium stone grey', 'concrete'))
 
   // ── FOUNDATION ──────────────────────────────────────────────
   pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, 'concrete'))
@@ -195,8 +149,8 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       const winCount = isGround ? Math.max(1, Math.floor((tw-12)/10)) : Math.max(2, Math.floor((tw-6)/9))
       const usableW = tw - 5
       const winSpacing = usableW / (winCount + 1)
-      const winW = Math.min(5.5, winSpacing * 0.58)
-      const winH = fh * 0.54
+      const winW = Math.min(6.5, winSpacing * 0.65)
+      const winH = fh * 0.58
       const winY = fy + fh * 0.52
 
       for (let w = 0; w < winCount; w++) {
@@ -225,10 +179,9 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
         // Lattice for peranakan
         if (isChinese) {
-          const lw = 0.1
-          pts.push(p(`WLH1_F${f}_${w}`, winW-0.2, lw, lw, wx, winY+winH*0.22, -0.44, 'White', 'smoothplastic'))
-          pts.push(p(`WLH2_F${f}_${w}`, winW-0.2, lw, lw, wx, winY-winH*0.22, -0.44, 'White', 'smoothplastic'))
-          pts.push(p(`WLV_F${f}_${w}`, lw, winH-0.2, lw, wx, winY, -0.44, 'White', 'smoothplastic'))
+          pts.push(p(`WLH1_F${f}_${w}`, winW-0.3, 0.12, 0.08, wx, winY+winH*0.25, -0.44, 'White', 'smoothplastic'))
+          pts.push(p(`WLH2_F${f}_${w}`, winW-0.3, 0.12, 0.08, wx, winY-winH*0.25, -0.44, 'White', 'smoothplastic'))
+          pts.push(p(`WLV_F${f}_${w}`, 0.12, winH-0.3, 0.08, wx, winY, -0.44, 'White', 'smoothplastic'))
         }
 
         // Lintel above window
@@ -284,11 +237,11 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
-      pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'Reddish brown', 'brick'))
-      pts.push(p(`ColSh_${i}`, 1.8, fh*0.82, 1.8, cx, wallBase+fh*0.41, colZ, 'Reddish brown', 'brick'))
-      pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'Reddish brown', 'brick'))
+      pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'White', 'smoothplastic'))
+      pts.push(p(`ColSh_${i}`, 1.8, fh*0.82, 1.8, cx, wallBase+fh*0.41, colZ, 'White', 'smoothplastic'))
+      pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'White', 'smoothplastic'))
       if (i < colCount - 1) {
-        pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'Reddish brown', 'brick'))
+        pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'White', 'smoothplastic'))
         pts.push(p(`ColArS_${i}`, cs-1.8, 0.5, 0.4, cx+cs/2, colTop-0.2, colZ-0.3, 'White', 'smoothplastic'))
       }
     }
@@ -297,8 +250,14 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
 
     const entrW = Math.min(tw*0.32, 9)
-    pts.push(p('Shut_L', (tw-entrW)/2-2, fh*0.72, 0.18, (tw-entrW)/4+1, wallBase+fh*0.36, 0.09, 'Dark green', 'smoothplastic'))
-    pts.push(p('Shut_R', (tw-entrW)/2-2, fh*0.72, 0.18, tw-(tw-entrW)/4-1, wallBase+fh*0.36, 0.09, 'Dark green', 'smoothplastic'))
+    // Per-column dark green shutters — skip centre entrance bay
+    const shutH = fh * 0.68
+    const shutW = cs - 2.2
+    for (let i = 0; i < colCount; i++) {
+      const sx = cs * (i + 1)
+      if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
+      pts.push(p(`Shut_${i}`, shutW, shutH, 0.2, sx, wallBase+shutH/2, 0.1, 'Dark green', 'smoothplastic'))
+    }
     pts.push(p('EnArch', entrW+2, 1.5, 0.8, tw/2, wallBase+fh*0.82, -0.4, 'White', 'smoothplastic'))
     pts.push(p('EnKey', 1.6, 2.0, 0.6, tw/2, wallBase+fh*0.88, -0.4, 'White', 'smoothplastic'))
     pts.push(p('DoorL', entrW/2-0.3, fh*0.76, 0.15, tw/2-entrW/4, wallBase+fh*0.38, 0.08, 'Dark green', 'smoothplastic'))
@@ -311,39 +270,6 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     pts.push(p(`Drain_${dx}_${dz}`, 0.35, th+4, 0.35, dx, th/2+2, dz, 'Dark grey', 'metal'))
   }
 
-  // ── LAMP POSTS ──────────────────────────────────────────────
-  pts.push(p('LPost_0', 0.5, 18, 0.5, tw+6, 9, -8, 'Dark grey', 'metal'))
-  pts.push(p('LArm_0', 0.2, 0.2, 3.5, tw+6, 17.2, -6.2, 'Dark grey', 'metal'))
-  pts.push(p('LHead_0', 1.2, 0.7, 1.8, tw+6, 17.2, -4.5, 'Bright yellow', 'smoothplastic'))
-  pts.push(p('LPost_R', 0.5, 18, 0.5, -6, 9, -8, 'Dark grey', 'metal'))
-  pts.push(p('LArm_R', 0.2, 0.2, 3.5, -6, 17.2, -6.2, 'Dark grey', 'metal'))
-  pts.push(p('LHead_R', 1.2, 0.7, 1.8, -6, 17.2, -4.5, 'Bright yellow', 'smoothplastic'))
-
-  // ── STREET FURNITURE ────────────────────────────────────────
-  const treeSpots: [number,number][] = [[-7,-9],[tw+7,-9],[-9,td+9],[tw+9,td+9]]
-  for (let ti = 0; ti < treeSpots.length; ti++) {
-    const [tx, tz] = treeSpots[ti]
-    pts.push(p(`Trunk_${ti}`, 1.0, 12, 1.0, tx, 6, tz, 'Reddish brown', 'wood'))
-    pts.push(p(`Can1_${ti}`, 7, 6, 7, tx, 14, tz, 'Bright green', 'smoothplastic'))
-    pts.push(p(`Can2_${ti}`, 5.5, 5, 5.5, tx+1.2, 15.5, tz+0.8, 'Medium green', 'smoothplastic'))
-    pts.push(p(`Can3_${ti}`, 4.5, 4.5, 4.5, tx-1, 13, tz-0.8, 'Dark green', 'smoothplastic'))
-    pts.push(p(`Can4_${ti}`, 3.5, 3.5, 3.5, tx+0.5, 16.5, tz-0.5, 'Medium green', 'smoothplastic'))
-  }
-
-  for (let b = 0; b < 6; b++) {
-    const bx = tw/2 - 10 + b*4
-    pts.push(p(`Bol_${b}`, 0.7, 2.0, 0.7, bx, wallBase+1.2, -4, 'Really black', 'smoothplastic'))
-    pts.push(p(`BolC_${b}`, 0.9, 0.35, 0.9, bx, wallBase+2.37, -4, 'Dark grey', 'metal'))
-    pts.push(p(`BolRing_${b}`, 0.85, 0.2, 0.85, bx, wallBase+1.8, -4, 'Dark grey', 'metal'))
-  }
-
-  pts.push(p('Bench_S', 4.0, 0.25, 1.0, tw/2+12, wallBase+1.4, -8, 'Reddish brown', 'wood'))
-  pts.push(p('Bench_LL', 0.18, 1.5, 1.0, tw/2+10.1, wallBase+0.85, -8, 'Dark grey', 'metal'))
-  pts.push(p('Bench_LR', 0.18, 1.5, 1.0, tw/2+13.9, wallBase+0.85, -8, 'Dark grey', 'metal'))
-  pts.push(p('Bench_B', 4.0, 0.9, 0.12, tw/2+12, wallBase+2.1, -8.4, 'Reddish brown', 'wood'))
-
-  pts.push(p('Bin', 0.9, 1.4, 0.9, tw/2-12, wallBase+0.9, -7, 'Dark grey', 'metal'))
-  pts.push(p('BinLid', 1.1, 0.25, 1.1, tw/2-12, wallBase+1.82, -7, 'Really black', 'smoothplastic'))
 
   return pts
 }
