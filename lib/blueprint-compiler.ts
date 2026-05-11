@@ -7,7 +7,7 @@ export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; ext
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
 
 const VC:Record<string,string>={'white':'White','institutional white':'Institutional white','light grey':'Light grey','light gray':'Light grey','medium stone grey':'Medium stone grey','medium stone gray':'Medium stone grey','dark grey':'Dark grey','dark gray':'Dark grey','light stone grey':'Light stone grey','dark stone grey':'Dark stone grey','really black':'Really black','black':'Really black','bright red':'Bright red','dark red':'Dark red','rust':'Rust','reddish brown':'Reddish brown','bright orange':'Bright orange','dark orange':'Dark orange','bright yellow':'Bright yellow','sand yellow':'Sand yellow','brick yellow':'Brick yellow','bright green':'Bright green','dark green':'Dark green','sand green':'Sand green','medium green':'Medium green','bright blue':'Bright blue','navy blue':'Navy blue','sand blue':'Sand blue','light blue':'Light blue','hot pink':'Hot pink','cashmere':'Cashmere','teal':'Bright bluish green','cyan':'Bright bluish green','brown':'Reddish brown','beige':'Sand yellow','cream':'White','grey':'Light grey','gray':'Light grey','green':'Bright green','blue':'Bright blue','red':'Bright red','yellow':'Bright yellow','orange':'Bright orange','pink':'Hot pink'}
-const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'brick',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'grass'}
+const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'brick',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'concrete'}
 
 function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase().trim(); if(VC[k])return VC[k]; for(const [key,val] of Object.entries(VC)){if(k.includes(key)||key.includes(k))return val} console.log('[color] no match:',c); return 'Light grey' }
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
@@ -91,7 +91,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'chinese:',isChinese)
 
   // ── TERRAIN ─────────────────────────────────────────────────
-  pts.push(p('Ground', tw+20, 1.0, td+20, tw/2, 0.0, td/2, 'Medium stone grey', 'concrete'))
+  pts.push(p('Ground', tw+20, 1.2, td+20, tw/2, 0.1, td/2, 'Medium stone grey', 'concrete'))
 
   // ── FOUNDATION ──────────────────────────────────────────────
   pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, 'concrete'))
@@ -202,7 +202,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       const pd = td + 2.5
 
       pts.push(p(`Pag${f}`, pw, 0.9, pd, tw/2, ry+0.45, td/2, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagU${f}`, pw+0.3, 0.4, pd+0.3, tw/2, ry-0.2, td/2, 'Really black', 'smoothplastic', 0.2))
+      pts.push(p(`PagU${f}`, pw+0.3, 0.4, pd+0.3, tw/2, ry-0.2, td/2, 'Dark green', 'smoothplastic', 0))
       pts.push(p(`PagOF${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, -1.6, 'Dark green', 'smoothplastic'))
       pts.push(p(`PagOB${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, td+1.6, 'Dark green', 'smoothplastic'))
       pts.push(p(`PagOL${f}`, 1.8, 0.55, pd+2, -1.6, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
@@ -227,14 +227,14 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p('Parapet_B', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, td+0.3, ec, 'smoothplastic'))
         pts.push(p('Parapet_L', 0.6, 1.8, td+1.5, -0.3, ry+1.4, td/2, ec, 'smoothplastic'))
         pts.push(p('Parapet_R', 0.6, 1.8, td+1.5, tw+0.3, ry+1.4, td/2, ec, 'smoothplastic'))
-        pts.push(p('RoofTank', 2.5, 3.5, 2.5, tw/2, ry+2.75, td/2, 'Medium stone grey', 'concrete'))
-        pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'metal'))
-        pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'metal'))
+        pts.push(p('RoofTank', 2.5, 3.5, 2.5, tw/2, ry+2.75, td/2, 'Medium stone grey', 'smoothplastic'))
+        pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'smoothplastic'))
+        pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'smoothplastic'))
       } else {
         pts.push(p('RoofCap', tw-4, 0.5, td-4, tw/2, ry+1.8, td/2, 'Dark green', 'smoothplastic'))
         pts.push(p('RoofRidge', tw-6, 0.6, 0.6, tw/2, ry+2.1, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('RoofAC1', 2.5, 1.5, 2.5, tw/3, ry+2.5, td/3, 'Dark grey', 'metal'))
-        pts.push(p('RoofAC2', 2.5, 1.5, 2.5, tw*2/3, ry+2.5, td*2/3, 'Dark grey', 'metal'))
+        pts.push(p('RoofAC1', 2.5, 1.5, 2.5, tw/3, ry+2.5, td/3, 'Dark grey', 'smoothplastic'))
+        pts.push(p('RoofAC2', 2.5, 1.5, 2.5, tw*2/3, ry+2.5, td*2/3, 'Dark grey', 'smoothplastic'))
       }
     }
   }
