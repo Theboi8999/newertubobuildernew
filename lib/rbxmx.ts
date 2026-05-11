@@ -30,25 +30,37 @@ export interface RbxModel {
 const BRICKCOLOR_IDS: Record<string, number> = {
   'White': 1,
   'Institutional white': 1,
-  'Bright red': 21,
-  'Dark red': 11,
-  'Bright blue': 23,
-  'Navy blue': 108,
-  'Dark green': 28,
-  'Bright green': 37,
-  'Medium green': 37,
+  'Light grey': 1003,
+  'Light gray': 1003,
+  'Medium stone grey': 194,
+  'Medium stone gray': 194,
+  'Dark grey': 199,
+  'Dark gray': 199,
+  'Dark stone grey': 199,
+  'Light stone grey': 208,
+  'Really black': 26,
   'Sand yellow': 226,
   'Brick yellow': 1031,
   'Reddish brown': 1014,
+  'Dark red': 11,
+  'Bright red': 21,
   'Rust': 1007,
-  'Dark grey': 26,
-  'Really black': 26,
-  'Light grey': 1003,
-  'Medium stone grey': 194,
-  'Medium stone gray': 194,
-  'Light stone grey': 1025,
-  'Dark stone grey': 1040,
-  'Light blue': 44,
+  'Dark green': 28,
+  'Bright green': 37,
+  'Medium green': 29,
+  'Sand green': 1006,
+  'Bright blue': 23,
+  'Navy blue': 108,
+  'Light blue': 45,
+  'Sand blue': 1,
+  'Dark orange': 1008,
+  'Bright orange': 1012,
+  'Bright yellow': 24,
+  'Cashmere': 1011,
+  'Hot pink': 1013,
+  'Bright violet': 1014,
+  'Bright bluish green': 107,
+  'Tan': 1001,
 }
 
 const BRICKCOLOR_TO_COLOR3: Record<string, number> = {
@@ -74,30 +86,45 @@ const BRICKCOLOR_TO_COLOR3: Record<string, number> = {
   'Light blue': 4289580518,
 }
 
-const ME: Record<string, number> = {
+const MATERIAL_ENUM: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
-  wood: 512, timber: 512,
-  brick: 1040,
+  wood: 512, woodplanks: 512, timber: 512,
+  slate: 800,
   concrete: 816, stone: 816,
   marble: 784,
   granite: 832,
-  metal: 1280, steel: 1280,
-  fabric: 1312, carpet: 1312,
-  neon: 1376,
-  glass: 1568,
+  brick: 1040,
+  pebble: 1072, foil: 1072,
   cobblestone: 1392,
-  ice: 1536,
+  metal: 1280, steel: 1280, iron: 1280,
+  diamondplate: 1056,
+  fabric: 1312, carpet: 1312,
   sand: 1088,
+  grass: 1280,
+  ice: 1536,
+  glass: 1568,
+  neon: 1376,
   forcefield: 1408,
-  pebble: 1072,
-  slate: 800,
-  woodplanks: 512,
+  limestone: 1552,
+  pavement: 1504, asphalt: 1504,
+  leafygrass: 1328,
+  mud: 1344,
+  rock: 1360,
+  sandstone: 1412,
+  snow: 1488,
+  glacier: 1520,
+  ground: 1296,
 }
 
 function getMat(m: string): number {
-  return ME[(m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')] ?? 256
+  return MATERIAL_ENUM[(m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')] ?? 256
 }
 
+
+function sanitizeColor(color: string): string {
+  if (!color || color === 'undefined' || color === 'null') return 'Light grey'
+  return color.trim()
+}
 
 function escapeXml(str: string): string {
   return str
@@ -110,9 +137,7 @@ function escapeXml(str: string): string {
 
 function generatePart(part: RbxPart, id: number): string {
   const materialEnum = getMat(part.material)
-  const color = (part.color && part.color.trim() && part.color !== 'undefined' && part.color !== 'null')
-    ? part.color.trim()
-    : 'Light grey'
+  const color = sanitizeColor(part.color)
   console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
   const itemClass = part.partType || 'Part'
@@ -210,6 +235,16 @@ function getLightingXml(style: string): string {
       <float name="FogEnd">1000</float>
       <float name="FogStart">200</float>
     </Properties>
+  </Item>
+  <Item class="Atmosphere" referent="ATMOSPHERE_A">
+    <Properties>
+      <float name="Density">0.395</float>
+      <float name="Offset">0.25</float>
+      <Color3 name="Color"><R>0.784</R><G>0.784</G><B>0.784</B></Color3>
+      <float name="Decay">1</float>
+      <float name="Glare">0</float>
+      <float name="Haze">0</float>
+    </Properties>
   </Item>`
   }
   return `
@@ -219,6 +254,16 @@ function getLightingXml(style: string): string {
       <float name="ClockTime">14</float>
       <bool name="GlobalShadows">true</bool>
       <float name="OutdoorAmbient">0.5</float>
+    </Properties>
+  </Item>
+  <Item class="Atmosphere" referent="ATMOSPHERE_B">
+    <Properties>
+      <float name="Density">0.395</float>
+      <float name="Offset">0.25</float>
+      <Color3 name="Color"><R>0.784</R><G>0.784</G><B>0.784</B></Color3>
+      <float name="Decay">1</float>
+      <float name="Glare">0</float>
+      <float name="Haze">0</float>
     </Properties>
   </Item>`
 }

@@ -710,6 +710,58 @@ test('ground parts use concrete not smoothplastic', () => {
   assert(wrongMat.length === 0, `${wrongMat.length} ground parts use smoothplastic: ${wrongMat.map(p=>p.name).join(',')}`)
 })
 
+// ── NEW EXTERIOR QUALITY TESTS ───────────────────────────────────────────────
+
+console.log('\n═══ NEW EXTERIOR QUALITY ═══')
+
+test('peranakan has foundation', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    floorCount: 3,
+  }))
+  const found = r.exterior.some(p => p.name.includes('Foundation'))
+  assert(found, 'should have foundation parts')
+})
+
+test('peranakan has drain pipes', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+  }))
+  const drains = r.exterior.filter(p => p.name.includes('Drain'))
+  assert(drains.length >= 4, `expected 4 drains got ${drains.length}`)
+})
+
+test('window reveals are darker than wall', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    floorCount: 3,
+  }))
+  const recesses = r.exterior.filter(p => p.name.includes('WRec'))
+  assert(recesses.length > 0, 'should have window recesses')
+  assert(recesses.every(p => p.color === 'Really black'), 'recesses should be black')
+})
+
+test('brick columns for peranakan', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+  }))
+  const cols = r.exterior.filter(p => p.name.startsWith('ColSh'))
+  assert(cols.length > 0, 'should have column shafts')
+  assert(cols.every(p => p.material === 'brick'), `columns should be brick, got: ${cols.map(p=>p.material).join(',')}`)
+})
+
 // ── SUMMARY ──────────────────────────────────────────────────────────────────
 
 console.log('\n═══════════════════════════════')
