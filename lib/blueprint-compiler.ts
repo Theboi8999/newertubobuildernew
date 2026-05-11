@@ -176,6 +176,15 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       // Drip edge below band
       pts.push(p(`Drip_F${f}`, tw+1.6, 0.3, 0.4, tw/2, fy-0.15, -0.6, 'White', 'smoothplastic'))
       pts.push(p(`Drip_B${f}`, tw+1.6, 0.3, 0.4, tw/2, fy-0.15, td+0.6, 'White', 'smoothplastic'))
+      // Peranakan decorative tile inserts along front band
+      if (isChinese) {
+        const tileCount = Math.floor(tw/3)
+        for (let t = 0; t < tileCount; t++) {
+          const tx2 = t*3 + 1.5
+          const tileColor = t%3===0 ? 'Bright blue' : t%3===1 ? 'Bright red' : 'Bright green'
+          pts.push(p(`Tile_F${f}_${t}`, 2.5, 0.8, 0.12, tx2, fy+0.9, -0.45, tileColor, 'smoothplastic'))
+        }
+      }
     }
 
     // ── WINDOWS per floor ─────────────────────────────────────
@@ -191,19 +200,19 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         const wx = 2 + winSpacing*(w+1)
 
         // Window recess - creates depth shadow
-        pts.push(p(`WRec_F${f}_${w}`, winW+0.4, winH+0.4, 0.4, wx, winY, -0.05, 'Dark grey', 'smoothplastic'))
+        pts.push(p(`WRec_F${f}_${w}`, winW+0.6, winH+0.6, 0.6, wx, winY, -0.05, 'Dark grey', 'smoothplastic'))
 
         // Frame - white surround
-        pts.push(p(`WFrT_F${f}_${w}`, winW+0.5, 0.35, 0.3, wx, winY+winH/2+0.17, -0.15, 'White', 'smoothplastic'))
-        pts.push(p(`WFrB_F${f}_${w}`, winW+0.5, 0.35, 0.3, wx, winY-winH/2-0.17, -0.15, 'White', 'smoothplastic'))
-        pts.push(p(`WFrL_F${f}_${w}`, 0.35, winH+0.7, 0.3, wx-winW/2-0.17, winY, -0.15, 'White', 'smoothplastic'))
-        pts.push(p(`WFrR_F${f}_${w}`, 0.35, winH+0.7, 0.3, wx+winW/2+0.17, winY, -0.15, 'White', 'smoothplastic'))
+        pts.push(p(`WFrT_F${f}_${w}`, winW+0.5, 0.35, 0.3, wx, winY+winH/2+0.17, -0.2, 'White', 'smoothplastic'))
+        pts.push(p(`WFrB_F${f}_${w}`, winW+0.5, 0.35, 0.3, wx, winY-winH/2-0.17, -0.2, 'White', 'smoothplastic'))
+        pts.push(p(`WFrL_F${f}_${w}`, 0.35, winH+0.7, 0.3, wx-winW/2-0.17, winY, -0.2, 'White', 'smoothplastic'))
+        pts.push(p(`WFrR_F${f}_${w}`, 0.35, winH+0.7, 0.3, wx+winW/2+0.17, winY, -0.2, 'White', 'smoothplastic'))
 
         // Sill with projection
         pts.push(p(`WSill_F${f}_${w}`, winW+0.8, 0.25, 0.5, wx, winY-winH/2-0.38, -0.2, 'White', 'smoothplastic'))
 
-        // Glass - light blue tint
-        pts.push(p(`WGlass_F${f}_${w}`, winW, winH, 0.08, wx, winY, -0.04, 'Light blue', 'smoothplastic', 0.25))
+        // Glass - light blue tint, pushed forward of wall to avoid z-fighting
+        pts.push(p(`WGlass_F${f}_${w}`, winW-0.1, winH-0.1, 0.1, wx, winY, -0.15, 'Light blue', 'smoothplastic', 0.2))
 
         // Lattice for peranakan
         if (isChinese) {
@@ -213,7 +222,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         }
 
         // Lintel above window
-        pts.push(p(`WLin_F${f}_${w}`, winW+0.6, 0.4, 0.35, wx, winY+winH/2+0.5, -0.17, ec, 'smoothplastic'))
+        pts.push(p(`WLin_F${f}_${w}`, winW+0.6, 0.4, 0.35, wx, winY+winH/2+0.5, -0.2, ec, 'smoothplastic'))
       }
     }
 
@@ -229,11 +238,11 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       pts.push(p(`PagOB${f}`, tw+3, 0.5, 1.5, tw/2, ry+0.1, td+1.2, rc, 'smoothplastic'))
       pts.push(p(`PagOL${f}`, 1.5, 0.5, td+3, -1.2, ry+0.1, td/2, rc, 'smoothplastic'))
       pts.push(p(`PagOR${f}`, 1.5, 0.5, td+3, tw+1.2, ry+0.1, td/2, rc, 'smoothplastic'))
-      // Corner upticks
-      const cornH = 0.6
+      // Corner upticks - raised corner piece + higher tip to simulate pagoda curl
       const pagCornPos: [number,number][] = [[-1.8,-1.8],[tw+1.8,-1.8],[-1.8,td+1.8],[tw+1.8,td+1.8]]
       for (let ci = 0; ci < pagCornPos.length; ci++) {
-        pts.push(p(`PagC${f}_${ci}`, 1.8, cornH, 1.8, pagCornPos[ci][0], ry+cornH/2, pagCornPos[ci][1], rc, 'smoothplastic'))
+        pts.push(p(`PagC${f}_${ci}`, 2.5, 1.0, 2.5, pagCornPos[ci][0], ry+0.8, pagCornPos[ci][1], rc, 'smoothplastic'))
+        pts.push(p(`PagTip${f}_${ci}`, 1.2, 0.6, 1.2, pagCornPos[ci][0], ry+1.4, pagCornPos[ci][1], rc, 'smoothplastic'))
       }
       // Ridge
       pts.push(p(`PagRid${f}`, tw+1, 0.5, 0.7, tw/2, ry+0.85, td/2, rc, 'smoothplastic'))
@@ -259,7 +268,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       const cx = cs*(i+1)
       // Square column - peranakan style
       pts.push(p(`ColPl_${i}`, 2.0, 1.0, 2.0, cx, 0.5, colZ, 'White', 'smoothplastic'))
-      pts.push(p(`ColSh_${i}`, 1.6, fh*0.76, 1.6, cx, fh*0.38, colZ, 'White', 'smoothplastic'))
+      pts.push(p(`ColSh_${i}`, 1.6, fh*0.85, 1.6, cx, fh*0.425, colZ, 'White', 'smoothplastic'))
       pts.push(p(`ColCp_${i}`, 2.2, 0.7, 2.2, cx, fh*0.76+0.35, colZ, 'White', 'smoothplastic'))
       // Arch between columns
       if (i < colCount-1) {
@@ -273,12 +282,14 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     pts.push(p('FFW_Ceil', tw+1, 0.4, 4, tw/2, fh*0.82, -2, 'White', 'smoothplastic'))
     pts.push(p('FFW_Floor', tw+1, 0.4, 4, tw/2, 0.5, -2, 'Light stone grey', 'concrete'))
 
-    // Dark green entrance shutters
-    const entrW = Math.min(tw*0.35, 10)
-    pts.push(p('Shutter_L', (tw-entrW)/2-2, fh*0.7, 0.15, (tw-entrW)/4+1, fh*0.35, 0.08, 'Dark green', 'smoothplastic'))
-    pts.push(p('Shutter_R', (tw-entrW)/2-2, fh*0.7, 0.15, tw-(tw-entrW)/4-1, fh*0.35, 0.08, 'Dark green', 'smoothplastic'))
-    // Entrance opening
-    pts.push(p('Entrance', entrW, fh*0.78, 0.2, tw/2, fh*0.39, 0.1, 'Really black', 'smoothplastic', 0.85))
+    // Entrance arch with keystone and doors
+    const entrW = 8
+    const entrH = fh * 0.85
+    pts.push(p('ArchSurround', entrW+2, entrH+1.5, 0.8, tw/2, entrH/2, -0.4, 'White', 'smoothplastic'))
+    pts.push(p('ArchOpening', entrW, entrH, 0.6, tw/2, entrH/2, -0.3, 'Really black', 'smoothplastic', 0.9))
+    pts.push(p('Keystone', 1.5, 2.0, 0.6, tw/2, entrH+0.5, -0.4, 'White', 'smoothplastic'))
+    pts.push(p('DoorL', entrW/2-0.2, entrH-0.5, 0.15, tw/2-entrW/4, (entrH-0.5)/2, -0.15, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorR', entrW/2-0.2, entrH-0.5, 0.15, tw/2+entrW/4, (entrH-0.5)/2, -0.15, 'Dark green', 'smoothplastic'))
   }
 
   // ── LAMP POSTS ───────────────────────────────────────────────

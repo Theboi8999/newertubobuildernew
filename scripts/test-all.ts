@@ -255,7 +255,7 @@ test('glass building generates glass front', () => {
     hasGlassFront: true,
     floorCount: 2
   }))
-  const glassParts = r.exterior.filter(p => p.transparency > 0.2)
+  const glassParts = r.exterior.filter(p => p.transparency >= 0.2)
   assert(glassParts.length > 0, 'glass building should have transparent parts')
 })
 
