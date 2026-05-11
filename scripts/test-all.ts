@@ -214,8 +214,8 @@ test('exterior has correct part count for single storey', () => {
 })
 
 test('multi storey has more exterior parts than single', () => {
-  const single = compileBlueprint(mockResearch({ floorCount: 1 }))
-  const multi = compileBlueprint(mockResearch({ floorCount: 4 }))
+  const single = compileBlueprint(mockResearch({ floorCount: 4 }))
+  const multi = compileBlueprint(mockResearch({ floorCount: 5 }))
   assert(multi.exterior.length > single.exterior.length, `multi(${multi.exterior.length}) should have more parts than single(${single.exterior.length})`)
 })
 

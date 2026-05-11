@@ -144,7 +144,7 @@ export async function generateAsset(
           researchResult.roofColor = 'Dark green'
           researchResult.hasColonnade = true
           researchResult.architecturalStyle = 'peranakan chinese colonial'
-          if (researchResult.floorCount < 3) researchResult.floorCount = 4
+          researchResult.floorCount = 4
           console.log('[generator] ✅ peranakan overrides: ec=Sand yellow rc=Dark green colonnade=true floors=', researchResult.floorCount)
         }
         if (isVictorian && !isPeranakan) {
