@@ -119,7 +119,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   const pilCorners: [number,number][] = [[0,0],[tw,0],[0,td],[tw,td]]
   for (const [cx, cz] of pilCorners) {
     pts.push(p(`Pil_${cx}_${cz}`, pilW, pilH, pilW, cx, wallBase+pilH/2, cz, ec, wallMat))
-    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.8, 1.2, pilW+0.8, cx, wallBase+pilH+0.6, cz, 'White', wallMat))
+    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.8, 1.2, pilW+0.8, cx, wallBase+pilH+0.6, cz, ec, 'smoothplastic'))
     pts.push(p(`PilBase_${cx}_${cz}`, pilW+1, 2.0, pilW+1, cx, wallBase+1, cz, ec, wallMat))
     pts.push(p(`PilGroove_${cx}_${cz}`, 0.3, pilH-1, 0.15, cx, wallBase+pilH/2, cz+(cz===0?-0.35:0.35), 'White', 'smoothplastic'))
   }
@@ -234,13 +234,20 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p('RoofTank', 2.5, 3.5, 2.5, tw/2, ry+2.75, td/2, 'Medium stone grey', 'smoothplastic'))
         pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'smoothplastic'))
         pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'smoothplastic'))
-      } else {
-        const topRy = wallBase + th + 0.5
-        pts.push(p('RoofCap', tw-2, 0.6, td-2, tw/2, topRy+1.8, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('RoofRidge', tw-4, 0.7, 0.7, tw/2, topRy+2.2, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('RoofAC1', 2.5, 1.8, 2.5, tw/3, topRy+2.2, td/3, 'Dark grey', 'smoothplastic'))
-        pts.push(p('RoofAC2', 2.5, 1.8, 2.5, tw*2/3, topRy+2.2, td*2/3, 'Dark grey', 'smoothplastic'))
-        pts.push(p('RoofTank', 2.2, 3.0, 2.2, tw/2, topRy+3.3, td/2, 'Medium stone grey', 'smoothplastic'))
+      } else if (isChinese) {
+        const ry = fy + fh
+        const rpw = tw + 1.5
+        const rpd = td + 1.5
+        pts.push(p('TopPag', rpw, 1.0, rpd, tw/2, ry+0.5, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('TopPagU', rpw+0.2, 0.35, rpd+0.2, tw/2, ry-0.17, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('TopPagOF', rpw+1.5, 0.5, 1.5, tw/2, ry+0.1, -1.2, 'Dark green', 'smoothplastic'))
+        pts.push(p('TopPagOB', rpw+1.5, 0.5, 1.5, tw/2, ry+0.1, td+1.2, 'Dark green', 'smoothplastic'))
+        pts.push(p('TopPagOL', 1.5, 0.5, rpd+1.5, -1.2, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('TopPagOR', 1.5, 0.5, rpd+1.5, tw+1.2, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('TopRidge', tw-2, 0.5, 0.6, tw/2, ry+1.1, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('RoofFlat', tw-1, 0.3, td-1, tw/2, ry+0.15, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('AC1', 2.5, 1.5, 2.5, tw/3, ry+1.0, td/3, 'Dark grey', 'smoothplastic'))
+        pts.push(p('AC2', 2.5, 1.5, 2.5, tw*2/3, ry+1.0, td*2/3, 'Dark grey', 'smoothplastic'))
       }
     }
   }
@@ -267,12 +274,12 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
 
     // Per-column dark green shutters — skip centre entrance bay
-    const shutH = fh * 0.68
-    const shutW = cs - 2.2
+    const shutH = fh * 0.75
+    const shutW = cs - 1.6
     for (let i = 0; i < colCount; i++) {
       const sx = cs * (i + 1)
       if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
-      pts.push(p(`Shut_${i}`, shutW, shutH, 0.2, sx, wallBase+shutH/2, -0.45, 'Dark green', 'smoothplastic'))
+      pts.push(p(`Shut_${i}`, shutW, shutH, 0.25, sx, wallBase+shutH/2, -0.55, 'Dark green', 'smoothplastic'))
     }
     const enW = 7
     const entrH = fh * 0.78
@@ -293,6 +300,24 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   // ── DRAIN PIPES ─────────────────────────────────────────────
   for (const [dx,dz] of [[0.4,0.4],[tw-0.4,0.4],[0.4,td-0.4],[tw-0.4,td-0.4]] as [number,number][]) {
     pts.push(p(`Drain_${dx}_${dz}`, 0.35, th+4, 0.35, dx, th/2+2, dz, 'Dark grey', 'smoothplastic'))
+  }
+
+  // ── NUCLEAR MATERIAL OVERRIDE ────────────────────────────────
+  for (const part of pts) {
+    const n = part.name.toLowerCase()
+    if (n.includes('ground') || n.includes('road') || n.includes('pavement') ||
+        n.includes('kerb') || n.includes('terrain') || n.includes('ffw_')) {
+      part.material = 'concrete'
+    } else if (n.includes('door') || n.includes('bench_s') || n.includes('bench_b')) {
+      part.material = 'wood'
+    } else {
+      part.material = 'smoothplastic'
+    }
+  }
+  const badMats = pts.filter(p2 => p2.material !== 'smoothplastic' &&
+    p2.material !== 'concrete' && p2.material !== 'wood')
+  if (badMats.length > 0) {
+    console.log('[exterior] WARNING bad materials:', badMats.map(p2 => `${p2.name}:${p2.material}`).join(', '))
   }
 
   } catch(e) {
