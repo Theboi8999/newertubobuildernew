@@ -617,9 +617,7 @@ test('Sand yellow passes through rbxmx unchanged', () => {
     name: 'TestWall', size: {x:10,y:10,z:1}, position: {x:5,y:5,z:0},
     color: 'Sand yellow', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
   }], scripts: [] }])
-  // Sand yellow RGB [217,185,155] → R=0.850980 in Color3
-  assert(xml.includes('0.850980'), 'Sand yellow Color3 R value should appear in XML output')
-  assert(xml.includes('0.725490'), 'Sand yellow Color3 G value should appear in XML output')
+  assert(xml.includes('Sand yellow'), 'Sand yellow BrickColor name should appear in XML output')
 })
 
 test('Dark green passes through rbxmx unchanged', () => {
@@ -627,9 +625,7 @@ test('Dark green passes through rbxmx unchanged', () => {
     name: 'TestRoof', size: {x:10,y:1,z:10}, position: {x:5,y:10,z:5},
     color: 'Dark green', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
   }], scripts: [] }])
-  // Dark green RGB [0,102,0] → G=0.400000 in Color3
-  assert(xml.includes('0.400000'), 'Dark green Color3 G value should appear in XML output')
-  assert(xml.includes('<Color3 name="Color3">'), 'Color3 element should be used instead of Color3uint8')
+  assert(xml.includes('Dark green'), 'Dark green BrickColor name should appear in XML output')
 })
 
 test('peranakan compile produces Sand yellow walls', () => {

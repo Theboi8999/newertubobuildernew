@@ -27,49 +27,6 @@ export interface RbxModel {
   children?: RbxModel[]
 }
 
-const COLOR3_MAP: Record<string, [number, number, number]> = {
-  'Sand yellow':         [217, 185, 155],
-  'Brick yellow':        [215, 197, 154],
-  'Cashmere':            [211, 190, 150],
-  'Dark green':          [0,   102, 0  ],
-  'Bright green':        [75,  151, 75 ],
-  'Medium green':        [52,  142, 64 ],
-  'Sand green':          [120, 144, 130],
-  'White':               [255, 255, 255],
-  'Institutional white': [248, 248, 248],
-  'Light grey':          [196, 196, 188],
-  'Light gray':          [196, 196, 188],
-  'Medium stone grey':   [163, 162, 165],
-  'Medium stone gray':   [163, 162, 165],
-  'Dark grey':           [99,  95,  98 ],
-  'Dark gray':           [99,  95,  98 ],
-  'Dark stone grey':     [116, 114, 117],
-  'Light stone grey':    [229, 228, 223],
-  'Really black':        [17,  17,  17 ],
-  'Bright red':          [196, 40,  28 ],
-  'Dark red':            [123, 46,  47 ],
-  'Rust':                [143, 76,  42 ],
-  'Reddish brown':       [105, 64,  40 ],
-  'Bright blue':         [13,  105, 172],
-  'Navy blue':           [0,   32,  96 ],
-  'Light blue':          [162, 205, 226],
-  'Sand blue':           [116, 134, 157],
-  'Bright yellow':       [245, 205, 48 ],
-  'Bright orange':       [218, 133, 65 ],
-  'Dark orange':         [160, 95,  53 ],
-  'Hot pink':            [255, 0,   191],
-  'Bright violet':       [107, 50,  124],
-  'Bright bluish green': [0,   143, 156],
-  'Tan':                 [222, 198, 153],
-}
-
-function getColor3(colorName: string): string {
-  const rgb = COLOR3_MAP[colorName] || COLOR3_MAP['Light grey'] || [196, 196, 188]
-  const r = (rgb[0] / 255).toFixed(6)
-  const g = (rgb[1] / 255).toFixed(6)
-  const b = (rgb[2] / 255).toFixed(6)
-  return `<Color3 name="Color3"><R>${r}</R><G>${g}</G><B>${b}</B></Color3>`
-}
 
 const SAFE_MAT: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
@@ -143,13 +100,19 @@ function generatePart(part: RbxPart, id: number): string {
         <R10>0</R10><R11>1</R11><R12>0</R12>
         <R20>0</R20><R21>0</R21><R22>1</R22>
       </CoordinateFrame>
-      <int name="BrickColor">194</int>
-      ${getColor3(color)}
+      <BrickColor name="BrickColor">${color}</BrickColor>
       <token name="Material">${safeMat}</token>
       <bool name="Anchored">${part.anchored ? 'true' : 'false'}</bool>
       <float name="Transparency">${transparency}</float>
       <bool name="CanCollide">true</bool>
       <bool name="CastShadow">true</bool>
+      <token name="RenderFidelity">3</token>
+      <token name="TopSurface">0</token>
+      <token name="BottomSurface">0</token>
+      <token name="FrontSurface">0</token>
+      <token name="BackSurface">0</token>
+      <token name="LeftSurface">0</token>
+      <token name="RightSurface">0</token>
     </Properties>${part.emissive ? `
     <Item class="PointLight" referent="LIGHT_RBX${id}">
       <Properties>
