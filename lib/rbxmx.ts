@@ -27,6 +27,47 @@ export interface RbxModel {
   children?: RbxModel[]
 }
 
+const BRICK_COLORS: Record<string, number> = {
+  'White': 1,
+  'Institutional white': 1,
+  'Light grey': 1003,
+  'Light gray': 1003,
+  'Medium stone grey': 194,
+  'Medium stone gray': 194,
+  'Dark grey': 199,
+  'Dark gray': 199,
+  'Dark stone grey': 1040,
+  'Light stone grey': 1025,
+  'Really black': 26,
+  'Sand yellow': 226,
+  'Brick yellow': 1031,
+  'Reddish brown': 1014,
+  'Dark red': 11,
+  'Bright red': 21,
+  'Rust': 1007,
+  'Dark green': 28,
+  'Bright green': 37,
+  'Medium green': 29,
+  'Sand green': 1006,
+  'Bright blue': 23,
+  'Navy blue': 108,
+  'Light blue': 45,
+  'Bright yellow': 24,
+  'Cashmere': 1011,
+  'Bright bluish green': 107,
+  'Tan': 1001,
+  'Hot pink': 1013,
+  'Bright violet': 26,
+  'Dark orange': 1008,
+  'Bright orange': 1012,
+}
+
+function getBrickColorId(color: string): number {
+  if (!color) return 194
+  const id = BRICK_COLORS[color.trim()]
+  if (!id) console.log('[rbxmx] unknown color:', color)
+  return id || 194
+}
 
 const SAFE_MAT: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
@@ -100,7 +141,7 @@ function generatePart(part: RbxPart, id: number): string {
         <R10>0</R10><R11>1</R11><R12>0</R12>
         <R20>0</R20><R21>0</R21><R22>1</R22>
       </CoordinateFrame>
-      <BrickColor name="BrickColor">${color}</BrickColor>
+      <int name="BrickColor">${getBrickColorId(color)}</int>
       <token name="Material">${safeMat}</token>
       <bool name="Anchored">${part.anchored ? 'true' : 'false'}</bool>
       <float name="Transparency">${transparency}</float>

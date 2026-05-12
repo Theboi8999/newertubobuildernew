@@ -617,7 +617,8 @@ test('Sand yellow passes through rbxmx unchanged', () => {
     name: 'TestWall', size: {x:10,y:10,z:1}, position: {x:5,y:5,z:0},
     color: 'Sand yellow', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
   }], scripts: [] }])
-  assert(xml.includes('Sand yellow'), 'Sand yellow BrickColor name should appear in XML output')
+  // BrickColor ID 226 = Sand yellow
+  assert(xml.includes('>226<'), 'Sand yellow BrickColor ID 226 should appear in XML output')
 })
 
 test('Dark green passes through rbxmx unchanged', () => {
@@ -625,7 +626,8 @@ test('Dark green passes through rbxmx unchanged', () => {
     name: 'TestRoof', size: {x:10,y:1,z:10}, position: {x:5,y:10,z:5},
     color: 'Dark green', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
   }], scripts: [] }])
-  assert(xml.includes('Dark green'), 'Dark green BrickColor name should appear in XML output')
+  // BrickColor ID 28 = Dark green
+  assert(xml.includes('>28<'), 'Dark green BrickColor ID 28 should appear in XML output')
 })
 
 test('peranakan compile produces Sand yellow walls', () => {
