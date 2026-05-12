@@ -86,38 +86,30 @@ const BRICKCOLOR_TO_COLOR3: Record<string, number> = {
   'Light blue': 4289580518,
 }
 
-const MATERIAL_ENUM: Record<string, number> = {
+const SAFE_MAT: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
-  wood: 512, woodplanks: 512, timber: 512,
-  slate: 800,
+  wood: 512, timber: 512, woodplanks: 512,
   concrete: 816, stone: 816,
   marble: 784,
-  granite: 832,
-  brick: 1040,
-  pebble: 1072, foil: 1072,
-  cobblestone: 1392,
-  metal: 1280, steel: 1280, iron: 1280,
-  diamondplate: 1056,
+  metal: 1280, steel: 1280,
   fabric: 1312, carpet: 1312,
-  sand: 1088,
-  grass: 1280,
-  ice: 1536,
-  glass: 1568,
   neon: 1376,
+  slate: 800,
+  cobblestone: 1392,
+  glass: 1568,
+  sand: 1088,
+  ice: 1536,
   forcefield: 1408,
-  limestone: 1552,
-  pavement: 1504, asphalt: 1504,
-  leafygrass: 1328,
-  mud: 1344,
-  rock: 1360,
-  sandstone: 1412,
-  snow: 1488,
-  glacier: 1520,
-  ground: 1296,
 }
 
 function getMat(m: string): number {
-  return MATERIAL_ENUM[(m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')] ?? 256
+  const key = (m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')
+  const result = SAFE_MAT[key]
+  if (result === undefined) {
+    console.log('[rbxmx] unknown/blocked material:', m, '→ smoothplastic')
+    return 256
+  }
+  return result
 }
 
 
