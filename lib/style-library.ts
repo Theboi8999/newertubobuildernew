@@ -1,25 +1,25 @@
 import { ResearchResult } from './research-agent'
 
-interface StyleDef { floorCount:number; floorHeight:number; hasColonnade:boolean; hasGlassFront:boolean; exteriorColor:string; roofColor:string; exteriorMaterial:string; architecturalStyle:string }
+interface StyleDef { floorCount:number; floorHeight:number; hasColonnade:boolean; hasGlassFront:boolean; exteriorColor:string; roofColor:string; exteriorMaterial:string; architecturalStyle:string; wallMaterial?:string; roofMaterial?:string; groundMaterial?:string; columnMaterial?:string; floorBandMaterial?:string }
 
 export const STYLE_LIBRARY: Record<string,StyleDef> = {
-  'peranakan':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
-  'shophouse':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
+  'peranakan':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial',wallMaterial:'limestone',roofMaterial:'slate',groundMaterial:'pavement',columnMaterial:'concrete',floorBandMaterial:'smoothplastic'},
+  'shophouse':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial',wallMaterial:'limestone',roofMaterial:'slate',groundMaterial:'pavement',columnMaterial:'concrete',floorBandMaterial:'smoothplastic'},
   'chinese colonial':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'peranakan chinese colonial'},
   'pagoda':{floorCount:4,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark green',exteriorMaterial:'brick',architecturalStyle:'japanese pagoda'},
-  'victorian':{floorCount:3,floorHeight:11,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'victorian brick classical'},
-  'georgian':{floorCount:3,floorHeight:11,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'georgian brick classical'},
-  'gothic':{floorCount:4,floorHeight:14,hasColonnade:true,hasGlassFront:false,exteriorColor:'Medium stone grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'gothic medieval'},
+  'victorian':{floorCount:3,floorHeight:11,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'victorian brick classical',wallMaterial:'brick',roofMaterial:'slate',groundMaterial:'cobblestone',columnMaterial:'brick',floorBandMaterial:'smoothplastic'},
+  'georgian':{floorCount:3,floorHeight:11,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'georgian brick classical',wallMaterial:'brick',roofMaterial:'slate',groundMaterial:'cobblestone',columnMaterial:'marble',floorBandMaterial:'marble'},
+  'gothic':{floorCount:4,floorHeight:14,hasColonnade:true,hasGlassFront:false,exteriorColor:'Medium stone grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'gothic medieval',wallMaterial:'limestone',roofMaterial:'slate',groundMaterial:'cobblestone',columnMaterial:'limestone',floorBandMaterial:'limestone'},
   'tudor':{floorCount:2,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Cashmere',roofColor:'Really black',exteriorMaterial:'wood',architecturalStyle:'tudor timber frame'},
   'art deco':{floorCount:4,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Light stone grey',roofColor:'Really black',exteriorMaterial:'smoothplastic',architecturalStyle:'art-deco geometric'},
   'art-deco':{floorCount:4,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Light stone grey',roofColor:'Really black',exteriorMaterial:'smoothplastic',architecturalStyle:'art-deco geometric'},
-  'brutalist':{floorCount:4,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Dark stone grey',roofColor:'Dark stone grey',exteriorMaterial:'concrete',architecturalStyle:'brutalist concrete'},
-  'industrial':{floorCount:2,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Dark grey',roofColor:'Dark grey',exteriorMaterial:'metal',architecturalStyle:'industrial warehouse'},
-  'mediterranean':{floorCount:2,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'White',roofColor:'Rust',exteriorMaterial:'smoothplastic',architecturalStyle:'mediterranean whitewashed'},
+  'brutalist':{floorCount:4,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Dark stone grey',roofColor:'Dark stone grey',exteriorMaterial:'concrete',architecturalStyle:'brutalist concrete',wallMaterial:'concrete',roofMaterial:'concrete',groundMaterial:'concrete',columnMaterial:'concrete',floorBandMaterial:'concrete'},
+  'industrial':{floorCount:2,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Dark grey',roofColor:'Dark grey',exteriorMaterial:'metal',architecturalStyle:'industrial warehouse',wallMaterial:'concrete',roofMaterial:'metal',groundMaterial:'concrete',columnMaterial:'metal',floorBandMaterial:'metal'},
+  'mediterranean':{floorCount:2,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'White',roofColor:'Rust',exteriorMaterial:'smoothplastic',architecturalStyle:'mediterranean whitewashed',wallMaterial:'sandstone',roofMaterial:'slate',groundMaterial:'pavement',columnMaterial:'limestone',floorBandMaterial:'smoothplastic'},
   'baroque':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark grey',exteriorMaterial:'smoothplastic',architecturalStyle:'baroque classical'},
   'glass':{floorCount:3,floorHeight:12,hasColonnade:false,hasGlassFront:true,exteriorColor:'Light grey',roofColor:'Dark grey',exteriorMaterial:'smoothplastic',architecturalStyle:'modern glass curtain'},
   'skyscraper':{floorCount:8,floorHeight:12,hasColonnade:false,hasGlassFront:true,exteriorColor:'Light grey',roofColor:'Dark grey',exteriorMaterial:'smoothplastic',architecturalStyle:'modern glass skyscraper'},
-  'castle':{floorCount:4,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Medium stone grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'medieval castle'},
+  'castle':{floorCount:4,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Medium stone grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'medieval castle',wallMaterial:'limestone',roofMaterial:'slate',groundMaterial:'cobblestone',columnMaterial:'limestone',floorBandMaterial:'limestone'},
   'mosque':{floorCount:1,floorHeight:14,hasColonnade:true,hasGlassFront:false,exteriorColor:'White',roofColor:'Dark green',exteriorMaterial:'smoothplastic',architecturalStyle:'islamic mosque'},
   'church':{floorCount:1,floorHeight:16,hasColonnade:true,hasGlassFront:false,exteriorColor:'Light stone grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'gothic ecclesiastical'},
   'parliament':{floorCount:3,floorHeight:14,hasColonnade:true,hasGlassFront:false,exteriorColor:'Sand yellow',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'neoclassical government'},
@@ -33,12 +33,12 @@ export const STYLE_LIBRARY: Record<string,StyleDef> = {
   'stadium':{floorCount:3,floorHeight:14,hasColonnade:false,hasGlassFront:false,exteriorColor:'Light grey',roofColor:'Light grey',exteriorMaterial:'concrete',architecturalStyle:'modern sports stadium'},
   'airport':{floorCount:2,floorHeight:16,hasColonnade:false,hasGlassFront:true,exteriorColor:'White',roofColor:'Light grey',exteriorMaterial:'smoothplastic',architecturalStyle:'modern airport'},
   'temple':{floorCount:2,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark green',exteriorMaterial:'wood',architecturalStyle:'asian temple'},
-  'japanese':{floorCount:2,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'wood',architecturalStyle:'japanese traditional'},
+  'japanese':{floorCount:2,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Reddish brown',roofColor:'Dark grey',exteriorMaterial:'wood',architecturalStyle:'japanese traditional',wallMaterial:'smoothplastic',roofMaterial:'slate',groundMaterial:'pavement',columnMaterial:'wood',floorBandMaterial:'smoothplastic'},
   'bank':{floorCount:3,floorHeight:12,hasColonnade:true,hasGlassFront:false,exteriorColor:'Light stone grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'neoclassical banking'},
   'fire':{floorCount:2,floorHeight:12,hasColonnade:false,hasGlassFront:false,exteriorColor:'Bright red',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'modern fire station'},
   'warehouse':{floorCount:1,floorHeight:14,hasColonnade:false,hasGlassFront:false,exteriorColor:'Dark grey',roofColor:'Dark grey',exteriorMaterial:'metal',architecturalStyle:'industrial warehouse'},
   'apartment':{floorCount:6,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Light grey',roofColor:'Dark grey',exteriorMaterial:'brick',architecturalStyle:'modern residential'},
-  'modern':{floorCount:1,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Light grey',roofColor:'Dark grey',exteriorMaterial:'smoothplastic',architecturalStyle:'modern contemporary'},
+  'modern':{floorCount:1,floorHeight:10,hasColonnade:false,hasGlassFront:false,exteriorColor:'Light grey',roofColor:'Dark grey',exteriorMaterial:'smoothplastic',architecturalStyle:'modern contemporary',wallMaterial:'smoothplastic',roofMaterial:'concrete',groundMaterial:'concrete',columnMaterial:'smoothplastic',floorBandMaterial:'smoothplastic'},
 }
 
 export function matchStyleLibrary(buildingType: string, styleHint?: string): StyleDef | null {
@@ -65,5 +65,10 @@ export function applyStyleDefaults(r: ResearchResult): ResearchResult {
     roofColor: r.roofColor !== 'Dark grey' ? r.roofColor : def.roofColor,
     exteriorMaterial: r.exteriorMaterial !== 'smoothplastic' ? r.exteriorMaterial : def.exteriorMaterial,
     architecturalStyle: r.architecturalStyle !== 'modern' ? r.architecturalStyle : def.architecturalStyle,
+    wallMaterial: r.wallMaterial || def.wallMaterial,
+    roofMaterial: r.roofMaterial || def.roofMaterial,
+    groundMaterial: r.groundMaterial || def.groundMaterial,
+    columnMaterial: r.columnMaterial || def.columnMaterial,
+    floorBandMaterial: r.floorBandMaterial || def.floorBandMaterial,
   }
 }

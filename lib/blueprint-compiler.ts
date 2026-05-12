@@ -7,7 +7,7 @@ export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; ext
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
 
 const VC:Record<string,string>={'white':'White','institutional white':'Institutional white','light grey':'Light grey','light gray':'Light grey','medium stone grey':'Medium stone grey','medium stone gray':'Medium stone grey','dark grey':'Dark grey','dark gray':'Dark grey','light stone grey':'Light stone grey','dark stone grey':'Dark stone grey','really black':'Really black','black':'Really black','bright red':'Bright red','dark red':'Dark red','rust':'Rust','reddish brown':'Reddish brown','bright orange':'Bright orange','dark orange':'Dark orange','bright yellow':'Bright yellow','sand yellow':'Sand yellow','brick yellow':'Brick yellow','bright green':'Bright green','dark green':'Dark green','sand green':'Sand green','medium green':'Medium green','bright blue':'Bright blue','navy blue':'Navy blue','sand blue':'Sand blue','light blue':'Light blue','hot pink':'Hot pink','cashmere':'Cashmere','teal':'Bright bluish green','cyan':'Bright bluish green','brown':'Reddish brown','beige':'Sand yellow','cream':'White','grey':'Light grey','gray':'Light grey','green':'Bright green','blue':'Bright blue','red':'Bright red','yellow':'Bright yellow','orange':'Bright orange','pink':'Hot pink'}
-const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'smoothplastic',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'concrete'}
+const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'smoothplastic',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'concrete',limestone:'limestone',pavement:'pavement',cobblestone:'cobblestone',sandstone:'sandstone',slate:'slate'}
 
 function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase().trim(); if(VC[k])return VC[k]; for(const [key,val] of Object.entries(VC)){if(k.includes(key)||key.includes(k))return val} console.log('[color] no match:',c); return 'Light grey' }
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
@@ -88,14 +88,21 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     bt.includes('singapore')||st.includes('peranakan')||
     st.includes('colonial')||r.hasColonnade===true
 
+  const wallMat = r.wallMaterial || 'smoothplastic'
+  const roofMat = r.roofMaterial || 'slate'
+  const groundMat = r.groundMaterial || 'concrete'
+  const colMat = r.columnMaterial || 'concrete'
+  const bandMat = r.floorBandMaterial || 'smoothplastic'
+
   console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'chinese:',isChinese)
+  console.log('[exterior] materials - wall:', wallMat, 'roof:', roofMat, 'ground:', groundMat, 'col:', colMat)
 
   // ── TERRAIN ─────────────────────────────────────────────────
-  pts.push(p('Ground', tw+20, 1.5, td+20, tw/2, 0.25, td/2, 'Medium stone grey', 'concrete'))
+  pts.push(p('Ground', tw+20, 1.5, td+20, tw/2, 0.25, td/2, 'Medium stone grey', groundMat))
 
   // ── FOUNDATION ──────────────────────────────────────────────
-  pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, 'concrete'))
-  pts.push(p('Found_Step', tw+0.4, 0.5, td+0.4, tw/2, base+0.25, td/2, ec, 'smoothplastic'))
+  pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, wallMat))
+  pts.push(p('Found_Step', tw+0.4, 0.5, td+0.4, tw/2, base+0.25, td/2, ec, wallMat))
 
   // ── MAIN WALLS ──────────────────────────────────────────────
   const wallBase = base + 0.5
@@ -103,19 +110,19 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   for (let i = 0; i < fc; i++) {
     floorOffsets.push(i === 0 ? wallBase : floorOffsets[i-1] + floorHeights[i-1])
   }
-  pts.push(p('WallBack', tw, th, 0.7, tw/2, wallBase+th/2, td, ec, 'smoothplastic'))
-  pts.push(p('WallLeft', 0.7, th, td, 0, wallBase+th/2, td/2, ec, 'smoothplastic'))
-  pts.push(p('WallRight', 0.7, th, td, tw, wallBase+th/2, td/2, ec, 'smoothplastic'))
-  pts.push(p('WallFront', tw, th, 0.7, tw/2, wallBase+th/2, 0, ec, 'smoothplastic'))
+  pts.push(p('WallBack', tw, th, 0.7, tw/2, wallBase+th/2, td, ec, wallMat))
+  pts.push(p('WallLeft', 0.7, th, td, 0, wallBase+th/2, td/2, ec, wallMat))
+  pts.push(p('WallRight', 0.7, th, td, tw, wallBase+th/2, td/2, ec, wallMat))
+  pts.push(p('WallFront', tw, th, 0.7, tw/2, wallBase+th/2, 0, ec, wallMat))
 
   // ── CORNER PILASTERS ────────────────────────────────────────
   const pilW = 2.8
   const pilH = th + 1
   const pilCorners: [number,number][] = [[0,0],[tw,0],[0,td],[tw,td]]
   for (const [cx, cz] of pilCorners) {
-    pts.push(p(`Pil_${cx}_${cz}`, pilW, pilH, pilW, cx, wallBase+pilH/2, cz, ec, 'smoothplastic'))
-    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.8, 1.2, pilW+0.8, cx, wallBase+pilH+0.6, cz, 'White', 'smoothplastic'))
-    pts.push(p(`PilBase_${cx}_${cz}`, pilW+1, 2.0, pilW+1, cx, wallBase+1, cz, ec, 'smoothplastic'))
+    pts.push(p(`Pil_${cx}_${cz}`, pilW, pilH, pilW, cx, wallBase+pilH/2, cz, ec, wallMat))
+    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.8, 1.2, pilW+0.8, cx, wallBase+pilH+0.6, cz, 'White', wallMat))
+    pts.push(p(`PilBase_${cx}_${cz}`, pilW+1, 2.0, pilW+1, cx, wallBase+1, cz, ec, wallMat))
     pts.push(p(`PilGroove_${cx}_${cz}`, 0.3, pilH-1, 0.15, cx, wallBase+pilH/2, cz+(cz===0?-0.35:0.35), 'White', 'smoothplastic'))
   }
 
@@ -128,14 +135,14 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
     // Floor band - multi layer moulding
     if (f > 0) {
-      pts.push(p(`Band_F${f}`, tw+1.5, 2.2, 1.0, tw/2, fy+1.1, -0.5, 'White', 'smoothplastic'))
-      pts.push(p(`Band_B${f}`, tw+1.5, 2.2, 1.0, tw/2, fy+1.1, td+0.5, 'White', 'smoothplastic'))
-      pts.push(p(`Band_L${f}`, 1.0, 2.2, td+1.5, -0.5, fy+1.1, td/2, 'White', 'smoothplastic'))
-      pts.push(p(`Band_R${f}`, 1.0, 2.2, td+1.5, tw+0.5, fy+1.1, td/2, 'White', 'smoothplastic'))
-      pts.push(p(`Drip_F${f}`, tw+2.0, 0.35, 0.5, tw/2, fy-0.17, -0.7, 'White', 'smoothplastic'))
-      pts.push(p(`Drip_B${f}`, tw+2.0, 0.35, 0.5, tw/2, fy-0.17, td+0.7, 'White', 'smoothplastic'))
-      pts.push(p(`Drip_L${f}`, 0.5, 0.35, td+2.0, -0.7, fy-0.17, td/2, 'White', 'smoothplastic'))
-      pts.push(p(`Drip_R${f}`, 0.5, 0.35, td+2.0, tw+0.7, fy-0.17, td/2, 'White', 'smoothplastic'))
+      pts.push(p(`Band_F${f}`, tw+1.5, 2.2, 1.0, tw/2, fy+1.1, -0.5, 'White', bandMat))
+      pts.push(p(`Band_B${f}`, tw+1.5, 2.2, 1.0, tw/2, fy+1.1, td+0.5, 'White', bandMat))
+      pts.push(p(`Band_L${f}`, 1.0, 2.2, td+1.5, -0.5, fy+1.1, td/2, 'White', bandMat))
+      pts.push(p(`Band_R${f}`, 1.0, 2.2, td+1.5, tw+0.5, fy+1.1, td/2, 'White', bandMat))
+      pts.push(p(`Drip_F${f}`, tw+2.0, 0.35, 0.5, tw/2, fy-0.17, -0.7, 'White', bandMat))
+      pts.push(p(`Drip_B${f}`, tw+2.0, 0.35, 0.5, tw/2, fy-0.17, td+0.7, 'White', bandMat))
+      pts.push(p(`Drip_L${f}`, 0.5, 0.35, td+2.0, -0.7, fy-0.17, td/2, 'White', bandMat))
+      pts.push(p(`Drip_R${f}`, 0.5, 0.35, td+2.0, tw+0.7, fy-0.17, td/2, 'White', bandMat))
 
       // Decorative tiles on band for peranakan
       if (isChinese) {
@@ -201,20 +208,20 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       const pw = tw + 2.5
       const pd = td + 2.5
 
-      pts.push(p(`Pag${f}`, pw, 0.9, pd, tw/2, ry+0.45, td/2, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagU${f}`, pw+0.3, 0.4, pd+0.3, tw/2, ry-0.2, td/2, 'Dark green', 'smoothplastic', 0))
-      pts.push(p(`PagOF${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, -1.6, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagOB${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, td+1.6, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagOL${f}`, 1.8, 0.55, pd+2, -1.6, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagOR${f}`, 1.8, 0.55, pd+2, tw+1.6, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
-      pts.push(p(`PagRidge${f}`, pw-2, 0.6, 0.8, tw/2, ry+1.05, td/2, 'Dark green', 'smoothplastic'))
+      pts.push(p(`Pag${f}`, pw, 0.9, pd, tw/2, ry+0.45, td/2, 'Dark green', roofMat))
+      pts.push(p(`PagU${f}`, pw+0.3, 0.4, pd+0.3, tw/2, ry-0.2, td/2, 'Dark green', roofMat, 0))
+      pts.push(p(`PagOF${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, -1.6, 'Dark green', roofMat))
+      pts.push(p(`PagOB${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, td+1.6, 'Dark green', roofMat))
+      pts.push(p(`PagOL${f}`, 1.8, 0.55, pd+2, -1.6, ry+0.1, td/2, 'Dark green', roofMat))
+      pts.push(p(`PagOR${f}`, 1.8, 0.55, pd+2, tw+1.6, ry+0.1, td/2, 'Dark green', roofMat))
+      pts.push(p(`PagRidge${f}`, pw-2, 0.6, 0.8, tw/2, ry+1.05, td/2, 'Dark green', roofMat))
 
       // Corner upticks - raised + tip to simulate pagoda curl
       const pagCorners: [number,number][] = [[-2,-2],[tw+2,-2],[-2,td+2],[tw+2,td+2]]
       for (let ci = 0; ci < pagCorners.length; ci++) {
         const [cx2, cz2] = pagCorners[ci]
-        pts.push(p(`PagC${f}_${ci}`, 1.4, 0.8, 1.4, cx2, ry+0.6, cz2, 'Dark green', 'smoothplastic'))
-        pts.push(p(`PagTip${f}_${ci}`, 0.7, 0.5, 0.7, cx2, ry+1.1, cz2, 'Dark green', 'smoothplastic'))
+        pts.push(p(`PagC${f}_${ci}`, 1.4, 0.8, 1.4, cx2, ry+0.6, cz2, 'Dark green', roofMat))
+        pts.push(p(`PagTip${f}_${ci}`, 0.7, 0.5, 0.7, cx2, ry+1.1, cz2, 'Dark green', roofMat))
       }
     }
 
@@ -222,17 +229,17 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     if (isTop) {
       const ry = fy + fh - 0.5
       if (!isChinese) {
-        pts.push(p('Roof', tw+1.5, 1.0, td+1.5, tw/2, ry+0.5, td/2, 'Dark grey', 'concrete'))
-        pts.push(p('Parapet_F', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, -0.3, ec, 'smoothplastic'))
-        pts.push(p('Parapet_B', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, td+0.3, ec, 'smoothplastic'))
-        pts.push(p('Parapet_L', 0.6, 1.8, td+1.5, -0.3, ry+1.4, td/2, ec, 'smoothplastic'))
-        pts.push(p('Parapet_R', 0.6, 1.8, td+1.5, tw+0.3, ry+1.4, td/2, ec, 'smoothplastic'))
+        pts.push(p('Roof', tw+1.5, 1.0, td+1.5, tw/2, ry+0.5, td/2, 'Dark grey', roofMat))
+        pts.push(p('Parapet_F', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, -0.3, ec, wallMat))
+        pts.push(p('Parapet_B', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, td+0.3, ec, wallMat))
+        pts.push(p('Parapet_L', 0.6, 1.8, td+1.5, -0.3, ry+1.4, td/2, ec, wallMat))
+        pts.push(p('Parapet_R', 0.6, 1.8, td+1.5, tw+0.3, ry+1.4, td/2, ec, wallMat))
         pts.push(p('RoofTank', 2.5, 3.5, 2.5, tw/2, ry+2.75, td/2, 'Medium stone grey', 'smoothplastic'))
         pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'smoothplastic'))
         pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'smoothplastic'))
       } else {
-        pts.push(p('RoofCap', tw-4, 0.5, td-4, tw/2, ry+1.8, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('RoofRidge', tw-6, 0.6, 0.6, tw/2, ry+2.1, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('RoofCap', tw-4, 0.5, td-4, tw/2, ry+1.8, td/2, 'Dark green', roofMat))
+        pts.push(p('RoofRidge', tw-6, 0.6, 0.6, tw/2, ry+2.1, td/2, 'Dark green', roofMat))
         pts.push(p('RoofAC1', 2.5, 1.5, 2.5, tw/3, ry+2.5, td/3, 'Dark grey', 'smoothplastic'))
         pts.push(p('RoofAC2', 2.5, 1.5, 2.5, tw*2/3, ry+2.5, td*2/3, 'Dark grey', 'smoothplastic'))
       }
@@ -249,12 +256,12 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
-      pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'White', 'smoothplastic'))
-      pts.push(p(`ColSh_${i}`, 1.8, gfh*0.82, 1.8, cx, wallBase+gfh*0.41, colZ, 'White', 'smoothplastic'))
-      pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'White', 'smoothplastic'))
+      pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'White', colMat))
+      pts.push(p(`ColSh_${i}`, 1.8, gfh*0.82, 1.8, cx, wallBase+gfh*0.41, colZ, 'White', colMat))
+      pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'White', colMat))
       if (i < colCount - 1) {
-        pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'White', 'smoothplastic'))
-        pts.push(p(`ColArS_${i}`, cs-1.8, 0.5, 0.4, cx+cs/2, colTop-0.2, colZ-0.3, 'White', 'smoothplastic'))
+        pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'White', colMat))
+        pts.push(p(`ColArS_${i}`, cs-1.8, 0.5, 0.4, cx+cs/2, colTop-0.2, colZ-0.3, 'White', colMat))
       }
     }
 
