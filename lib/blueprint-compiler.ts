@@ -77,10 +77,12 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 
 function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   const pts: RbxPart[] = []
-  const fc = Math.max(4, Math.min(5, r.floorCount || 4))
-  const floorHeights = [14, 12, 12, 12, 12]
-  const th = floorHeights.slice(0, fc).reduce((s, h) => s + h, 0)
+  try {
+  const fc = Math.max(4, Math.min(5, Math.floor(r.floorCount || 4)))
+  const fh = 12
+  const wallBase = 2.3
   const base = 1.8
+  const th = fc * fh
   const ec = r.exteriorColor || 'Sand yellow'
   const bt = (r.buildingType||'').toLowerCase()
   const st = (r.architecturalStyle||'').toLowerCase()
@@ -106,11 +108,6 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   pts.push(p('Found_Step', tw+0.4, 0.5, td+0.4, tw/2, base+0.25, td/2, ec, wallMat))
 
   // ── MAIN WALLS ──────────────────────────────────────────────
-  const wallBase = base + 0.5
-  const floorOffsets: number[] = []
-  for (let i = 0; i < fc; i++) {
-    floorOffsets.push(i === 0 ? wallBase : floorOffsets[i-1] + floorHeights[i-1])
-  }
   pts.push(p('WallBack', tw, th, 0.7, tw/2, wallBase+th/2, td, ec, wallMat))
   pts.push(p('WallLeft', 0.7, th, td, 0, wallBase+th/2, td/2, ec, wallMat))
   pts.push(p('WallRight', 0.7, th, td, tw, wallBase+th/2, td/2, ec, wallMat))
@@ -129,8 +126,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
   // ── PER-FLOOR DETAILS ────────────────────────────────────────
   for (let f = 0; f < fc; f++) {
-    const fy = floorOffsets[f]
-    const fh = floorHeights[f] || 12
+    const fy = wallBase + f * fh
     const isGround = f === 0
     const isTop = f === fc - 1
 
@@ -239,7 +235,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'smoothplastic'))
         pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'smoothplastic'))
       } else {
-        const topRy = floorOffsets[fc-1] + floorHeights[fc-1] + 0.5
+        const topRy = wallBase + th + 0.5
         pts.push(p('RoofCap', tw-2, 0.6, td-2, tw/2, topRy+1.8, td/2, 'Dark green', 'smoothplastic'))
         pts.push(p('RoofRidge', tw-4, 0.7, 0.7, tw/2, topRy+2.2, td/2, 'Dark green', 'smoothplastic'))
         pts.push(p('RoofAC1', 2.5, 1.8, 2.5, tw/3, topRy+2.2, td/3, 'Dark grey', 'smoothplastic'))
@@ -251,16 +247,15 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
   // ── COLONNADE GROUND FLOOR ──────────────────────────────────
   if (isChinese) {
-    const gfh = floorHeights[0]
     const colCount = Math.max(4, Math.min(6, Math.floor(tw/7)))
     const cs = tw / (colCount + 1)
     const colZ = 0.5
-    const colTop = wallBase + gfh * 0.88
+    const colTop = wallBase + fh * 0.88
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
       pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'White', colMat))
-      pts.push(p(`ColSh_${i}`, 1.8, gfh*0.82, 1.8, cx, wallBase+gfh*0.41, colZ, 'White', colMat))
+      pts.push(p(`ColSh_${i}`, 1.8, fh*0.82, 1.8, cx, wallBase+fh*0.41, colZ, 'White', colMat))
       pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'White', colMat))
       if (i < colCount - 1) {
         pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'White', colMat))
@@ -268,11 +263,11 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       }
     }
 
-    pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+gfh*0.9, -2.5, 'Medium stone grey', 'concrete'))
+    pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+fh*0.9, -2.5, 'Medium stone grey', 'concrete'))
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
 
     // Per-column dark green shutters — skip centre entrance bay
-    const shutH = gfh * 0.68
+    const shutH = fh * 0.68
     const shutW = cs - 2.2
     for (let i = 0; i < colCount; i++) {
       const sx = cs * (i + 1)
@@ -280,7 +275,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       pts.push(p(`Shut_${i}`, shutW, shutH, 0.2, sx, wallBase+shutH/2, -0.45, 'Dark green', 'smoothplastic'))
     }
     const enW = 7
-    const entrH = gfh * 0.78
+    const entrH = fh * 0.78
     const doorY = wallBase + entrH / 2
     pts.push(p('EnSurround', enW+2.5, entrH+2, 0.7, tw/2, wallBase+entrH/2+0.5, -0.55, 'White', 'smoothplastic'))
     pts.push(p('EnOpening', enW, entrH, 0.5, tw/2, doorY, -0.3, 'Really black', 'smoothplastic', 0.85))
@@ -300,7 +295,10 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     pts.push(p(`Drain_${dx}_${dz}`, 0.35, th+4, 0.35, dx, th/2+2, dz, 'Dark grey', 'smoothplastic'))
   }
 
-
+  } catch(e) {
+    console.error('[buildExterior] CRASH:', e)
+    console.error('[buildExterior] parts before crash:', pts.length)
+  }
   return pts
 }
 
