@@ -128,10 +128,13 @@ function escapeXml(str: string): string {
 }
 
 function generatePart(part: RbxPart, id: number): string {
-  const materialEnum = getMat(part.material)
-  if (part.material === 'brick') console.log('[rbxmx] WARNING: brick material on:', part.name)
+  const n = part.name.toLowerCase()
+  // Force material token at the XML level — bypasses any upstream material string issues
+  const isGround = n.includes('ground') || n.includes('road') || n.includes('pavement') || n.includes('kerb')
+  const isDoor = n.includes('door') || n.includes('bench_s') || n.includes('bench_b')
+  const safeMat = isGround ? getMat('concrete') : isDoor ? getMat('wood') : 256
   const color = sanitizeColor(part.color)
-  console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material)
+  console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material, 'token:', safeMat)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
   const itemClass = part.partType || 'Part'
 
@@ -157,7 +160,7 @@ function generatePart(part: RbxPart, id: number): string {
       </CoordinateFrame>
       <int name="BrickColor">${BRICKCOLOR_IDS[color] ?? 194}</int>
       <Color3uint8 name="Color3">${BRICKCOLOR_TO_COLOR3[color] ?? 4292664540}</Color3uint8>
-      <token name="Material">${materialEnum}</token>
+      <token name="Material">${safeMat}</token>
       <bool name="Anchored">${part.anchored ? 'true' : 'false'}</bool>
       <float name="Transparency">${transparency}</float>
       <bool name="CanCollide">true</bool>
