@@ -106,7 +106,6 @@ function generatePart(part: RbxPart, id: number): string {
       <float name="Transparency">${transparency}</float>
       <bool name="CanCollide">true</bool>
       <bool name="CastShadow">true</bool>
-      <token name="RenderFidelity">3</token>
       <token name="TopSurface">0</token>
       <token name="BottomSurface">0</token>
       <token name="FrontSurface">0</token>
