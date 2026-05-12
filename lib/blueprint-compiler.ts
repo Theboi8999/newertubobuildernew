@@ -88,20 +88,21 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     bt.includes('singapore')||st.includes('peranakan')||
     st.includes('colonial')||r.hasColonnade===true
 
-  const wallMat = r.wallMaterial || 'smoothplastic'
-  const roofMat = r.roofMaterial || 'slate'
-  const groundMat = r.groundMaterial || 'concrete'
-  const colMat = r.columnMaterial || 'concrete'
-  const bandMat = r.floorBandMaterial || 'smoothplastic'
+  const wallMat = 'smoothplastic'
+  const roofMat = r.roofMaterial === 'slate' ? 'slate' : 'smoothplastic'
+  const groundMat = 'concrete'
+  const colMat = 'smoothplastic'
+  const bandMat = 'smoothplastic'
+  const foundMat = 'concrete'
 
   console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'chinese:',isChinese)
   console.log('[exterior] materials - wall:', wallMat, 'roof:', roofMat, 'ground:', groundMat, 'col:', colMat)
 
   // ── TERRAIN ─────────────────────────────────────────────────
-  pts.push(p('Ground', tw+20, 1.5, td+20, tw/2, 0.25, td/2, 'Medium stone grey', groundMat))
+  pts.push(p('Ground', tw+20, 2.0, td+20, tw/2, 0.5, td/2, 'Medium stone grey', groundMat))
 
   // ── FOUNDATION ──────────────────────────────────────────────
-  pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, wallMat))
+  pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, foundMat))
   pts.push(p('Found_Step', tw+0.4, 0.5, td+0.4, tw/2, base+0.25, td/2, ec, wallMat))
 
   // ── MAIN WALLS ──────────────────────────────────────────────
@@ -238,10 +239,12 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'smoothplastic'))
         pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'smoothplastic'))
       } else {
-        pts.push(p('RoofCap', tw-4, 0.5, td-4, tw/2, ry+1.8, td/2, 'Dark green', roofMat))
-        pts.push(p('RoofRidge', tw-6, 0.6, 0.6, tw/2, ry+2.1, td/2, 'Dark green', roofMat))
-        pts.push(p('RoofAC1', 2.5, 1.5, 2.5, tw/3, ry+2.5, td/3, 'Dark grey', 'smoothplastic'))
-        pts.push(p('RoofAC2', 2.5, 1.5, 2.5, tw*2/3, ry+2.5, td*2/3, 'Dark grey', 'smoothplastic'))
+        const topRy = floorOffsets[fc-1] + floorHeights[fc-1] + 0.5
+        pts.push(p('RoofCap', tw-2, 0.6, td-2, tw/2, topRy+1.8, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('RoofRidge', tw-4, 0.7, 0.7, tw/2, topRy+2.2, td/2, 'Dark green', 'smoothplastic'))
+        pts.push(p('RoofAC1', 2.5, 1.8, 2.5, tw/3, topRy+2.2, td/3, 'Dark grey', 'smoothplastic'))
+        pts.push(p('RoofAC2', 2.5, 1.8, 2.5, tw*2/3, topRy+2.2, td*2/3, 'Dark grey', 'smoothplastic'))
+        pts.push(p('RoofTank', 2.2, 3.0, 2.2, tw/2, topRy+3.3, td/2, 'Medium stone grey', 'smoothplastic'))
       }
     }
   }
@@ -294,7 +297,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
   // ── DRAIN PIPES ─────────────────────────────────────────────
   for (const [dx,dz] of [[0.4,0.4],[tw-0.4,0.4],[0.4,td-0.4],[tw-0.4,td-0.4]] as [number,number][]) {
-    pts.push(p(`Drain_${dx}_${dz}`, 0.35, th+4, 0.35, dx, th/2+2, dz, 'Dark grey', 'metal'))
+    pts.push(p(`Drain_${dx}_${dz}`, 0.35, th+4, 0.35, dx, th/2+2, dz, 'Dark grey', 'smoothplastic'))
   }
 
 

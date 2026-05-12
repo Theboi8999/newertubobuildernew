@@ -759,7 +759,7 @@ test('white columns for peranakan', () => {
   }))
   const cols = r.exterior.filter(p => p.name.startsWith('ColSh'))
   assert(cols.length > 0, 'should have column shafts')
-  assert(cols.every(p => p.material === 'concrete'), `columns should be concrete, got: ${cols.map(p=>p.material).join(',')}`)
+  assert(cols.every(p => p.material === 'smoothplastic'), `columns should be smoothplastic, got: ${cols.map(p=>p.material).join(',')}`)
   assert(cols.every(p => p.color === 'White'), `columns should be White, got: ${cols.map(p=>p.color).join(',')}`)
 })
 
