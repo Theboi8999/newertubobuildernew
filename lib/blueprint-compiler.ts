@@ -7,7 +7,7 @@ export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; ext
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
 
 const VC:Record<string,string>={'white':'White','institutional white':'Institutional white','light grey':'Light grey','light gray':'Light grey','medium stone grey':'Medium stone grey','medium stone gray':'Medium stone grey','dark grey':'Dark grey','dark gray':'Dark grey','light stone grey':'Light stone grey','dark stone grey':'Dark stone grey','really black':'Really black','black':'Really black','bright red':'Bright red','dark red':'Dark red','rust':'Rust','reddish brown':'Reddish brown','bright orange':'Bright orange','dark orange':'Dark orange','bright yellow':'Bright yellow','sand yellow':'Sand yellow','brick yellow':'Brick yellow','bright green':'Bright green','dark green':'Dark green','sand green':'Sand green','medium green':'Medium green','bright blue':'Bright blue','navy blue':'Navy blue','sand blue':'Sand blue','light blue':'Light blue','hot pink':'Hot pink','cashmere':'Cashmere','teal':'Bright bluish green','cyan':'Bright bluish green','brown':'Reddish brown','beige':'Sand yellow','cream':'White','grey':'Light grey','gray':'Light grey','green':'Bright green','blue':'Bright blue','red':'Bright red','yellow':'Bright yellow','orange':'Bright orange','pink':'Hot pink'}
-const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'brick',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'concrete'}
+const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'smoothplastic',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'concrete'}
 
 function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase().trim(); if(VC[k])return VC[k]; for(const [key,val] of Object.entries(VC)){if(k.includes(key)||key.includes(k))return val} console.log('[color] no match:',c); return 'Light grey' }
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
@@ -261,7 +261,6 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+gfh*0.9, -2.5, 'Medium stone grey', 'concrete'))
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
 
-    const entrW = Math.min(tw*0.32, 9)
     // Per-column dark green shutters — skip centre entrance bay
     const shutH = gfh * 0.68
     const shutW = cs - 2.2
@@ -270,12 +269,20 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
       pts.push(p(`Shut_${i}`, shutW, shutH, 0.2, sx, wallBase+shutH/2, -0.45, 'Dark green', 'smoothplastic'))
     }
-    const archY = wallBase + gfh * 0.84
-    pts.push(p('EnArch', 9.5, 1.2, 0.6, tw/2, archY, -0.5, 'White', 'smoothplastic'))
-    pts.push(p('EnKey', 1.4, 1.6, 0.5, tw/2, archY+0.4, -0.5, 'White', 'smoothplastic'))
-    pts.push(p('DoorL', entrW/2-0.3, gfh*0.76, 0.2, tw/2-entrW/4, wallBase+gfh*0.38, -0.5, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorR', entrW/2-0.3, gfh*0.76, 0.2, tw/2+entrW/4, wallBase+gfh*0.38, -0.5, 'Dark green', 'smoothplastic'))
-    pts.push(p('EnShadow', entrW, gfh*0.78, 1.0, tw/2, wallBase+gfh*0.39, 0.5, 'Really black', 'smoothplastic', 0.8))
+    const enW = 7
+    const entrH = gfh * 0.78
+    const doorY = wallBase + entrH / 2
+    pts.push(p('EnSurround', enW+2.5, entrH+2, 0.7, tw/2, wallBase+entrH/2+0.5, -0.55, 'White', 'smoothplastic'))
+    pts.push(p('EnOpening', enW, entrH, 0.5, tw/2, doorY, -0.3, 'Really black', 'smoothplastic', 0.85))
+    pts.push(p('EnArch', enW+1.5, 1.2, 0.6, tw/2, wallBase+entrH+0.6, -0.55, 'White', 'smoothplastic'))
+    pts.push(p('EnKey', 1.4, 1.6, 0.5, tw/2, wallBase+entrH+1.0, -0.55, 'White', 'smoothplastic'))
+    pts.push(p('DoorL', enW/2-0.3, entrH-0.4, 0.18, tw/2-enW/4, doorY, -0.42, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorR', enW/2-0.3, entrH-0.4, 0.18, tw/2+enW/4, doorY, -0.42, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorFrameL', 0.3, entrH, 0.3, tw/2-enW/2-0.15, doorY, -0.42, 'White', 'smoothplastic'))
+    pts.push(p('DoorFrameR', 0.3, entrH, 0.3, tw/2+enW/2+0.15, doorY, -0.42, 'White', 'smoothplastic'))
+    pts.push(p('DoorFrameT', enW+0.6, 0.3, 0.3, tw/2, wallBase+entrH+0.15, -0.42, 'White', 'smoothplastic'))
+    pts.push(p('HandleL', 0.15, 0.15, 0.2, tw/2-0.6, doorY, -0.52, 'Bright yellow', 'smoothplastic'))
+    pts.push(p('HandleR', 0.15, 0.15, 0.2, tw/2+0.6, doorY, -0.52, 'Bright yellow', 'smoothplastic'))
   }
 
   // ── DRAIN PIPES ─────────────────────────────────────────────

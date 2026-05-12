@@ -137,6 +137,7 @@ function escapeXml(str: string): string {
 
 function generatePart(part: RbxPart, id: number): string {
   const materialEnum = getMat(part.material)
+  if (part.material === 'brick') console.log('[rbxmx] WARNING: brick material on:', part.name)
   const color = sanitizeColor(part.color)
   console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
