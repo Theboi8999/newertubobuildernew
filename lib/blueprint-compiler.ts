@@ -121,7 +121,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   const pilCorners: [number,number][] = [[0,0],[tw,0],[0,td],[tw,td]]
   for (const [cx, cz] of pilCorners) {
     pts.push(p(`Pil_${cx}_${cz}`, pilW, pilH, pilW, cx, wallBase+pilH/2, cz, ec, wallMat))
-    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.8, 1.2, pilW+0.8, cx, wallBase+pilH+0.6, cz, ec, 'smoothplastic'))
+    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.3, 0.7, pilW+0.3, cx, wallBase+pilH+0.35, cz, ec, 'smoothplastic'))
     pts.push(p(`PilBase_${cx}_${cz}`, pilW+1, 2.0, pilW+1, cx, wallBase+1, cz, ec, wallMat))
     pts.push(p(`PilGroove_${cx}_${cz}`, 0.3, pilH-1, 0.15, cx, wallBase+pilH/2, cz+(cz===0?-0.35:0.35), 'White', 'smoothplastic'))
   }
@@ -334,13 +334,6 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
     pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+fh*0.9, -2.5, 'Medium stone grey', 'concrete'))
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
-    pts.push(p('FFW_Tile1', tw, 0.1, 5, tw/2, wallBase+0.35, -2.5, 'Light stone grey', 'smoothplastic'))
-    for (let t = 0; t < Math.floor(tw/3); t++) {
-      pts.push(p(`TileL_${t}`, 0.06, 0.12, 5, t*3+1.5, wallBase+0.42, -2.5, 'Medium stone grey', 'smoothplastic'))
-    }
-    for (let t2 = 0; t2 < 3; t2++) {
-      pts.push(p(`TileT_${t2}`, tw, 0.12, 0.06, tw/2, wallBase+0.42, -1+t2*1.5, 'Medium stone grey', 'smoothplastic'))
-    }
 
     // Per-column dark green shutters — skip centre entrance bay
     const shutH = fh * 0.75
@@ -350,8 +343,9 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
       pts.push(p(`Shut_${i}`, shutW, shutH, 0.25, sx, wallBase+shutH/2, -0.55, 'Dark green', 'smoothplastic'))
     }
-    const entrW = 7
-    const entrH = fh * 0.78
+    const entrW = 8
+    const entrH = fh * 0.82
+    console.log('[entrance] entrW:', entrW, 'entrH:', entrH, 'tw:', tw)
     pts.push(p('EnFrame', entrW+3, entrH+2.5, 0.9, tw/2, wallBase+entrH/2+0.5, -0.45, 'White', 'smoothplastic'))
     pts.push(p('Fanlight', entrW, fh*0.18, 0.15, tw/2, wallBase+entrH+fh*0.09, -0.5, 'Light blue', 'smoothplastic', 0.3))
     pts.push(p('FanBar1', 0.1, fh*0.18, 0.12, tw/2-entrW/3, wallBase+entrH+fh*0.09, -0.5, 'White', 'smoothplastic'))
