@@ -160,8 +160,8 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       const winCount = isGround ? Math.max(1, Math.floor((tw-12)/10)) : Math.max(2, Math.floor((tw-6)/9))
       const usableW = tw - 5
       const winSpacing = usableW / (winCount + 1)
-      const winW = Math.min(6.5, winSpacing * 0.65)
-      const winH = fh * 0.58
+      const winW = Math.min(7.0, winSpacing * 0.72)
+      const winH = fh * 0.62
       const winY = fy + fh * 0.52
 
       for (let w = 0; w < winCount; w++) {
@@ -171,10 +171,10 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p(`WRec_F${f}_${w}`, winW+0.8, winH+0.8, 0.7, wx, winY, -0.05, 'Really black', 'smoothplastic', 0.3))
 
         // Outer frame - exterior colour
-        pts.push(p(`WOFrT_F${f}_${w}`, winW+0.9, 0.4, 0.5, wx, winY+winH/2+0.2, -0.25, ec, 'smoothplastic'))
-        pts.push(p(`WOFrB_F${f}_${w}`, winW+0.9, 0.4, 0.5, wx, winY-winH/2-0.2, -0.25, ec, 'smoothplastic'))
-        pts.push(p(`WOFrL_F${f}_${w}`, 0.4, winH+0.8, 0.5, wx-winW/2-0.45, winY, -0.25, ec, 'smoothplastic'))
-        pts.push(p(`WOFrR_F${f}_${w}`, 0.4, winH+0.8, 0.5, wx+winW/2+0.45, winY, -0.25, ec, 'smoothplastic'))
+        pts.push(p(`WOFrT_F${f}_${w}`, winW+0.9, 0.5, 0.5, wx, winY+winH/2+0.2, -0.25, ec, 'smoothplastic'))
+        pts.push(p(`WOFrB_F${f}_${w}`, winW+0.9, 0.5, 0.5, wx, winY-winH/2-0.2, -0.25, ec, 'smoothplastic'))
+        pts.push(p(`WOFrL_F${f}_${w}`, 0.5, winH+0.8, 0.5, wx-winW/2-0.45, winY, -0.25, ec, 'smoothplastic'))
+        pts.push(p(`WOFrR_F${f}_${w}`, 0.5, winH+0.8, 0.5, wx+winW/2+0.45, winY, -0.25, ec, 'smoothplastic'))
 
         // Inner frame - white
         pts.push(p(`WFrT_F${f}_${w}`, winW+0.3, 0.3, 0.35, wx, winY+winH/2+0.15, -0.4, 'White', 'smoothplastic'))
@@ -186,7 +186,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p(`WSill_F${f}_${w}`, winW+1.0, 0.3, 0.65, wx, winY-winH/2-0.42, -0.32, 'White', 'smoothplastic'))
 
         // Glass pane - reflective institutional white, pushed clear of recess
-        pts.push(p(`WGlass_F${f}_${w}`, winW, winH, 0.12, wx, winY, -0.45, 'Institutional white', 'smoothplastic', 0.3))
+        pts.push(p(`WGlass_F${f}_${w}`, winW, winH, 0.12, wx, winY, -0.45, 'Light blue', 'smoothplastic', 0.25))
 
         // Lattice for peranakan
         if (isChinese) {
@@ -197,6 +197,15 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
         // Lintel above window
         pts.push(p(`WLin_F${f}_${w}`, winW+1.0, 0.45, 0.45, wx, winY+winH/2+0.52, -0.22, ec, 'smoothplastic'))
+      }
+      if (isChinese && !isGround) {
+        for (let w = 0; w < winCount; w++) {
+          const wx = 2.5 + winSpacing * (w + 1)
+          const shutW = winW * 0.42
+          const shutH = winH * 0.92
+          pts.push(p(`WShutL_F${f}_${w}`, shutW, shutH, 0.12, wx-winW/2-shutW/2-0.1, winY, -0.5, 'Dark green', 'smoothplastic'))
+          pts.push(p(`WShutR_F${f}_${w}`, shutW, shutH, 0.12, wx+winW/2+shutW/2+0.1, winY, -0.5, 'Dark green', 'smoothplastic'))
+        }
       }
     }
 
@@ -222,6 +231,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p(`PagC${f}_${ci}`, 1.4, 0.8, 1.4, cx2, ry+0.6, cz2, 'Dark green', roofMat))
         pts.push(p(`PagTip${f}_${ci}`, 0.7, 0.5, 0.7, cx2, ry+1.1, cz2, 'Dark green', roofMat))
       }
+      pts.push(p(`PagShadow${f}`, pw+2.5, 0.2, pd+2.5, tw/2, ry-0.55, td/2, 'Dark green', roofMat, 0.1))
     }
 
     // Top floor roof
@@ -254,12 +264,18 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     }
   }
 
-  // ── FRONT WALL RECESSED PANELS ────────────────────────────────
+  // ── DECORATIVE FACADE PANELS ──────────────────────────────────
   if (isChinese) {
     for (let f2 = 1; f2 < fc; f2++) {
       const fy2 = wallBase + f2 * fh
-      const panelY = fy2 - fh*0.3
-      pts.push(p(`Panel_F${f2}`, tw-pilW*2-1, fh*0.55, 0.12, tw/2, panelY+fh*0.275, -0.06, 'Sand yellow', 'smoothplastic'))
+      const panX1 = pilW/2 + 1
+      const panX2 = tw - pilW/2 - 1
+      const panH = fh * 0.4
+      const panY = fy2 + fh * 0.25
+      pts.push(p(`DecPanL_${f2}`, 2.5, panH, 0.1, panX1, panY, -0.05, 'White', 'smoothplastic'))
+      pts.push(p(`DecPanR_${f2}`, 2.5, panH, 0.1, panX2, panY, -0.05, 'White', 'smoothplastic'))
+      pts.push(p(`TileInsL_${f2}`, 2.0, panH*0.7, 0.08, panX1, panY, -0.08, 'Bright blue', 'smoothplastic'))
+      pts.push(p(`TileInsR_${f2}`, 2.0, panH*0.7, 0.08, panX2, panY, -0.08, 'Bright blue', 'smoothplastic'))
     }
   }
 
@@ -302,20 +318,29 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     const cs = tw / (colCount + 1)
     const colZ = 0.5
     const colTop = wallBase + fh * 0.88
+    const colShaftH = fh * 0.88
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
       pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'White', colMat))
-      pts.push(p(`ColSh_${i}`, 1.8, fh*0.82, 1.8, cx, wallBase+fh*0.41, colZ, 'White', colMat))
+      pts.push(p(`ColSh_${i}`, 2.0, colShaftH, 2.0, cx, wallBase+colShaftH/2, colZ, 'White', colMat))
       pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'White', colMat))
       if (i < colCount - 1) {
         pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'White', colMat))
         pts.push(p(`ColArS_${i}`, cs-1.8, 0.5, 0.4, cx+cs/2, colTop-0.2, colZ-0.3, 'White', colMat))
+        pts.push(p(`ColArcKey_${i}`, 1.0, 1.2, 0.5, cx+cs/2, colTop+0.3, colZ-0.2, 'White', 'smoothplastic'))
       }
     }
 
     pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+fh*0.9, -2.5, 'Medium stone grey', 'concrete'))
     pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
+    pts.push(p('FFW_Tile1', tw, 0.1, 5, tw/2, wallBase+0.35, -2.5, 'Light stone grey', 'smoothplastic'))
+    for (let t = 0; t < Math.floor(tw/3); t++) {
+      pts.push(p(`TileL_${t}`, 0.06, 0.12, 5, t*3+1.5, wallBase+0.42, -2.5, 'Medium stone grey', 'smoothplastic'))
+    }
+    for (let t2 = 0; t2 < 3; t2++) {
+      pts.push(p(`TileT_${t2}`, tw, 0.12, 0.06, tw/2, wallBase+0.42, -1+t2*1.5, 'Medium stone grey', 'smoothplastic'))
+    }
 
     // Per-column dark green shutters — skip centre entrance bay
     const shutH = fh * 0.75
@@ -325,20 +350,21 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
       pts.push(p(`Shut_${i}`, shutW, shutH, 0.25, sx, wallBase+shutH/2, -0.55, 'Dark green', 'smoothplastic'))
     }
-    const enW = 7
+    const entrW = 7
     const entrH = fh * 0.78
-    const doorY = wallBase + entrH / 2
-    pts.push(p('EnSurround', enW+2.5, entrH+2, 0.7, tw/2, wallBase+entrH/2+0.5, -0.55, 'White', 'smoothplastic'))
-    pts.push(p('EnOpening', enW, entrH, 0.5, tw/2, doorY, -0.3, 'Really black', 'smoothplastic', 0.85))
-    pts.push(p('EnArch', enW+1.5, 1.2, 0.6, tw/2, wallBase+entrH+0.6, -0.55, 'White', 'smoothplastic'))
-    pts.push(p('EnKey', 1.4, 1.6, 0.5, tw/2, wallBase+entrH+1.0, -0.55, 'White', 'smoothplastic'))
-    pts.push(p('DoorL', enW/2-0.3, entrH-0.4, 0.18, tw/2-enW/4, doorY, -0.42, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorR', enW/2-0.3, entrH-0.4, 0.18, tw/2+enW/4, doorY, -0.42, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorFrameL', 0.3, entrH, 0.3, tw/2-enW/2-0.15, doorY, -0.42, 'White', 'smoothplastic'))
-    pts.push(p('DoorFrameR', 0.3, entrH, 0.3, tw/2+enW/2+0.15, doorY, -0.42, 'White', 'smoothplastic'))
-    pts.push(p('DoorFrameT', enW+0.6, 0.3, 0.3, tw/2, wallBase+entrH+0.15, -0.42, 'White', 'smoothplastic'))
-    pts.push(p('HandleL', 0.15, 0.15, 0.2, tw/2-0.6, doorY, -0.52, 'Bright yellow', 'smoothplastic'))
-    pts.push(p('HandleR', 0.15, 0.15, 0.2, tw/2+0.6, doorY, -0.52, 'Bright yellow', 'smoothplastic'))
+    pts.push(p('EnFrame', entrW+3, entrH+2.5, 0.9, tw/2, wallBase+entrH/2+0.5, -0.45, 'White', 'smoothplastic'))
+    pts.push(p('Fanlight', entrW, fh*0.18, 0.15, tw/2, wallBase+entrH+fh*0.09, -0.5, 'Light blue', 'smoothplastic', 0.3))
+    pts.push(p('FanBar1', 0.1, fh*0.18, 0.12, tw/2-entrW/3, wallBase+entrH+fh*0.09, -0.5, 'White', 'smoothplastic'))
+    pts.push(p('FanBar2', 0.1, fh*0.18, 0.12, tw/2+entrW/3, wallBase+entrH+fh*0.09, -0.5, 'White', 'smoothplastic'))
+    pts.push(p('FanBarH', entrW, 0.1, 0.12, tw/2, wallBase+entrH+fh*0.05, -0.5, 'White', 'smoothplastic'))
+    pts.push(p('DoorL', entrW/2-0.3, entrH*0.92, 0.2, tw/2-entrW/4, wallBase+entrH*0.46, -0.5, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorR', entrW/2-0.3, entrH*0.92, 0.2, tw/2+entrW/4, wallBase+entrH*0.46, -0.5, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorPanelL1', entrW/2-0.9, entrH*0.35, 0.08, tw/2-entrW/4, wallBase+entrH*0.65, -0.62, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorPanelL2', entrW/2-0.9, entrH*0.35, 0.08, tw/2-entrW/4, wallBase+entrH*0.22, -0.62, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorPanelR1', entrW/2-0.9, entrH*0.35, 0.08, tw/2+entrW/4, wallBase+entrH*0.65, -0.62, 'Dark green', 'smoothplastic'))
+    pts.push(p('DoorPanelR2', entrW/2-0.9, entrH*0.35, 0.08, tw/2+entrW/4, wallBase+entrH*0.22, -0.62, 'Dark green', 'smoothplastic'))
+    pts.push(p('HandleL', 0.2, 0.2, 0.25, tw/2-0.7, wallBase+entrH*0.45, -0.7, 'Bright yellow', 'smoothplastic'))
+    pts.push(p('HandleR', 0.2, 0.2, 0.25, tw/2+0.7, wallBase+entrH*0.45, -0.7, 'Bright yellow', 'smoothplastic'))
   }
 
   // ── DRAIN PIPES ─────────────────────────────────────────────
