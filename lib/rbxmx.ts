@@ -71,6 +71,7 @@ function getBrickColorId(color: string): number {
 
 const SAFE_MAT: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
+  brick: 1040,
   wood: 512, timber: 512, woodplanks: 512,
   concrete: 816, stone: 816,
   marble: 784,
@@ -115,7 +116,7 @@ function generatePart(part: RbxPart, id: number): string {
   // Force material token at the XML level — bypasses any upstream material string issues
   const isGround = n.includes('ground') || n.includes('road') || n.includes('pavement') || n.includes('kerb')
   const isDoor = n.includes('door') || n.includes('bench_s') || n.includes('bench_b')
-  const safeMat = isGround ? getMat('concrete') : isDoor ? getMat('wood') : 256
+  const safeMat = isGround ? getMat('concrete') : isDoor ? getMat('wood') : getMat(part.material)
   const color = sanitizeColor(part.color)
   console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material, 'token:', safeMat)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
@@ -208,17 +209,24 @@ function getLightingXml(style: string): string {
     return `
   <Item class="Lighting" referent="LIGHTING">
     <Properties>
-      <float name="Ambient">0.4</float>
+      <token name="Technology">4</token>
+      <Color3 name="Ambient"><R>0.5</R><G>0.5</G><B>0.5</B></Color3>
       <Color3 name="ColorShift_Bottom"><R>0.98</R><G>0.9</G><B>0.7</B></Color3>
       <Color3 name="ColorShift_Top"><R>0.6</R><G>0.8</G><B>1</B></Color3>
-      <float name="Brightness">2</float>
-      <float name="ClockTime">15</float>
+      <float name="Brightness">3</float>
+      <float name="ClockTime">14</float>
       <bool name="GlobalShadows">true</bool>
-      <float name="OutdoorAmbient">0.5</float>
+      <float name="GeographicLatitude">1.3</float>
+      <Color3 name="OutdoorAmbient"><R>0.6</R><G>0.6</G><B>0.6</B></Color3>
       <Color3 name="FogColor"><R>0.8</R><G>0.85</G><B>0.9</B></Color3>
       <float name="FogEnd">1000</float>
       <float name="FogStart">200</float>
     </Properties>
+    <Item class="Sky" referent="SKY_A">
+      <Properties>
+        <bool name="CelestialBodiesShown">true</bool>
+      </Properties>
+    </Item>
   </Item>
   <Item class="Atmosphere" referent="ATMOSPHERE_A">
     <Properties>
@@ -234,11 +242,18 @@ function getLightingXml(style: string): string {
   return `
   <Item class="Lighting" referent="LIGHTING">
     <Properties>
-      <float name="Brightness">2</float>
+      <token name="Technology">4</token>
+      <Color3 name="Ambient"><R>0.5</R><G>0.5</G><B>0.5</B></Color3>
+      <float name="Brightness">3</float>
       <float name="ClockTime">14</float>
       <bool name="GlobalShadows">true</bool>
-      <float name="OutdoorAmbient">0.5</float>
+      <Color3 name="OutdoorAmbient"><R>0.6</R><G>0.6</G><B>0.6</B></Color3>
     </Properties>
+    <Item class="Sky" referent="SKY_B">
+      <Properties>
+        <bool name="CelestialBodiesShown">true</bool>
+      </Properties>
+    </Item>
   </Item>
   <Item class="Atmosphere" referent="ATMOSPHERE_B">
     <Properties>
