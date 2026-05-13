@@ -1,5 +1,40 @@
 // Generates valid .rbxmx XML files for Roblox Studio
 
+const COLOR3_VALUES: Record<string, [number, number, number]> = {
+  'White': [1, 1, 1],
+  'Institutional white': [0.973, 0.973, 0.973],
+  'Light grey': [0.639, 0.635, 0.647],
+  'Light gray': [0.639, 0.635, 0.647],
+  'Medium stone grey': [0.639, 0.635, 0.647],
+  'Medium stone gray': [0.639, 0.635, 0.647],
+  'Dark grey': [0.388, 0.373, 0.384],
+  'Dark gray': [0.388, 0.373, 0.384],
+  'Dark stone grey': [0.388, 0.373, 0.384],
+  'Light stone grey': [0.784, 0.784, 0.784],
+  'Really black': [0.067, 0.067, 0.067],
+  'Sand yellow': [0.706, 0.639, 0.490],
+  'Brick yellow': [0.843, 0.773, 0.604],
+  'Reddish brown': [0.482, 0.227, 0.122],
+  'Dark red': [0.455, 0.0, 0.0],
+  'Bright red': [0.769, 0.157, 0.110],
+  'Rust': [0.561, 0.298, 0.165],
+  'Dark green': [0.157, 0.498, 0.278],
+  'Bright green': [0.294, 0.592, 0.294],
+  'Medium green': [0.631, 0.769, 0.561],
+  'Sand green': [0.467, 0.565, 0.510],
+  'Bright blue': [0.051, 0.412, 0.675],
+  'Navy blue': [0.0, 0.125, 0.376],
+  'Light blue': [0.706, 0.824, 0.894],
+  'Bright yellow': [0.961, 0.804, 0.188],
+  'Cashmere': [0.851, 0.773, 0.604],
+  'Bright bluish green': [0.0, 0.561, 0.612],
+  'Tan': [0.902, 0.851, 0.702],
+  'Hot pink': [1.0, 0.0, 0.561],
+  'Bright violet': [0.420, 0.196, 0.486],
+  'Dark orange': [0.627, 0.373, 0.208],
+  'Bright orange': [0.855, 0.522, 0.255],
+}
+
 export interface RbxPart {
   name: string
   size: { x: number; y: number; z: number }
@@ -142,7 +177,7 @@ function generatePart(part: RbxPart, id: number): string {
         <R10>0</R10><R11>1</R11><R12>0</R12>
         <R20>0</R20><R21>0</R21><R22>1</R22>
       </CoordinateFrame>
-      <int name="BrickColor">${getBrickColorId(color)}</int>
+      <int name="BrickColor">${getBrickColorId(color)}</int>${(() => { const rgb = COLOR3_VALUES[color]; return rgb ? `\n      <Color3 name="Color"><R>${rgb[0]}</R><G>${rgb[1]}</G><B>${rgb[2]}</B></Color3>` : '' })()}
       <token name="Material">${safeMat}</token>
       <bool name="Anchored">${part.anchored ? 'true' : 'false'}</bool>
       <float name="Transparency">${transparency}</float>
@@ -209,7 +244,7 @@ function getLightingXml(style: string): string {
     return `
   <Item class="Lighting" referent="LIGHTING">
     <Properties>
-      <token name="Technology">4</token>
+      <string name="Technology">Future</string>
       <Color3 name="Ambient"><R>0.5</R><G>0.5</G><B>0.5</B></Color3>
       <Color3 name="ColorShift_Bottom"><R>0.98</R><G>0.9</G><B>0.7</B></Color3>
       <Color3 name="ColorShift_Top"><R>0.6</R><G>0.8</G><B>1</B></Color3>
@@ -242,7 +277,7 @@ function getLightingXml(style: string): string {
   return `
   <Item class="Lighting" referent="LIGHTING">
     <Properties>
-      <token name="Technology">4</token>
+      <string name="Technology">Future</string>
       <Color3 name="Ambient"><R>0.5</R><G>0.5</G><B>0.5</B></Color3>
       <float name="Brightness">3</float>
       <float name="ClockTime">14</float>

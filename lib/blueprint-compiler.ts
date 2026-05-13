@@ -370,16 +370,20 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   for (const part of pts) {
     const n = part.name.toLowerCase()
     if (n.includes('ground') || n.includes('road') || n.includes('pavement') ||
-        n.includes('kerb') || n.includes('terrain') || n.includes('ffw_')) {
+        n.includes('terrain') || n.includes('kerb') || n.includes('ffw_floor')) {
       part.material = 'concrete'
-    } else if (n.includes('door') || n.includes('bench_s') || n.includes('bench_b')) {
+    } else if (n.includes('trunk') || n.includes('bench_s') || n.includes('bench_b') ||
+               n.includes('door') || n.includes('door_')) {
       part.material = 'wood'
-    } else if (part.material !== 'brick') {
+    } else if (n.includes('drain') || n.includes('lpost') || n.includes('larm') ||
+               n.includes('ac_') || n.includes('acvent') || n.includes('utilitybox')) {
+      part.material = 'metal'
+    } else {
       part.material = 'smoothplastic'
     }
   }
   const badMats = pts.filter(p2 => p2.material !== 'smoothplastic' &&
-    p2.material !== 'concrete' && p2.material !== 'wood')
+    p2.material !== 'concrete' && p2.material !== 'wood' && p2.material !== 'metal')
   if (badMats.length > 0) {
     console.log('[exterior] WARNING bad materials:', badMats.map(p2 => `${p2.name}:${p2.material}`).join(', '))
   }
