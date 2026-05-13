@@ -37,7 +37,7 @@ const BRICK_COLORS: Record<string, number> = {
   'Dark grey': 199,
   'Dark gray': 199,
   'Dark stone grey': 1040,
-  'Light stone grey': 1025,
+  'Light stone grey': 208,
   'Really black': 26,
   'Sand yellow': 226,
   'Brick yellow': 1031,

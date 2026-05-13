@@ -103,6 +103,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
 
   // ── TERRAIN ─────────────────────────────────────────────────
   pts.push(p('Ground', tw+20, 2.0, td+20, tw/2, 0.5, td/2, 'Medium stone grey', groundMat))
+  pts.push(p('Pavement', tw+16, 0.8, 14, tw/2, 0.1, -7, 'Medium stone grey', 'concrete'))
 
   // ── FOUNDATION ──────────────────────────────────────────────
   pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, foundMat))
@@ -199,7 +200,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
       }
     }
 
-    // ── PAGODA ROOFS ────────────────────────────────────────
+    // ── PAGODA ROOFS — runs every floor including fc-1; no isTop exclusion ─────
     if (isChinese) {
       const ry = fy + fh - 0.5
       console.log('[pagoda] floor', f, 'ry:', ry, 'fy:', fy, 'fh:', fh)
@@ -250,6 +251,48 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
         pts.push(p('AC1', 2.5, 1.5, 2.5, tw/3, ry+1.0, td/3, 'Dark grey', 'smoothplastic'))
         pts.push(p('AC2', 2.5, 1.5, 2.5, tw*2/3, ry+1.0, td*2/3, 'Dark grey', 'smoothplastic'))
       }
+    }
+  }
+
+  // ── FRONT WALL RECESSED PANELS ────────────────────────────────
+  if (isChinese) {
+    for (let f2 = 1; f2 < fc; f2++) {
+      const fy2 = wallBase + f2 * fh
+      const panelY = fy2 - fh*0.3
+      pts.push(p(`Panel_F${f2}`, tw-pilW*2-1, fh*0.55, 0.12, tw/2, panelY+fh*0.275, -0.06, 'Sand yellow', 'smoothplastic'))
+    }
+  }
+
+  // ── BACK WALL DETAIL ──────────────────────────────────────────
+  if (isChinese) {
+    for (let f2 = 1; f2 < fc; f2++) {
+      const fy2 = wallBase + f2 * fh
+      pts.push(p(`AC_F${f2}_L`, 3.5, 2.0, 0.8, tw*0.3, fy2+fh*0.6, td+0.4, 'Dark grey', 'smoothplastic'))
+      pts.push(p(`AC_F${f2}_R`, 3.5, 2.0, 0.8, tw*0.7, fy2+fh*0.6, td+0.4, 'Dark grey', 'smoothplastic'))
+      pts.push(p(`ACVent_F${f2}_L`, 3.3, 0.15, 0.3, tw*0.3, fy2+fh*0.5, td+0.45, 'Dark stone grey', 'smoothplastic'))
+      pts.push(p(`ACVent_F${f2}_R`, 3.3, 0.15, 0.3, tw*0.7, fy2+fh*0.5, td+0.45, 'Dark stone grey', 'smoothplastic'))
+    }
+    pts.push(p('BkDrain_L', 0.35, th+2, 0.35, tw*0.15, wallBase+th/2, td+0.4, 'Dark grey', 'smoothplastic'))
+    pts.push(p('BkDrain_R', 0.35, th+2, 0.35, tw*0.85, wallBase+th/2, td+0.4, 'Dark grey', 'smoothplastic'))
+    const sdH = fh * 0.75
+    const sdW = 4
+    pts.push(p('BackEntry', sdW, sdH, 0.2, tw*0.75, wallBase+sdH/2, td+0.1, 'Dark grey', 'smoothplastic'))
+    pts.push(p('BackEntryFr', sdW+0.4, sdH+0.3, 0.15, tw*0.75, wallBase+sdH/2, td+0.08, 'Dark stone grey', 'smoothplastic'))
+    pts.push(p('UtilityBox', 2.5, 2.0, 0.5, tw*0.2, wallBase+3, td+0.25, 'Medium stone grey', 'smoothplastic'))
+    pts.push(p('UtilityPanel', 2.3, 1.8, 0.15, tw*0.2, wallBase+3, td+0.5, 'Light grey', 'smoothplastic'))
+  }
+
+  // ── SIDE WALL VENTS ───────────────────────────────────────────
+  if (isChinese) {
+    for (let f2 = 1; f2 < fc; f2++) {
+      const fy2 = wallBase + f2 * fh
+      const ventW = 2.5
+      const ventH = 1.2
+      const ventY = fy2 + fh * 0.75
+      pts.push(p(`Vent_L${f2}`, 0.5, ventH, ventW, -0.05, ventY, td*0.35, 'Really black', 'smoothplastic', 0.4))
+      pts.push(p(`VentFr_L${f2}`, 0.3, ventH+0.2, ventW+0.2, -0.3, ventY, td*0.35, 'White', 'smoothplastic'))
+      pts.push(p(`Vent_R${f2}`, 0.5, ventH, ventW, tw+0.05, ventY, td*0.35, 'Really black', 'smoothplastic', 0.4))
+      pts.push(p(`VentFr_R${f2}`, 0.3, ventH+0.2, ventW+0.2, tw+0.3, ventY, td*0.35, 'White', 'smoothplastic'))
     }
   }
 
