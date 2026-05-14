@@ -56,8 +56,12 @@ export default function TurboChat({ onGenerate, isGenerating }: TurboChatProps) 
   }
 
   const handleGenerate = () => {
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content || ''
+    const rawPrompt = intent.rawPrompt || input.trim() || lastUserMsg
+    if (!rawPrompt || isGenerating) return
     const finalIntent: BuildIntent = {
       ...intent,
+      rawPrompt,
       mode,
       scenery: scenery as BuildIntent['scenery'],
       furniture: furniture as BuildIntent['furniture'],
@@ -194,8 +198,8 @@ export default function TurboChat({ onGenerate, isGenerating }: TurboChatProps) 
             </div>
             <button
               onClick={handleGenerate}
-              disabled={isGenerating}
-              className="w-full py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 text-white rounded-lg font-semibold text-sm transition-colors"
+              disabled={isGenerating || (!intent.rawPrompt && !input.trim() && !messages.some(m => m.role === 'user'))}
+              className="w-full py-3 bg-green-600 hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg font-semibold text-sm transition-colors"
             >
               {isGenerating ? 'Generating...' : 'Generate'}
             </button>
