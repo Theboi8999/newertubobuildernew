@@ -1,12 +1,11 @@
 import Groq from 'groq-sdk'
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-
 export async function groqGenerate(
   systemPrompt: string,
   userPrompt: string,
   maxTokens = 1500
 ): Promise<string> {
+  const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
   const truncSys = systemPrompt.substring(0, 800)
   const truncUser = userPrompt.substring(0, 1500)
 
