@@ -18,6 +18,11 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   for (let f = 1; f < plan.floorCount; f++) {
     const fy = wallBase + f * plan.floorHeight
     parts.push(p(`FloorSlab_F${f}`, tw - 1, 0.5, td - 1, tw / 2, fy, td / 2, 'Medium stone grey', 'concrete'))
+    // Horizontal floor band on facade
+    parts.push(p(`Band_F${f}_Front`, tw + 0.2, 0.9, 0.55, tw / 2, fy + 0.45, -0.05, dna.floorBandColor, 'smoothplastic'))
+    parts.push(p(`Band_F${f}_Back`,  tw + 0.2, 0.9, 0.55, tw / 2, fy + 0.45, td + 0.05, dna.floorBandColor, 'smoothplastic'))
+    parts.push(p(`Band_F${f}_Left`,  0.55, 0.9, td + 0.2, -0.05, fy + 0.45, td / 2, dna.floorBandColor, 'smoothplastic'))
+    parts.push(p(`Band_F${f}_Right`, 0.55, 0.9, td + 0.2, tw + 0.05, fy + 0.45, td / 2, dna.floorBandColor, 'smoothplastic'))
   }
 
   const pilW = 2.8
