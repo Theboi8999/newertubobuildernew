@@ -2,11 +2,16 @@ import { analysePrompt } from '../lib/prompt-intelligence'
 import { buildRbxmx } from '../lib/rbxmx'
 import { applyStyleDefaults } from '../lib/style-library'
 import { preGate, postGate } from '../lib/quality-gate'
-import { compileBlueprint } from '../lib/blueprint-compiler'
+import { compileBlueprint, BuildPlan } from '../lib/blueprint-compiler'
 import { checkBuildingQuality } from '../lib/quality-checker'
 import { ResearchResult } from '../lib/research-agent'
 import { placeRoomsWithBSP, getRoomType } from '../lib/room-placer'
 import { calculateWindowPositions, buildProportionalWindow } from '../lib/window-system'
+import { getStyleDNA } from '../lib/style/style-dna'
+import { generateStructure } from '../lib/passes/pass-1-structure'
+import { generateRoof } from '../lib/passes/pass-2-roof'
+import { generateTerrain } from '../lib/passes/pass-6-terrain'
+import { createDefaultIntent, isIntentComplete, estimateGeneration } from '../lib/brain/build-intent'
 
 // ── Test runner ──────────────────────────────────────────────────────────────
 
@@ -759,6 +764,103 @@ test('white columns for peranakan', () => {
   assert(cols.length > 0, 'should have column shafts')
   assert(cols.every(p => p.material === 'smoothplastic'), `columns should be smoothplastic, got: ${cols.map(p=>p.material).join(',')}`)
   assert(cols.every(p => p.color === 'White'), `columns should be White, got: ${cols.map(p=>p.color).join(',')}`)
+})
+
+// ── STYLE DNA TESTS ──────────────────────────────────────────────────────────
+
+console.log('\n═══ STYLE DNA ═══')
+
+test('StyleDNA matches peranakan', () => {
+  const dna = getStyleDNA('peranakan chinese colonial', 'shophouse', {
+    exteriorColor: 'Sand yellow', roofColor: 'Dark green'
+  })
+  assert(dna.primaryColor === 'Sand yellow', `primary color should be sand yellow, got ${dna.primaryColor}`)
+  assert(dna.roofColor === 'Dark green', `roof color should be dark green, got ${dna.roofColor}`)
+  assert(dna.hasColonnade === true, 'peranakan should have colonnade')
+  assert(dna.roofType === 'pagoda', `peranakan should have pagoda roof, got ${dna.roofType}`)
+})
+
+test('StyleDNA matches victorian', () => {
+  const dna = getStyleDNA('victorian', 'house', {})
+  assert(dna.roofType === 'hip', `victorian should have hip roof, got ${dna.roofType}`)
+  assert(dna.ornamentLevel === 'heavy', `victorian should have heavy ornament, got ${dna.ornamentLevel}`)
+})
+
+test('StyleDNA research colors override library', () => {
+  const dna = getStyleDNA('peranakan', 'shophouse', {
+    exteriorColor: 'Bright red',
+    roofColor: 'Really black',
+  })
+  assert(dna.primaryColor === 'Bright red', `research color should override library, got ${dna.primaryColor}`)
+})
+
+// ── PASS SYSTEM TESTS ─────────────────────────────────────────────────────────
+
+console.log('\n═══ PASS SYSTEM ═══')
+
+test('generateStructure returns foundation and walls', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 4, floorHeight: 12, buildingType: 'shophouse', architecturalStyle: 'peranakan' }
+  const dna = getStyleDNA('peranakan', 'shophouse', { exteriorColor: 'Sand yellow' })
+  const parts = generateStructure(plan, dna)
+  assert(parts.some(p => p.name === 'Foundation'), 'should have Foundation')
+  assert(parts.some(p => p.name === 'WallFront'), 'should have WallFront')
+  assert(parts.some(p => p.name.includes('Pil_')), 'should have pilasters')
+})
+
+test('generateRoof pagoda creates per-floor tiers', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 4, floorHeight: 12, buildingType: 'shophouse', architecturalStyle: 'peranakan' }
+  const dna = getStyleDNA('peranakan', 'shophouse', { roofColor: 'Dark green' })
+  const parts = generateRoof(plan, dna)
+  const pagodas = parts.filter(p => p.name.startsWith('Pag') && !p.name.startsWith('PagO') && !p.name.startsWith('PagR') && !p.name.startsWith('PagU') && !p.name.startsWith('PagC') && !p.name.startsWith('PagT'))
+  assert(pagodas.length >= 4, `should have 4 pagoda slabs got ${pagodas.length}`)
+})
+
+test('generateTerrain none returns empty', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 4, floorHeight: 12, buildingType: 'shophouse', architecturalStyle: 'peranakan' }
+  const dna = getStyleDNA('peranakan', 'shophouse', {})
+  const parts = generateTerrain(plan, dna, 'none')
+  assert(parts.length === 0, `none scenery should return empty, got ${parts.length}`)
+})
+
+test('generateTerrain full returns trees and lamps', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 4, floorHeight: 12, buildingType: 'shophouse', architecturalStyle: 'peranakan' }
+  const dna = getStyleDNA('peranakan', 'shophouse', {})
+  const parts = generateTerrain(plan, dna, 'full')
+  assert(parts.some(p => p.name.startsWith('Trunk')), 'full scenery should have trees')
+  assert(parts.some(p => p.name.startsWith('LPost')), 'full scenery should have lamp posts')
+})
+
+test('buildExterior total parts above 200', () => {
+  const r = mockResearch({
+    buildingType: 'peranakan_shophouse',
+    architecturalStyle: 'peranakan chinese colonial',
+    hasColonnade: true,
+    exteriorColor: 'Sand yellow',
+    roofColor: 'Dark green',
+    floorCount: 4,
+    scenery: 'minimal',
+  })
+  const result = compileBlueprint(r)
+  assert(result.exterior.length > 200, `expected >200 exterior parts got ${result.exterior.length}`)
+})
+
+// ── BUILD INTENT TESTS ────────────────────────────────────────────────────────
+
+console.log('\n═══ BUILD INTENT ═══')
+
+test('BuildIntent complete when prompt is detailed', () => {
+  const intent = createDefaultIntent('realistic 4 floor police station with interior')
+  intent.style = 'realistic'
+  intent.floorCount = 4
+  intent.mode = 'full'
+  assert(isIntentComplete(intent), 'detailed prompt should be complete')
+})
+
+test('estimateGeneration increases with mode and scenery', () => {
+  const base = estimateGeneration({ ...createDefaultIntent('test'), mode: 'exterior', scenery: 'none' } as any)
+  const full = estimateGeneration({ ...createDefaultIntent('test'), mode: 'full', scenery: 'full' } as any)
+  assert(full.parts > base.parts, `full mode should have more parts: ${full.parts} vs ${base.parts}`)
+  assert(full.seconds > base.seconds, `full mode should take longer: ${full.seconds} vs ${base.seconds}`)
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

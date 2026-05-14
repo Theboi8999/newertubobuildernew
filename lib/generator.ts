@@ -27,6 +27,10 @@ export interface GenerateOptions {
   buildingStyle?: string
   isRetry?: boolean
   seed?: number
+  scenery?: string
+  mode?: string
+  furniture?: string
+  hasStaircases?: boolean
 }
 
 export interface GenerateResult {
@@ -188,6 +192,10 @@ export async function generateAsset(
         if (options.floorCountOverride && options.floorCountOverride > 0) {
           researchResult = { ...researchResult, floorCount: options.floorCountOverride }
         }
+        if (options.scenery) researchResult.scenery = options.scenery
+        if (options.mode) researchResult.mode = options.mode
+        if (options.furniture) researchResult.furniture = options.furniture
+        if (options.hasStaircases !== undefined) researchResult.hasStaircases = options.hasStaircases
         if (options.buildingStyle) {
           const sm = matchStyleLibrary('', options.buildingStyle)
           if (sm) researchResult = { ...researchResult, ...sm }

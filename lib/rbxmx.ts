@@ -35,6 +35,63 @@ const COLOR3_VALUES: Record<string, [number, number, number]> = {
   'Bright orange': [0.855, 0.522, 0.255],
 }
 
+// ── Color / material helpers (exported for pass files) ─────────────────────────
+const VC_MAP: Record<string, string> = {
+  'white': 'White', 'institutional white': 'Institutional white', 'light grey': 'Light grey',
+  'light gray': 'Light grey', 'medium stone grey': 'Medium stone grey', 'medium stone gray': 'Medium stone grey',
+  'dark grey': 'Dark grey', 'dark gray': 'Dark grey', 'light stone grey': 'Light stone grey',
+  'dark stone grey': 'Dark stone grey', 'really black': 'Really black', 'black': 'Really black',
+  'bright red': 'Bright red', 'dark red': 'Dark red', 'rust': 'Rust', 'reddish brown': 'Reddish brown',
+  'bright orange': 'Bright orange', 'dark orange': 'Dark orange', 'bright yellow': 'Bright yellow',
+  'sand yellow': 'Sand yellow', 'brick yellow': 'Brick yellow', 'bright green': 'Bright green',
+  'dark green': 'Dark green', 'sand green': 'Sand green', 'medium green': 'Medium green',
+  'bright blue': 'Bright blue', 'navy blue': 'Navy blue', 'sand blue': 'Sand blue',
+  'light blue': 'Light blue', 'hot pink': 'Hot pink', 'cashmere': 'Cashmere',
+  'teal': 'Bright bluish green', 'cyan': 'Bright bluish green', 'brown': 'Reddish brown',
+  'beige': 'Sand yellow', 'cream': 'White', 'grey': 'Light grey', 'gray': 'Light grey',
+  'green': 'Bright green', 'blue': 'Bright blue', 'red': 'Bright red',
+  'yellow': 'Bright yellow', 'orange': 'Bright orange', 'pink': 'Hot pink',
+}
+const VM_MAP: Record<string, string> = {
+  smoothplastic: 'smoothplastic', plastic: 'smoothplastic', wood: 'wood', timber: 'wood',
+  brick: 'brick', concrete: 'concrete', stone: 'concrete', metal: 'metal', steel: 'metal',
+  fabric: 'fabric', carpet: 'fabric', marble: 'marble', neon: 'neon', glass: 'smoothplastic',
+  render: 'smoothplastic', grass: 'concrete', limestone: 'smoothplastic', pavement: 'concrete',
+  cobblestone: 'concrete', sandstone: 'smoothplastic', slate: 'smoothplastic',
+}
+
+export function vc(c: string): string {
+  if (!c) return 'Light grey'
+  const k = c.toLowerCase().trim()
+  if (VC_MAP[k]) return VC_MAP[k]
+  for (const [key, val] of Object.entries(VC_MAP)) {
+    if (k.includes(key) || key.includes(k)) return val
+  }
+  return 'Light grey'
+}
+
+export function vm(m: string): string {
+  return VM_MAP[(m || '').toLowerCase().trim()] || 'smoothplastic'
+}
+
+export function p(
+  name: string, sx: number, sy: number, sz: number,
+  px: number, py: number, pz: number,
+  color: string, material: string,
+  transparency = 0, emissive = false
+): RbxPart {
+  return {
+    name,
+    size: { x: Math.max(0.1, sx), y: Math.max(0.1, sy), z: Math.max(0.1, sz) },
+    position: { x: px, y: py, z: pz },
+    color: vc(color),
+    material: vm(material),
+    anchored: true,
+    transparency: Math.max(0, Math.min(1, transparency)),
+    emissive,
+  }
+}
+
 export interface RbxPart {
   name: string
   size: { x: number; y: number; z: number }
@@ -46,6 +103,49 @@ export interface RbxPart {
   emissive?: boolean
   partType?: 'Part' | 'WedgePart' | 'CornerWedgePart'
   textureId?: string
+  surfaceAppearance?: string
+}
+
+const PBR_TEXTURES: Record<string, {color:string;normal:string;roughness:string;metalness:string}> = {
+  'plaster': {
+    color:     'rbxassetid://6372755229',
+    normal:    'rbxassetid://6372755230',
+    roughness: 'rbxassetid://6372755231',
+    metalness: '',
+  },
+  'aged_plaster': {
+    color:     'rbxassetid://7547304948',
+    normal:    'rbxassetid://7547304949',
+    roughness: 'rbxassetid://7547304950',
+    metalness: '',
+  },
+  'concrete_clean': {
+    color:     'rbxassetid://6372755229',
+    normal:    'rbxassetid://6372755232',
+    roughness: 'rbxassetid://6372755233',
+    metalness: '',
+  },
+  'painted_wall': {
+    color:     'rbxassetid://9854489785',
+    normal:    'rbxassetid://9854489786',
+    roughness: '',
+    metalness: '',
+  },
+}
+
+function getSurfaceAppearanceXml(textureKey: string, ref: string): string {
+  const t = PBR_TEXTURES[textureKey]
+  if (!t) return ''
+  return `
+    <Item class="SurfaceAppearance" referent="${ref}_SA">
+      <Properties>
+        ${t.color ? `<Content name="ColorMap"><url>${t.color}</url></Content>` : ''}
+        ${t.normal ? `<Content name="NormalMap"><url>${t.normal}</url></Content>` : ''}
+        ${t.roughness ? `<Content name="RoughnessMap"><url>${t.roughness}</url></Content>` : ''}
+        ${t.metalness ? `<Content name="MetalnessMap"><url>${t.metalness}</url></Content>` : ''}
+        <token name="AlphaMode">0</token>
+      </Properties>
+    </Item>`
 }
 
 
@@ -200,7 +300,7 @@ function generatePart(part: RbxPart, id: number): string {
         <bool name="Enabled">true</bool>
         <bool name="Shadows">true</bool>
       </Properties>
-    </Item>` : ''}
+    </Item>` : ''}${part.surfaceAppearance ? getSurfaceAppearanceXml(part.surfaceAppearance, `RBX${id}`) : ''}
   </Item>`
 }
 
@@ -240,65 +340,55 @@ function generateModel(model: RbxModel, startId: number): { xml: string; nextId:
 
 function getLightingXml(style: string): string {
   const isAsian = style.includes('peranakan') || style.includes('chinese') || style.includes('singapore')
-  if (isAsian) {
-    return `
-  <Item class="Lighting" referent="LIGHTING">
-    <Properties>
-      <string name="Technology">Future</string>
-      <Color3 name="Ambient"><R>0.5</R><G>0.5</G><B>0.5</B></Color3>
+  const geoLat = isAsian ? `\n      <float name="GeographicLatitude">1.352</float>` : ''
+  const colorShift = isAsian ? `
       <Color3 name="ColorShift_Bottom"><R>0.98</R><G>0.9</G><B>0.7</B></Color3>
-      <Color3 name="ColorShift_Top"><R>0.6</R><G>0.8</G><B>1</B></Color3>
-      <float name="Brightness">3</float>
-      <float name="ClockTime">14</float>
-      <bool name="GlobalShadows">true</bool>
-      <float name="GeographicLatitude">1.3</float>
-      <Color3 name="OutdoorAmbient"><R>0.6</R><G>0.6</G><B>0.6</B></Color3>
-      <Color3 name="FogColor"><R>0.8</R><G>0.85</G><B>0.9</B></Color3>
-      <float name="FogEnd">1000</float>
-      <float name="FogStart">200</float>
-    </Properties>
-    <Item class="Sky" referent="SKY_A">
-      <Properties>
-        <bool name="CelestialBodiesShown">true</bool>
-      </Properties>
-    </Item>
-  </Item>
-  <Item class="Atmosphere" referent="ATMOSPHERE_A">
-    <Properties>
-      <float name="Density">0.395</float>
-      <float name="Offset">0.25</float>
-      <Color3 name="Color"><R>0.784</R><G>0.784</G><B>0.784</B></Color3>
-      <float name="Decay">1</float>
-      <float name="Glare">0</float>
-      <float name="Haze">0</float>
-    </Properties>
-  </Item>`
-  }
+      <Color3 name="ColorShift_Top"><R>0.6</R><G>0.8</G><B>1</B></Color3>` : ''
   return `
   <Item class="Lighting" referent="LIGHTING">
     <Properties>
       <string name="Technology">Future</string>
-      <Color3 name="Ambient"><R>0.5</R><G>0.5</G><B>0.5</B></Color3>
       <float name="Brightness">3</float>
-      <float name="ClockTime">14</float>
+      <float name="ClockTime">14</float>${geoLat}
+      <Color3 name="Ambient"><R>0.3</R><G>0.3</G><B>0.3</B></Color3>
+      <Color3 name="OutdoorAmbient"><R>0.55</R><G>0.55</G><B>0.58</B></Color3>${colorShift}
       <bool name="GlobalShadows">true</bool>
-      <Color3 name="OutdoorAmbient"><R>0.6</R><G>0.6</G><B>0.6</B></Color3>
+      <float name="ExposureCompensation">0.2</float>
+      <float name="FogEnd">1000</float>
+      <float name="FogStart">800</float>
     </Properties>
-    <Item class="Sky" referent="SKY_B">
+    <Item class="Atmosphere" referent="ATMOSPHERE">
+      <Properties>
+        <float name="Density">0.3</float>
+        <float name="Offset">0.25</float>
+        <Color3 name="Color"><R>0.784</R><G>0.784</G><B>0.784</B></Color3>
+        <float name="Decay">1</float>
+        <float name="Glare">0.1</float>
+        <float name="Haze">0.2</float>
+      </Properties>
+    </Item>
+    <Item class="Sky" referent="SKY">
       <Properties>
         <bool name="CelestialBodiesShown">true</bool>
       </Properties>
     </Item>
-  </Item>
-  <Item class="Atmosphere" referent="ATMOSPHERE_B">
-    <Properties>
-      <float name="Density">0.395</float>
-      <float name="Offset">0.25</float>
-      <Color3 name="Color"><R>0.784</R><G>0.784</G><B>0.784</B></Color3>
-      <float name="Decay">1</float>
-      <float name="Glare">0</float>
-      <float name="Haze">0</float>
-    </Properties>
+    <Item class="BloomEffect" referent="BLOOM">
+      <Properties>
+        <float name="Intensity">0.4</float>
+        <float name="Size">24</float>
+        <float name="Threshold">0.95</float>
+        <bool name="Enabled">true</bool>
+      </Properties>
+    </Item>
+    <Item class="DepthOfFieldEffect" referent="DOF">
+      <Properties>
+        <float name="FarIntensity">0.05</float>
+        <float name="FocusDistance">50</float>
+        <float name="InFocusRadius">30</float>
+        <float name="NearIntensity">0</float>
+        <bool name="Enabled">true</bool>
+      </Properties>
+    </Item>
   </Item>`
 }
 

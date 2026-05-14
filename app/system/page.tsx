@@ -1,6 +1,8 @@
 'use client'
 import { useEffect, useState, useRef, useCallback, Suspense } from 'react'
 import type { RoomLayoutItem } from '@/lib/blueprint-compiler'
+import TurboChat from '../../components/TurboChat'
+import type { BuildIntent } from '../../lib/brain/build-intent'
 
 const ROOM_TYPE_COLORS: Record<string, string> = {
   reception: '#7c3aed',
@@ -139,6 +141,7 @@ function SystemPageInner() {
   const [seed, setSeed] = useState<number>(Math.floor(Math.random() * 99999))
   const [seedCopied, setSeedCopied] = useState(false)
   const [variantCount, setVariantCount] = useState(0)
+  const [lastGeneration, setLastGeneration] = useState<{ prompt: string; floorCount?: number; scenery?: string; mode?: string } | null>(null)
   const pollRef = useRef<NodeJS.Timeout | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -195,13 +198,53 @@ function SystemPageInner() {
     }, 2000)
   }
 
-  async function handleGenerate(seedOverride?: number) {
-    if (!prompt.trim() || loading) return
+  async function handleGenerate(intentOrSeed?: BuildIntent | number | {
+    prompt?: string; scenery?: string; mode?: string; furniture?: string;
+    hasStaircases?: boolean; floorCount?: number; ornamentLevel?: string;
+    regenerateColors?: boolean; changeStyle?: boolean;
+  }) {
+    const isNumber = typeof intentOrSeed === 'number'
+    const isIntent = intentOrSeed && typeof intentOrSeed === 'object' && 'rawPrompt' in intentOrSeed
+    const isOpts = intentOrSeed && typeof intentOrSeed === 'object' && !isIntent
+
+    let finalPrompt = prompt.trim()
+    let useSeed = seed
+    let extraOpts: Record<string, unknown> = {}
+
+    if (isNumber) {
+      useSeed = intentOrSeed as number
+    } else if (isIntent) {
+      const intent = intentOrSeed as BuildIntent
+      finalPrompt = intent.rawPrompt || intent.buildingType || prompt.trim()
+      extraOpts = {
+        scenery: intent.scenery,
+        mode: intent.mode,
+        furniture: intent.furniture,
+        hasStaircases: intent.hasStaircases,
+        floorCount: intent.floorCount || undefined,
+      }
+    } else if (isOpts) {
+      const opts = intentOrSeed as Record<string, unknown>
+      if (opts.prompt) finalPrompt = opts.prompt as string
+      extraOpts = opts
+    }
+
+    if (!finalPrompt || loading) return
     setLoading(true)
     setGeneration(null)
+
+    const enrichedPrompt = isIntent
+      ? finalPrompt
+      : [finalPrompt, region, buildingStyle, floorCount > 0 ? `${floorCount} storey` : null].filter(Boolean).join(' ')
+
+    setLastGeneration({
+      prompt: finalPrompt,
+      floorCount: (extraOpts.floorCount as number) || floorCount || undefined,
+      scenery: extraOpts.scenery as string | undefined,
+      mode: extraOpts.mode as string | undefined,
+    })
+
     try {
-      const enrichedPrompt = [prompt.trim(), region, buildingStyle, floorCount > 0 ? `${floorCount} storey` : null].filter(Boolean).join(' ')
-      const useSeed = seedOverride !== undefined ? seedOverride : seed
       const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,10 +257,11 @@ function SystemPageInner() {
           referenceImages: referenceImages.length > 0
             ? referenceImages.map(i => ({ base64: i.base64, mimeType: i.mimeType }))
             : undefined,
-          exteriorOnly: exteriorOnly || undefined,
-          floorCount: floorCount > 0 ? floorCount : undefined,
+          exteriorOnly: (extraOpts.mode === 'exterior') || exteriorOnly || undefined,
+          floorCount: (extraOpts.floorCount as number) || (floorCount > 0 ? floorCount : undefined),
           buildingStyle: buildingStyle || undefined,
           seed: useSeed,
+          ...extraOpts,
         }),
       })
       const data = await res.json()
@@ -229,6 +273,20 @@ function SystemPageInner() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function handleImprove(command: string) {
+    if (!lastGeneration) return
+    const improvements: Record<string, object> = {
+      'Make it bigger':    { floorCount: (lastGeneration.floorCount || 3) + 1 },
+      'More detail':       { ornamentLevel: 'heavy' },
+      'Different color':   { regenerateColors: true },
+      'Add interior':      { mode: 'full' },
+      'Simpler':           { ornamentLevel: 'minimal' },
+      'Different style':   { changeStyle: true },
+    }
+    const changes = improvements[command] || {}
+    await handleGenerate({ prompt: lastGeneration.prompt, ...changes })
   }
 
   async function handleWizard() {
@@ -309,7 +367,20 @@ function SystemPageInner() {
         </div>
 
         {/* Generation form — hide while watching active/complete generation */}
-        {!isActive && !isDone && !isFailed && (
+        {!isActive && !isDone && !isFailed && systemId === 'builder' && (
+          <div className="card p-8 mb-6">
+            <div className="mb-5">
+              <h2 className="font-semibold text-white mb-4">What do you want to build?</h2>
+              <TurboChat
+                onGenerate={(intent: BuildIntent) => handleGenerate(intent)}
+                isGenerating={loading}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Legacy generation form for non-builder systems */}
+        {!isActive && !isDone && !isFailed && systemId !== 'builder' && (
           <div className="card p-8 mb-6">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-semibold text-white">What do you want to build?</h2>
@@ -428,20 +499,6 @@ function SystemPageInner() {
                         ))}
                       </select>
                     </div>
-                    {systemId === 'builder' && (
-                      <div>
-                        <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">Layout Seed</label>
-                        <input
-                          type="number"
-                          value={seed}
-                          onChange={e => setSeed(Math.max(0, parseInt(e.target.value) || 0))}
-                          className="input text-sm w-full"
-                          min={0}
-                          max={99999}
-                        />
-                        <p className="text-xs text-brand-text-dim mt-1">Use the same seed to reproduce an identical room layout</p>
-                      </div>
-                    )}
                     <div>
                       <label className="block text-xs font-semibold text-brand-text-muted uppercase tracking-wider mb-1.5">
                         Location reference (optional)
@@ -513,31 +570,6 @@ function SystemPageInner() {
                     </>
                   )}
                 </div>
-
-                {systemId === 'builder' && (
-                  <div className="flex gap-2 mb-4">
-                    <button
-                      onClick={() => setExteriorOnly(false)}
-                      className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
-                        !exteriorOnly
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
-                    >
-                      🏛️ Full Building
-                    </button>
-                    <button
-                      onClick={() => setExteriorOnly(true)}
-                      className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-all ${
-                        exteriorOnly
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
-                    >
-                      🏗️ Exterior Only
-                    </button>
-                  </div>
-                )}
 
                 <button
                   onClick={() => handleGenerate()}
@@ -784,6 +816,23 @@ function SystemPageInner() {
                   >
                     Generate Variant (same prompt, different layout)
                   </button>
+                )}
+
+                {lastGeneration && systemId === 'builder' && (
+                  <div className="mt-4 bg-gray-800 rounded-xl p-4">
+                    <p className="text-sm text-gray-400 mb-2">Want to improve this?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {['Make it bigger', 'More detail', 'Different color', 'Add interior', 'Simpler', 'Different style'].map(cmd => (
+                        <button
+                          key={cmd}
+                          onClick={() => handleImprove(cmd)}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-xs"
+                        >
+                          {cmd}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 )}
 
                 {criticismMode && (

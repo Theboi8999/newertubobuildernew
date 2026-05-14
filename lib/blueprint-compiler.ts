@@ -2,6 +2,22 @@ import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
 import { placeRoomsWithBSP, getRoomType } from './room-placer'
 import { calculateWindowPositions, buildProportionalWindow } from './window-system'
+import { generateStructure } from './passes/pass-1-structure'
+import { generateRoof } from './passes/pass-2-roof'
+import { generateFacade } from './passes/pass-3-facade'
+import { generateTerrain, SceneryLevel } from './passes/pass-6-terrain'
+import { getStyleDNA } from './style/style-dna'
+
+export interface BuildPlan {
+  tw: number
+  td: number
+  th: number
+  wallBase: number
+  floorCount: number
+  floorHeight: number
+  buildingType: string
+  architecturalStyle: string
+}
 
 export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; exterior:RbxPart[]; totalWidth:number; totalDepth:number; roomLayout:Array<{name:string;x:number;z:number;width:number;depth:number;type:string}> }
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
@@ -77,322 +93,56 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 }
 
 function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
-  const pts: RbxPart[] = []
   try {
-  const fc = Math.max(4, Math.min(5, Math.floor(r.floorCount || 4)))
-  const fh = 12
-  const wallBase = 2.3
-  const base = 1.8
-  const th = fc * fh
-  const ec = r.exteriorColor || 'Sand yellow'
-  const bt = (r.buildingType||'').toLowerCase()
-  const st = (r.architecturalStyle||'').toLowerCase()
-  const isChinese = bt.includes('peranakan')||bt.includes('shophouse')||
-    bt.includes('singapore')||st.includes('peranakan')||
-    st.includes('colonial')||r.hasColonnade===true
+    const fh = 12
+    const wallBase = 2.3
+    const fc = Math.max(3, Math.min(5, r.floorCount || 4))
+    const th = fc * fh
 
-  const wallMat = isChinese ? 'brick' : 'smoothplastic'
-  const roofMat = r.roofMaterial === 'slate' ? 'slate' : 'smoothplastic'
-  const groundMat = 'concrete'
-  const colMat = 'smoothplastic'
-  const bandMat = 'smoothplastic'
-  const foundMat = 'concrete'
+    console.log('[buildExterior] ec:', r.exteriorColor, 'rc:', r.roofColor, 'fc:', fc)
 
-  console.log('[exterior] fc:',fc,'th:',th,'ec:',ec,'chinese:',isChinese)
-  console.log('[exterior] materials - wall:', wallMat, 'roof:', roofMat, 'ground:', groundMat, 'col:', colMat)
+    const plan: BuildPlan = {
+      tw, td, th, wallBase,
+      floorCount: fc,
+      floorHeight: fh,
+      buildingType: r.buildingType || '',
+      architecturalStyle: r.architecturalStyle || '',
+    }
 
-  // ── TERRAIN ─────────────────────────────────────────────────
-  pts.push(p('Ground', tw+20, 2.0, td+20, tw/2, 0.5, td/2, 'Medium stone grey', groundMat))
-  pts.push(p('Pavement', tw+16, 0.8, 14, tw/2, 0.1, -7, 'Medium stone grey', 'concrete'))
+    const dna = getStyleDNA(
+      r.architecturalStyle || '',
+      r.buildingType || '',
+      { exteriorColor: r.exteriorColor, roofColor: r.roofColor }
+    )
 
-  // ── FOUNDATION ──────────────────────────────────────────────
-  pts.push(p('Foundation', tw+1, base, td+1, tw/2, base/2, td/2, ec, foundMat))
-  pts.push(p('Found_Step', tw+0.4, 0.5, td+0.4, tw/2, base+0.25, td/2, ec, wallMat))
+    if (r.hasColonnade) dna.hasColonnade = true
 
-  // ── MAIN WALLS ──────────────────────────────────────────────
-  pts.push(p('WallBack', tw, th, 0.7, tw/2, wallBase+th/2, td, ec, wallMat))
-  pts.push(p('WallLeft', 0.7, th, td, 0, wallBase+th/2, td/2, ec, wallMat))
-  pts.push(p('WallRight', 0.7, th, td, tw, wallBase+th/2, td/2, ec, wallMat))
-  pts.push(p('WallFront', tw, th, 0.7, tw/2, wallBase+th/2, 0, ec, wallMat))
+    console.log('[buildExterior] StyleDNA:', dna.family, 'primary:', dna.primaryColor, 'roof:', dna.roofColor)
 
-  // ── CORNER PILASTERS ────────────────────────────────────────
-  const pilW = 2.8
-  const pilH = th + 1
-  const pilCorners: [number,number][] = [[0,0],[tw,0],[0,td],[tw,td]]
-  for (const [cx, cz] of pilCorners) {
-    pts.push(p(`Pil_${cx}_${cz}`, pilW, pilH, pilW, cx, wallBase+pilH/2, cz, ec, wallMat))
-    pts.push(p(`PilCap_${cx}_${cz}`, pilW+0.3, 0.7, pilW+0.3, cx, wallBase+pilH+0.35, cz, ec, 'smoothplastic'))
-    pts.push(p(`PilBase_${cx}_${cz}`, pilW+1, 2.0, pilW+1, cx, wallBase+1, cz, ec, wallMat))
-    pts.push(p(`PilGroove_${cx}_${cz}`, 0.3, pilH-1, 0.15, cx, wallBase+pilH/2, cz+(cz===0?-0.35:0.35), 'White', 'smoothplastic'))
-  }
+    const structure = generateStructure(plan, dna)
+    const roof = generateRoof(plan, dna)
+    const facade = generateFacade(plan, dna)
+    const scenery = (r.scenery as SceneryLevel) || 'minimal'
+    const terrain = generateTerrain(plan, dna, scenery)
 
-  // ── PER-FLOOR DETAILS ────────────────────────────────────────
-  for (let f = 0; f < fc; f++) {
-    const fy = wallBase + f * fh
-    const isGround = f === 0
-    const isTop = f === fc - 1
+    const all = [...structure, ...roof, ...facade, ...terrain]
 
-    // Floor band - multi layer moulding
-    if (f > 0) {
-      pts.push(p(`Band_F${f}`, tw+1.5, 2.2, 1.0, tw/2, fy+1.1, -0.5, 'White', bandMat))
-      pts.push(p(`Band_B${f}`, tw+1.5, 2.2, 1.0, tw/2, fy+1.1, td+0.5, 'White', bandMat))
-      pts.push(p(`Band_L${f}`, 1.0, 2.2, td+1.5, -0.5, fy+1.1, td/2, 'White', bandMat))
-      pts.push(p(`Band_R${f}`, 1.0, 2.2, td+1.5, tw+0.5, fy+1.1, td/2, 'White', bandMat))
-      pts.push(p(`Drip_F${f}`, tw+2.0, 0.35, 0.5, tw/2, fy-0.17, -0.7, 'White', bandMat))
-      pts.push(p(`Drip_B${f}`, tw+2.0, 0.35, 0.5, tw/2, fy-0.17, td+0.7, 'White', bandMat))
-      pts.push(p(`Drip_L${f}`, 0.5, 0.35, td+2.0, -0.7, fy-0.17, td/2, 'White', bandMat))
-      pts.push(p(`Drip_R${f}`, 0.5, 0.35, td+2.0, tw+0.7, fy-0.17, td/2, 'White', bandMat))
-
-      // Decorative tiles on band for peranakan
-      if (isChinese) {
-        const tCount = Math.floor((tw-4)/3)
-        const tileColors = ['Bright blue','Bright red','Dark green','Bright yellow']
-        for (let t = 0; t < tCount; t++) {
-          const tx2 = 2 + t*3 + 1.5
-          const tc = tileColors[t % tileColors.length]
-          pts.push(p(`Tile_F${f}_${t}`, 2.6, 1.0, 0.15, tx2, fy+1.1, -0.55, tc, 'smoothplastic'))
-        }
+    for (const part of all) {
+      const n = part.name.toLowerCase()
+      const isGround = n.includes('ground') || n.includes('road') || n.includes('pavement') ||
+        n.includes('kerb') || n.includes('driveway') || n.includes('carpark') || n.includes('lawn') ||
+        n.includes('slab')
+      if (isGround) {
+        part.material = 'concrete'
       }
     }
 
-    // ── WINDOWS ─────────────────────────────────────────────
-    if (!isGround || !isChinese) {
-      const winCount = isGround ? Math.max(1, Math.floor((tw-12)/10)) : Math.max(2, Math.floor((tw-6)/9))
-      const usableW = tw - 5
-      const winSpacing = usableW / (winCount + 1)
-      const winW = Math.min(7.0, winSpacing * 0.72)
-      const winH = fh * 0.62
-      const winY = fy + fh * 0.52
-
-      for (let w = 0; w < winCount; w++) {
-        const wx = 2.5 + winSpacing * (w + 1)
-
-        // Deep shadow recess
-        pts.push(p(`WRec_F${f}_${w}`, winW+0.8, winH+0.8, 0.7, wx, winY, -0.05, 'Really black', 'smoothplastic', 0.3))
-
-        // Outer frame - exterior colour
-        pts.push(p(`WOFrT_F${f}_${w}`, winW+0.9, 0.5, 0.5, wx, winY+winH/2+0.2, -0.25, ec, 'smoothplastic'))
-        pts.push(p(`WOFrB_F${f}_${w}`, winW+0.9, 0.5, 0.5, wx, winY-winH/2-0.2, -0.25, ec, 'smoothplastic'))
-        pts.push(p(`WOFrL_F${f}_${w}`, 0.5, winH+0.8, 0.5, wx-winW/2-0.45, winY, -0.25, ec, 'smoothplastic'))
-        pts.push(p(`WOFrR_F${f}_${w}`, 0.5, winH+0.8, 0.5, wx+winW/2+0.45, winY, -0.25, ec, 'smoothplastic'))
-
-        // Inner frame - white
-        pts.push(p(`WFrT_F${f}_${w}`, winW+0.3, 0.3, 0.35, wx, winY+winH/2+0.15, -0.4, 'White', 'smoothplastic'))
-        pts.push(p(`WFrB_F${f}_${w}`, winW+0.3, 0.3, 0.35, wx, winY-winH/2-0.15, -0.4, 'White', 'smoothplastic'))
-        pts.push(p(`WFrL_F${f}_${w}`, 0.3, winH+0.6, 0.35, wx-winW/2-0.15, winY, -0.4, 'White', 'smoothplastic'))
-        pts.push(p(`WFrR_F${f}_${w}`, 0.3, winH+0.6, 0.35, wx+winW/2+0.15, winY, -0.4, 'White', 'smoothplastic'))
-
-        // Sill projection
-        pts.push(p(`WSill_F${f}_${w}`, winW+1.0, 0.3, 0.65, wx, winY-winH/2-0.42, -0.32, 'White', 'smoothplastic'))
-
-        // Glass pane - reflective institutional white, pushed clear of recess
-        pts.push(p(`WGlass_F${f}_${w}`, winW, winH, 0.12, wx, winY, -0.45, 'Light blue', 'smoothplastic', 0.25))
-
-        // Lattice for peranakan
-        if (isChinese) {
-          pts.push(p(`WLH1_F${f}_${w}`, winW-0.3, 0.12, 0.08, wx, winY+winH*0.25, -0.44, 'White', 'smoothplastic'))
-          pts.push(p(`WLH2_F${f}_${w}`, winW-0.3, 0.12, 0.08, wx, winY-winH*0.25, -0.44, 'White', 'smoothplastic'))
-          pts.push(p(`WLV_F${f}_${w}`, 0.12, winH-0.3, 0.08, wx, winY, -0.44, 'White', 'smoothplastic'))
-        }
-
-        // Lintel above window
-        pts.push(p(`WLin_F${f}_${w}`, winW+1.0, 0.45, 0.45, wx, winY+winH/2+0.52, -0.22, ec, 'smoothplastic'))
-      }
-      if (isChinese && !isGround) {
-        for (let w = 0; w < winCount; w++) {
-          const wx = 2.5 + winSpacing * (w + 1)
-          const shutW = winW * 0.42
-          const shutH = winH * 0.92
-          pts.push(p(`WShutL_F${f}_${w}`, shutW, shutH, 0.12, wx-winW/2-shutW/2-0.1, winY, -0.5, 'Dark green', 'smoothplastic'))
-          pts.push(p(`WShutR_F${f}_${w}`, shutW, shutH, 0.12, wx+winW/2+shutW/2+0.1, winY, -0.5, 'Dark green', 'smoothplastic'))
-        }
-      }
-    }
-
-    // ── PAGODA ROOFS — runs every floor including fc-1; no isTop exclusion ─────
-    if (isChinese) {
-      const ry = fy + fh - 0.5
-      console.log('[pagoda] floor', f, 'ry:', ry, 'fy:', fy, 'fh:', fh)
-      const pw = tw + 2.5
-      const pd = td + 2.5
-
-      pts.push(p(`Pag${f}`, pw, 0.9, pd, tw/2, ry+0.45, td/2, 'Dark green', roofMat))
-      pts.push(p(`PagU${f}`, pw+0.3, 0.4, pd+0.3, tw/2, ry-0.2, td/2, 'Dark green', roofMat, 0))
-      pts.push(p(`PagOF${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, -1.6, 'Dark green', roofMat))
-      pts.push(p(`PagOB${f}`, pw+2, 0.55, 1.8, tw/2, ry+0.1, td+1.6, 'Dark green', roofMat))
-      pts.push(p(`PagOL${f}`, 1.8, 0.55, pd+2, -1.6, ry+0.1, td/2, 'Dark green', roofMat))
-      pts.push(p(`PagOR${f}`, 1.8, 0.55, pd+2, tw+1.6, ry+0.1, td/2, 'Dark green', roofMat))
-      pts.push(p(`PagRidge${f}`, pw-2, 0.6, 0.8, tw/2, ry+1.05, td/2, 'Dark green', roofMat))
-
-      // Corner upticks - raised + tip to simulate pagoda curl
-      const pagCorners: [number,number][] = [[-2,-2],[tw+2,-2],[-2,td+2],[tw+2,td+2]]
-      for (let ci = 0; ci < pagCorners.length; ci++) {
-        const [cx2, cz2] = pagCorners[ci]
-        pts.push(p(`PagC${f}_${ci}`, 1.4, 0.8, 1.4, cx2, ry+0.6, cz2, 'Dark green', roofMat))
-        pts.push(p(`PagTip${f}_${ci}`, 0.7, 0.5, 0.7, cx2, ry+1.1, cz2, 'Dark green', roofMat))
-      }
-      pts.push(p(`PagShadow${f}`, pw+2.5, 0.2, pd+2.5, tw/2, ry-0.55, td/2, 'Dark green', roofMat, 0.1))
-    }
-
-    // Top floor roof
-    if (isTop) {
-      const ry = fy + fh - 0.5
-      if (!isChinese) {
-        pts.push(p('Roof', tw+1.5, 1.0, td+1.5, tw/2, ry+0.5, td/2, 'Dark grey', roofMat))
-        pts.push(p('Parapet_F', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, -0.3, ec, wallMat))
-        pts.push(p('Parapet_B', tw+1.5, 1.8, 0.6, tw/2, ry+1.4, td+0.3, ec, wallMat))
-        pts.push(p('Parapet_L', 0.6, 1.8, td+1.5, -0.3, ry+1.4, td/2, ec, wallMat))
-        pts.push(p('Parapet_R', 0.6, 1.8, td+1.5, tw+0.3, ry+1.4, td/2, ec, wallMat))
-        pts.push(p('RoofTank', 2.5, 3.5, 2.5, tw/2, ry+2.75, td/2, 'Medium stone grey', 'smoothplastic'))
-        pts.push(p('RoofAC1', 3.5, 1.8, 3.5, tw/3, ry+1.4, td/3, 'Dark grey', 'smoothplastic'))
-        pts.push(p('RoofAC2', 3.5, 1.8, 3.5, tw*2/3, ry+1.4, td*2/3, 'Dark grey', 'smoothplastic'))
-      } else if (isChinese) {
-        const ry = fy + fh
-        const rpw = tw + 1.5
-        const rpd = td + 1.5
-        pts.push(p('TopPag', rpw, 1.0, rpd, tw/2, ry+0.5, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('TopPagU', rpw+0.2, 0.35, rpd+0.2, tw/2, ry-0.17, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('TopPagOF', rpw+1.5, 0.5, 1.5, tw/2, ry+0.1, -1.2, 'Dark green', 'smoothplastic'))
-        pts.push(p('TopPagOB', rpw+1.5, 0.5, 1.5, tw/2, ry+0.1, td+1.2, 'Dark green', 'smoothplastic'))
-        pts.push(p('TopPagOL', 1.5, 0.5, rpd+1.5, -1.2, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('TopPagOR', 1.5, 0.5, rpd+1.5, tw+1.2, ry+0.1, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('TopRidge', tw-2, 0.5, 0.6, tw/2, ry+1.1, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('RoofFlat', tw-1, 0.3, td-1, tw/2, ry+0.15, td/2, 'Dark green', 'smoothplastic'))
-        pts.push(p('AC1', 2.5, 1.5, 2.5, tw/3, ry+1.0, td/3, 'Dark grey', 'smoothplastic'))
-        pts.push(p('AC2', 2.5, 1.5, 2.5, tw*2/3, ry+1.0, td*2/3, 'Dark grey', 'smoothplastic'))
-      }
-    }
-  }
-
-  // ── DECORATIVE FACADE PANELS ──────────────────────────────────
-  if (isChinese) {
-    for (let f2 = 1; f2 < fc; f2++) {
-      const fy2 = wallBase + f2 * fh
-      const panX1 = pilW/2 + 1
-      const panX2 = tw - pilW/2 - 1
-      const panH = fh * 0.4
-      const panY = fy2 + fh * 0.25
-      pts.push(p(`DecPanL_${f2}`, 2.5, panH, 0.1, panX1, panY, -0.05, 'White', 'smoothplastic'))
-      pts.push(p(`DecPanR_${f2}`, 2.5, panH, 0.1, panX2, panY, -0.05, 'White', 'smoothplastic'))
-      pts.push(p(`TileInsL_${f2}`, 2.0, panH*0.7, 0.08, panX1, panY, -0.08, 'Bright blue', 'smoothplastic'))
-      pts.push(p(`TileInsR_${f2}`, 2.0, panH*0.7, 0.08, panX2, panY, -0.08, 'Bright blue', 'smoothplastic'))
-    }
-  }
-
-  // ── BACK WALL DETAIL ──────────────────────────────────────────
-  if (isChinese) {
-    for (let f2 = 1; f2 < fc; f2++) {
-      const fy2 = wallBase + f2 * fh
-      pts.push(p(`AC_F${f2}_L`, 3.5, 2.0, 0.8, tw*0.3, fy2+fh*0.6, td+0.4, 'Dark grey', 'smoothplastic'))
-      pts.push(p(`AC_F${f2}_R`, 3.5, 2.0, 0.8, tw*0.7, fy2+fh*0.6, td+0.4, 'Dark grey', 'smoothplastic'))
-      pts.push(p(`ACVent_F${f2}_L`, 3.3, 0.15, 0.3, tw*0.3, fy2+fh*0.5, td+0.45, 'Dark stone grey', 'smoothplastic'))
-      pts.push(p(`ACVent_F${f2}_R`, 3.3, 0.15, 0.3, tw*0.7, fy2+fh*0.5, td+0.45, 'Dark stone grey', 'smoothplastic'))
-    }
-    pts.push(p('BkDrain_L', 0.35, th+2, 0.35, tw*0.15, wallBase+th/2, td+0.4, 'Dark grey', 'smoothplastic'))
-    pts.push(p('BkDrain_R', 0.35, th+2, 0.35, tw*0.85, wallBase+th/2, td+0.4, 'Dark grey', 'smoothplastic'))
-    const sdH = fh * 0.75
-    const sdW = 4
-    pts.push(p('BackEntry', sdW, sdH, 0.2, tw*0.75, wallBase+sdH/2, td+0.1, 'Dark grey', 'smoothplastic'))
-    pts.push(p('BackEntryFr', sdW+0.4, sdH+0.3, 0.15, tw*0.75, wallBase+sdH/2, td+0.08, 'Dark stone grey', 'smoothplastic'))
-    pts.push(p('UtilityBox', 2.5, 2.0, 0.5, tw*0.2, wallBase+3, td+0.25, 'Medium stone grey', 'smoothplastic'))
-    pts.push(p('UtilityPanel', 2.3, 1.8, 0.15, tw*0.2, wallBase+3, td+0.5, 'Light grey', 'smoothplastic'))
-  }
-
-  // ── SIDE WALL VENTS ───────────────────────────────────────────
-  if (isChinese) {
-    for (let f2 = 1; f2 < fc; f2++) {
-      const fy2 = wallBase + f2 * fh
-      const ventW = 2.5
-      const ventH = 1.2
-      const ventY = fy2 + fh * 0.75
-      pts.push(p(`Vent_L${f2}`, 0.5, ventH, ventW, -0.05, ventY, td*0.35, 'Really black', 'smoothplastic', 0.4))
-      pts.push(p(`VentFr_L${f2}`, 0.3, ventH+0.2, ventW+0.2, -0.3, ventY, td*0.35, 'White', 'smoothplastic'))
-      pts.push(p(`Vent_R${f2}`, 0.5, ventH, ventW, tw+0.05, ventY, td*0.35, 'Really black', 'smoothplastic', 0.4))
-      pts.push(p(`VentFr_R${f2}`, 0.3, ventH+0.2, ventW+0.2, tw+0.3, ventY, td*0.35, 'White', 'smoothplastic'))
-    }
-  }
-
-  // ── COLONNADE GROUND FLOOR ──────────────────────────────────
-  if (isChinese) {
-    const colCount = Math.max(4, Math.min(6, Math.floor(tw/7)))
-    const cs = tw / (colCount + 1)
-    const colZ = 0.5
-    const colTop = wallBase + fh * 0.88
-    const colShaftH = fh * 0.88
-
-    for (let i = 0; i < colCount; i++) {
-      const cx = cs * (i + 1)
-      pts.push(p(`ColPl_${i}`, 2.4, 1.0, 2.4, cx, wallBase+0.5, colZ, 'White', colMat))
-      pts.push(p(`ColSh_${i}`, 2.0, colShaftH, 2.0, cx, wallBase+colShaftH/2, colZ, 'White', colMat))
-      pts.push(p(`ColCp_${i}`, 2.6, 0.9, 2.6, cx, colTop+0.45, colZ, 'White', colMat))
-      if (i < colCount - 1) {
-        pts.push(p(`ColAr_${i}`, cs-1.8, 0.9, 1.0, cx+cs/2, colTop, colZ, 'White', colMat))
-        pts.push(p(`ColArS_${i}`, cs-1.8, 0.5, 0.4, cx+cs/2, colTop-0.2, colZ-0.3, 'White', colMat))
-        pts.push(p(`ColArcKey_${i}`, 1.0, 1.2, 0.5, cx+cs/2, colTop+0.3, colZ-0.2, 'White', 'smoothplastic'))
-      }
-    }
-
-    pts.push(p('FFW_Ceil', tw+0.5, 0.5, 5, tw/2, wallBase+fh*0.9, -2.5, 'Medium stone grey', 'concrete'))
-    pts.push(p('FFW_Floor', tw+0.5, 0.4, 5, tw/2, wallBase+0.2, -2.5, 'Light stone grey', 'concrete'))
-
-    // Per-column dark green shutters — skip centre entrance bay
-    const shutH = fh * 0.75
-    const shutW = cs - 1.6
-    for (let i = 0; i < colCount; i++) {
-      const sx = cs * (i + 1)
-      if (sx > tw/2 - 5 && sx < tw/2 + 5) continue
-      pts.push(p(`Shut_${i}`, shutW, shutH, 0.25, sx, wallBase+shutH/2, -0.55, 'Dark green', 'smoothplastic'))
-    }
-    const entrW = 8
-    const entrH = fh * 0.82
-    console.log('[entrance] entrW:', entrW, 'entrH:', entrH, 'tw:', tw)
-    pts.push(p('EnFrame', entrW+3, entrH+2.5, 0.9, tw/2, wallBase+entrH/2+0.5, -0.45, 'White', 'smoothplastic'))
-    pts.push(p('Fanlight', entrW, fh*0.18, 0.15, tw/2, wallBase+entrH+fh*0.09, -0.5, 'Light blue', 'smoothplastic', 0.3))
-    pts.push(p('FanBar1', 0.1, fh*0.18, 0.12, tw/2-entrW/3, wallBase+entrH+fh*0.09, -0.5, 'White', 'smoothplastic'))
-    pts.push(p('FanBar2', 0.1, fh*0.18, 0.12, tw/2+entrW/3, wallBase+entrH+fh*0.09, -0.5, 'White', 'smoothplastic'))
-    pts.push(p('FanBarH', entrW, 0.1, 0.12, tw/2, wallBase+entrH+fh*0.05, -0.5, 'White', 'smoothplastic'))
-    pts.push(p('DoorL', entrW/2-0.3, entrH*0.92, 0.2, tw/2-entrW/4, wallBase+entrH*0.46, -0.5, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorR', entrW/2-0.3, entrH*0.92, 0.2, tw/2+entrW/4, wallBase+entrH*0.46, -0.5, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorPanelL1', entrW/2-0.9, entrH*0.35, 0.08, tw/2-entrW/4, wallBase+entrH*0.65, -0.62, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorPanelL2', entrW/2-0.9, entrH*0.35, 0.08, tw/2-entrW/4, wallBase+entrH*0.22, -0.62, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorPanelR1', entrW/2-0.9, entrH*0.35, 0.08, tw/2+entrW/4, wallBase+entrH*0.65, -0.62, 'Dark green', 'smoothplastic'))
-    pts.push(p('DoorPanelR2', entrW/2-0.9, entrH*0.35, 0.08, tw/2+entrW/4, wallBase+entrH*0.22, -0.62, 'Dark green', 'smoothplastic'))
-    pts.push(p('HandleL', 0.2, 0.2, 0.25, tw/2-0.7, wallBase+entrH*0.45, -0.7, 'Bright yellow', 'smoothplastic'))
-    pts.push(p('HandleR', 0.2, 0.2, 0.25, tw/2+0.7, wallBase+entrH*0.45, -0.7, 'Bright yellow', 'smoothplastic'))
-  }
-
-  // ── DRAIN PIPES ─────────────────────────────────────────────
-  for (const [dx,dz] of [[0.4,0.4],[tw-0.4,0.4],[0.4,td-0.4],[tw-0.4,td-0.4]] as [number,number][]) {
-    pts.push(p(`Drain_${dx}_${dz}`, 0.35, th+4, 0.35, dx, th/2+2, dz, 'Dark grey', 'smoothplastic'))
-  }
-
-  // ── NUCLEAR MATERIAL OVERRIDE ────────────────────────────────
-  for (const part of pts) {
-    const n = part.name.toLowerCase()
-    if (n.includes('ground') || n.includes('road') || n.includes('pavement') ||
-        n.includes('terrain') || n.includes('kerb') || n.includes('ffw_floor')) {
-      part.material = 'concrete'
-    } else if (n.includes('trunk') || n.includes('bench_s') || n.includes('bench_b') ||
-               n.includes('door') || n.includes('door_')) {
-      part.material = 'wood'
-    } else if (n.includes('drain') || n.includes('lpost') || n.includes('larm') ||
-               n.includes('ac_') || n.includes('acvent') || n.includes('utilitybox')) {
-      part.material = 'metal'
-    } else {
-      part.material = 'smoothplastic'
-    }
-  }
-  const badMats = pts.filter(p2 => p2.material !== 'smoothplastic' &&
-    p2.material !== 'concrete' && p2.material !== 'wood' && p2.material !== 'metal')
-  if (badMats.length > 0) {
-    console.log('[exterior] WARNING bad materials:', badMats.map(p2 => `${p2.name}:${p2.material}`).join(', '))
-  }
-
-  } catch(e) {
+    console.log('[buildExterior] total parts:', all.length)
+    return all
+  } catch (e) {
     console.error('[buildExterior] CRASH:', e)
-    console.error('[buildExterior] parts before crash:', pts.length)
+    return []
   }
-  return pts
 }
 
 export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBlueprint {

@@ -1,9 +1,9 @@
 import { createAdminClient } from './supabase'
-import { groqJSON } from './groq'
+import { groqJSON, groqGenerate } from './groq'
 
 export interface RoomFurniture { name:string; size:{x:number;y:number;z:number}; color:string; material:string; quantity?:number; placement?:'north_wall'|'south_wall'|'east_wall'|'west_wall'|'center'|'row' }
 export interface ResearchRoom { name:string; width:number; depth:number; height:number; wallColor:string; floorColor:string; floorMaterial:string; furniture:RoomFurniture[] }
-export interface ResearchResult { buildingType:string; floorCount:number; floorHeight:number; architecturalStyle:string; hasGlassFront:boolean; hasColonnade:boolean; exteriorMaterial:string; rooms:ResearchRoom[]; totalWidth:number; totalDepth:number; exteriorColor:string; roofColor:string; culturalNotes:string; confidence:number; wallMaterial?:string; roofMaterial?:string; groundMaterial?:string; columnMaterial?:string; floorBandMaterial?:string }
+export interface ResearchResult { buildingType:string; floorCount:number; floorHeight:number; architecturalStyle:string; hasGlassFront:boolean; hasColonnade:boolean; exteriorMaterial:string; rooms:ResearchRoom[]; totalWidth:number; totalDepth:number; exteriorColor:string; roofColor:string; culturalNotes:string; confidence:number; wallMaterial?:string; roofMaterial?:string; groundMaterial?:string; columnMaterial?:string; floorBandMaterial?:string; accentColor?:string; columnColor?:string; windowCount?:number; windowStyle?:string; colonnadeStyle?:string; shutterColor?:string; floorBandColor?:string; hasPagodaRoof?:boolean; hasBalcony?:boolean; roofType?:string; scenery?:string; mode?:string; furniture?:string; hasStaircases?:boolean }
 
 function sint(v:unknown,min:number,max:number,def:number):number { const n=parseInt(String(v??def),10); return isNaN(n)?def:Math.max(min,Math.min(max,n)) }
 
@@ -38,8 +38,101 @@ export async function researchBuildingType(bt:string, opts:{forceRefresh?:boolea
   console.log('[research] waiting 4s...')
   await new Promise(r=>setTimeout(r,4000))
   const fb=fallback(bt)
-  const raw=await groqJSON<ResearchResult>(SYS,user,fb)
-  const result:ResearchResult={buildingType:String(raw.buildingType||bt),floorCount:sint(raw.floorCount,1,10,1),floorHeight:sint(raw.floorHeight,8,16,10),architecturalStyle:String(raw.architecturalStyle||'modern').toLowerCase(),hasGlassFront:Boolean(raw.hasGlassFront),hasColonnade:Boolean(raw.hasColonnade),exteriorMaterial:String(raw.exteriorMaterial||'smoothplastic').toLowerCase(),rooms:Array.isArray(raw.rooms)&&raw.rooms.length>=3?raw.rooms:fb.rooms,totalWidth:sint(raw.totalWidth,20,120,40),totalDepth:sint(raw.totalDepth,16,80,28),exteriorColor:String(raw.exteriorColor||'Light grey'),roofColor:String(raw.roofColor||'Dark grey'),culturalNotes:String(raw.culturalNotes||''),confidence:sint(raw.confidence,0,100,0),wallMaterial:validateMat(raw.wallMaterial,VALID_WALL_MATS,'smoothplastic'),roofMaterial:validateMat(raw.roofMaterial,VALID_ROOF_MATS,'slate'),groundMaterial:validateMat(raw.groundMaterial,VALID_GROUND_MATS,'concrete'),columnMaterial:validateMat(raw.columnMaterial,VALID_COL_MATS,'concrete'),floorBandMaterial:validateMat(raw.floorBandMaterial,VALID_WALL_MATS,'smoothplastic')}
+
+  // ── 3-step reasoning chain ──────────────────────────────────────────────
+  function parseStep<T>(raw: string, def: T): T {
+    try {
+      const c = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim()
+      const s = c.indexOf('{'); const e = c.lastIndexOf('}')
+      if (s === -1 || e === -1) return def
+      return JSON.parse(c.substring(s, e+1)) as T
+    } catch { return def }
+  }
+
+  // Step 1 — architectural description
+  let desc: any = {}
+  try {
+    const s1sys = `You are an expert architect. Return JSON only describing this building type. Schema: {"buildingType":string,"architecturalStyle":string,"description":string,"keyFeatures":string[],"typicalMaterials":string[],"typicalColors":string[],"floorCount":number,"floorHeight":number,"hasColonnade":boolean,"hasPagodaRoof":boolean,"hasBalcony":boolean,"roofType":string}`
+    const s1usr = `Building: ${name}\nRegion: ${name.includes('peranakan')||name.includes('shophouse')||name.includes('singapore')?'Singapore':name.includes('japanese')||name.includes('japan')?'Japan':name.includes('victorian')||name.includes('uk')||name.includes('british')?'United Kingdom':'Unknown'}\nResearch: ${combined.substring(0,800)}`
+    const r1 = await groqGenerate(s1sys, s1usr, 700)
+    desc = parseStep<any>(r1, {})
+    console.log('[research] step1 description:', desc.description?.substring(0,80))
+    console.log('[research] step1 features:', (desc.keyFeatures||[]).join(', ').substring(0,80))
+  } catch(e) { console.error('[research] step1 failed:', e) }
+
+  // Step 2 — precise visual specification
+  let spec: any = {}
+  try {
+    const s2sys = `You are a Roblox building designer. Return JSON only with exact visual specs. BrickColor options: Sand yellow, Brick yellow, Reddish brown, White, Light grey, Dark green, Really black, Dark grey, Medium stone grey, Cashmere, Tan, Hot pink, Bright red. Schema: {"exteriorColor":string,"roofColor":string,"accentColor":string,"columnColor":string,"wallMaterial":"smoothplastic|concrete","windowStyle":"lattice|casement|colonial|modern","colonnadeStyle":"square|round|none","shutterColor":string,"floorBandColor":string,"rooms":[{"name":string,"type":string}]}`
+    const desc_fc = desc.floorCount||3
+    const s2usr = `Building: ${desc.buildingType||name}\nDescription: ${(desc.description||'').substring(0,300)}\nFeatures: ${(desc.keyFeatures||[]).join(', ')}\nMaterials: ${(desc.typicalMaterials||[]).join(', ')}\nColors: ${(desc.typicalColors||[]).join(', ')}\nFloors: ${desc_fc}\nRules: peranakan/colonial→exteriorColor:Sand yellow,roofColor:Dark green; victorian→exteriorColor:Reddish brown,roofColor:Really black; modern→exteriorColor:White,roofColor:Dark grey; japanese→exteriorColor:White,roofColor:Really black`
+    const r2 = await groqGenerate(s2sys, s2usr, 600)
+    spec = parseStep<any>(r2, {})
+    console.log('[research] step2 spec:', spec.exteriorColor, spec.roofColor, spec.windowStyle)
+  } catch(e) { console.error('[research] step2 failed:', e) }
+
+  // Step 3 — quality check / correction
+  let finalSpec: any = spec
+  try {
+    if (spec.exteriorColor) {
+      const s3sys = `Review these building specs for authenticity. Return corrected JSON with same structure.`
+      const s3usr = `Building: ${desc.buildingType||name}\nSpecs: ${JSON.stringify(spec).substring(0,800)}\nDescription: ${(desc.description||'').substring(0,200)}\nAre colors and materials authentic? Correct if not.`
+      const r3 = await groqGenerate(s3sys, s3usr, 400)
+      finalSpec = parseStep<any>(r3, spec)
+      console.log('[research] step3 qa passed:', finalSpec.exteriorColor)
+    }
+  } catch(e) { console.error('[research] step3 failed:', e); finalSpec = spec }
+
+  // Build rooms — convert simplified chain rooms or use fallback
+  let chainRooms: ResearchRoom[] = []
+  if (Array.isArray(finalSpec.rooms) && finalSpec.rooms.length >= 3) {
+    chainRooms = finalSpec.rooms.map((r2: any) => ({
+      name: String(r2.name || 'Room'),
+      width: 14, depth: 12, height: 10,
+      wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete',
+      furniture: []
+    }))
+  }
+
+  // Fall back to single call if chain didn't produce valid visual spec
+  let raw: ResearchResult = fb
+  if (!finalSpec.exteriorColor || !desc.buildingType) {
+    console.log('[research] chain incomplete, falling back to single groq call')
+    raw = await groqJSON<ResearchResult>(SYS, user, fb)
+  }
+
+  const rooms = chainRooms.length >= 3 ? chainRooms : (Array.isArray(raw.rooms) && raw.rooms.length >= 3 ? raw.rooms : fb.rooms)
+
+  const result:ResearchResult={
+    buildingType: String(desc.buildingType||raw.buildingType||bt),
+    floorCount: sint(desc.floorCount||raw.floorCount,1,10,1),
+    floorHeight: sint(desc.floorHeight||raw.floorHeight,8,16,10),
+    architecturalStyle: String(desc.architecturalStyle||raw.architecturalStyle||'modern').toLowerCase(),
+    hasGlassFront: Boolean(raw.hasGlassFront),
+    hasColonnade: Boolean(desc.hasColonnade!==undefined ? desc.hasColonnade : raw.hasColonnade),
+    hasPagodaRoof: Boolean(desc.hasPagodaRoof),
+    hasBalcony: Boolean(desc.hasBalcony),
+    roofType: String(desc.roofType||''),
+    exteriorMaterial: String(raw.exteriorMaterial||'smoothplastic').toLowerCase(),
+    rooms,
+    totalWidth: sint(raw.totalWidth,20,120,40),
+    totalDepth: sint(raw.totalDepth,16,80,28),
+    exteriorColor: String(finalSpec.exteriorColor||raw.exteriorColor||'Light grey'),
+    roofColor: String(finalSpec.roofColor||raw.roofColor||'Dark grey'),
+    accentColor: finalSpec.accentColor,
+    columnColor: finalSpec.columnColor,
+    windowStyle: finalSpec.windowStyle,
+    colonnadeStyle: finalSpec.colonnadeStyle,
+    shutterColor: finalSpec.shutterColor||'Dark green',
+    floorBandColor: finalSpec.floorBandColor||'White',
+    wallMaterial: validateMat(finalSpec.wallMaterial||raw.wallMaterial,VALID_WALL_MATS,'smoothplastic'),
+    roofMaterial: validateMat(raw.roofMaterial,VALID_ROOF_MATS,'slate'),
+    groundMaterial: validateMat(raw.groundMaterial,VALID_GROUND_MATS,'concrete'),
+    columnMaterial: validateMat(raw.columnMaterial,VALID_COL_MATS,'concrete'),
+    floorBandMaterial: validateMat(raw.floorBandMaterial,VALID_WALL_MATS,'smoothplastic'),
+    culturalNotes: String(raw.culturalNotes||''),
+    confidence: finalSpec.exteriorColor ? 1 : sint(raw.confidence,0,100,0),
+  }
   console.log('[research] RESULT:',{floorCount:result.floorCount,style:result.architecturalStyle,ec:result.exteriorColor,rc:result.roofColor,colonnade:result.hasColonnade,rooms:result.rooms.length,conf:result.confidence})
   if(result.confidence>30) await setCache(bt,result)
   return result
