@@ -290,6 +290,15 @@ export async function generateAsset(
     const rbxmxBuilt = buildRbxmx([model], researchResult?.architecturalStyle || '', rootName)
     const rbxmxFinal = watermarkRbxmx(rbxmxBuilt, generationId, userId)
 
+    if (!rbxmxFinal || rbxmxFinal.length < 500) {
+      console.error('[generator] rbxmx too short, likely corrupted:', rbxmxFinal?.length)
+      throw new Error('Generated XML is too short or empty')
+    }
+    if (rbxmxFinal.includes('NaN') || rbxmxFinal.includes('Infinity')) {
+      console.error('[generator] rbxmx contains NaN or Infinity values')
+      throw new Error('Generated XML contains invalid numeric values')
+    }
+
     let qualityScore = usedFallback ? 75 : 85
     let qualityNotes = usedFallback ? 'Fallback generic building' : options.exteriorOnly ? 'Exterior only build' : 'Blueprint build'
 

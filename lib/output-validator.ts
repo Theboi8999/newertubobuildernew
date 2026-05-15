@@ -3,20 +3,57 @@ import { groqGenerate } from './groq'
 
 export interface ValidationResult {
   valid: boolean
+  passed: boolean
   errors: string[]
   warnings: string[]
   tosIssues: string[]
-  fixed?: string
+  issues: string[]
+  fixed?: string | null
 }
 
 export function validateRbxmx(rbxmx: string): ValidationResult {
   const errors: string[] = []
   const warnings: string[] = []
   const tosIssues: string[] = []
+  const issues: string[] = []
 
-  // Structure checks
-  if (!rbxmx.includes('<roblox')) errors.push('Missing <roblox> root element')
-  if (!rbxmx.includes('</roblox>')) errors.push('Missing closing </roblox> tag')
+  // Critical checks — these indicate definite XML corruption
+  if (!rbxmx || !rbxmx.startsWith('<?xml')) {
+    const reason = 'Output does not start with valid XML declaration'
+    console.error('[validator] FAILED:', reason)
+    issues.push(reason)
+  }
+  if (!rbxmx || !rbxmx.includes('<roblox')) {
+    const reason = 'Missing <roblox> root element'
+    console.error('[validator] FAILED:', reason)
+    issues.push(reason)
+    errors.push(reason)
+  }
+  if (!rbxmx || !rbxmx.trimEnd().endsWith('</roblox>')) {
+    const reason = 'Output does not end with </roblox>'
+    console.error('[validator] FAILED:', reason)
+    issues.push(reason)
+    errors.push('Missing closing </roblox> tag')
+  }
+  if (rbxmx && rbxmx.includes('NaN')) {
+    const reason = 'Output contains literal "NaN" — numeric corruption detected'
+    console.error('[validator] FAILED:', reason)
+    issues.push(reason)
+    errors.push(reason)
+  }
+  if (rbxmx && rbxmx.includes('Infinity')) {
+    const reason = 'Output contains literal "Infinity" — numeric corruption detected'
+    console.error('[validator] FAILED:', reason)
+    issues.push(reason)
+    errors.push(reason)
+  }
+
+  // Return early if any critical issue found — do not attempt to fix corrupted XML
+  if (issues.length > 0) {
+    return { valid: false, passed: false, errors, warnings, tosIssues, issues, fixed: null }
+  }
+
+  // Non-critical structure checks
   if (!rbxmx.includes('<Item class="Model"')) warnings.push('No Model item found — may not import correctly')
   const partCount = (rbxmx.match(/<Item class="Part"/g) || []).length
   if (partCount === 0) errors.push('No Part items found — file will be empty in Studio')
@@ -44,13 +81,8 @@ export function validateRbxmx(rbxmx: string): ValidationResult {
   if (sizeKB > 5000) warnings.push(`File is very large (${Math.round(sizeKB)}KB) — may be slow to import`)
   if (sizeKB < 0.5) errors.push('File appears empty or too small to be valid')
 
-  // Auto-fix: ensure XML declaration present
-  let fixed = rbxmx
-  if (!fixed.startsWith('<?xml')) {
-    fixed = '<?xml version="1.0" encoding="utf-8"?>\n' + fixed
-  }
-
   // Auto-fix: add task.wait to bare infinite loops
+  let fixed = rbxmx
   fixed = fixed.replace(
     /while true do\r?\n(\s+)(?!task\.wait)/g,
     'while true do\n$1task.wait(0.1)\n$1'
@@ -58,9 +90,11 @@ export function validateRbxmx(rbxmx: string): ValidationResult {
 
   return {
     valid: errors.length === 0,
+    passed: true,
     errors,
     warnings,
     tosIssues,
+    issues,
     fixed: fixed !== rbxmx ? fixed : undefined,
   }
 }

@@ -35,7 +35,8 @@ const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothpla
 
 function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase().trim(); if(VC[k])return VC[k]; for(const [key,val] of Object.entries(VC)){if(k.includes(key)||key.includes(k))return val} console.log('[color] no match:',c); return 'Light grey' }
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
-function p(name:string,sx:number,sy:number,sz:number,px:number,py:number,pz:number,color:string,material:string,transparency=0,emissive=false):RbxPart { return {name,size:{x:Math.max(0.1,sx),y:Math.max(0.1,sy),z:Math.max(0.1,sz)},position:{x:px,y:py,z:pz},color:vc(color),material:vm(material),anchored:true,transparency:Math.max(0,Math.min(1,transparency)),emissive} }
+function safeNum(n:number,fallback:number):number { return (isFinite(n)&&!isNaN(n))?n:fallback }
+function p(name:string,sx:number,sy:number,sz:number,px:number,py:number,pz:number,color:string,material:string,transparency=0,emissive=false):RbxPart { return {name,size:{x:safeNum(Math.max(0.1,sx),1),y:safeNum(Math.max(0.1,sy),1),z:safeNum(Math.max(0.1,sz),1)},position:{x:safeNum(px,0),y:safeNum(py,0),z:safeNum(pz,0)},color:vc(color),material:vm(material),anchored:true,transparency:Math.max(0,Math.min(1,transparency)),emissive} }
 
 export { getRoomType }
 

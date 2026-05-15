@@ -82,8 +82,8 @@ export function p(
 ): RbxPart {
   return {
     name,
-    size: { x: Math.max(0.1, sx), y: Math.max(0.1, sy), z: Math.max(0.1, sz) },
-    position: { x: px, y: py, z: pz },
+    size: { x: safeNum(Math.max(0.1, sx), 1), y: safeNum(Math.max(0.1, sy), 1), z: safeNum(Math.max(0.1, sz), 1) },
+    position: { x: safeNum(px, 0), y: safeNum(py, 0), z: safeNum(pz, 0) },
     color: vc(color),
     material: vm(material),
     anchored: true,
@@ -246,28 +246,38 @@ function escapeXml(str: string): string {
     .replace(/'/g, '&apos;')
 }
 
+function sanitizeName(n: string): string {
+  return n.replace(/&/g, 'and').replace(/[<>'"]/g, '_')
+}
+
+function safeNum(n: number, fallback: number): number {
+  return (isFinite(n) && !isNaN(n)) ? n : fallback
+}
+
 function generatePart(part: RbxPart, id: number): string {
-  const n = part.name.toLowerCase()
+  const safeName = sanitizeName(part.name || `Part_${id}`)
+  const n = safeName.toLowerCase()
   // Force material token at the XML level — bypasses any upstream material string issues
   const isGround = n.includes('ground') || n.includes('road') || n.includes('pavement') || n.includes('kerb')
   const isDoor = n.includes('door') || n.includes('bench_s') || n.includes('bench_b')
-  const safeMat = isGround ? getMat('concrete') : isDoor ? getMat('wood') : getMat(part.material)
-  const color = sanitizeColor(part.color)
-  console.log('[rbxmx] writing part:', part.name.substring(0,30), 'color:', color, 'mat:', part.material, 'token:', safeMat)
+  const color = sanitizeColor(part.color || 'Light grey')
+  const matStr = part.material || 'smoothplastic'
+  const safeMat = isGround ? getMat('concrete') : isDoor ? getMat('wood') : getMat(matStr)
+  console.log('[rbxmx] writing part:', safeName.substring(0,30), 'color:', color, 'mat:', matStr, 'token:', safeMat)
   const transparency = Math.max(0, Math.min(1, part.transparency ?? 0))
   const itemClass = part.partType || 'Part'
 
-  const sx = Math.max(0.05, Number(part.size.x) || 1)
-  const sy = Math.max(0.05, Number(part.size.y) || 1)
-  const sz = Math.max(0.05, Number(part.size.z) || 1)
-  const px = Number(part.position.x) || 0
-  const py = Number(part.position.y) || sy / 2
-  const pz = Number(part.position.z) || 0
+  const sx = safeNum(Math.max(0.05, Number(part.size.x) || 1), 1)
+  const sy = safeNum(Math.max(0.05, Number(part.size.y) || 1), 1)
+  const sz = safeNum(Math.max(0.05, Number(part.size.z) || 1), 1)
+  const px = safeNum(Number(part.position.x) || 0, 0)
+  const py = safeNum(Number(part.position.y) || sy / 2, sy / 2)
+  const pz = safeNum(Number(part.position.z) || 0, 0)
 
   return `
   <Item class="${itemClass}" referent="RBX${id}">
     <Properties>
-      <string name="Name">${escapeXml(part.name)}</string>
+      <string name="Name">${escapeXml(safeName)}</string>
       <Vector3 name="Size">
         <X>${sx}</X><Y>${sy}</Y><Z>${sz}</Z>
       </Vector3>
