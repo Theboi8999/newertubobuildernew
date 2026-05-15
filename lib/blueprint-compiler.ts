@@ -7,6 +7,14 @@ import { generateRoof } from './passes/pass-2-roof'
 import { generateFacade } from './passes/pass-3-facade'
 import { generateTerrain, SceneryLevel } from './passes/pass-6-terrain'
 import { getStyleDNA } from './style/style-dna'
+import {
+  buildDetailedDesk,
+  buildDetailedChair,
+  buildDetailedShelf,
+  buildDetailedLocker,
+  buildWallDetails
+} from './detail-system'
+import { generateStaircases } from './passes/pass-5-staircases'
 
 export interface BuildPlan {
   tw: number
@@ -69,12 +77,7 @@ function buildPitchedRoof(name: string, tw: number, td: number, baseY: number, c
   return parts
 }
 
-// ── Terrain ───────────────────────────────────────────────────────────────────
-function buildTerrain(_tw: number, _td: number, _style: string, _isChinese: boolean): RbxPart[] {
-  return []
-}
-
-function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:string):RbxPart[] {
+function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:string,options?:{furniture?:boolean},yOffset=0):RbxPart[] {
   if (!room || !room.name) { console.log('[compileRoom] skipping invalid room:', room); return [] }
   const pts:RbxPart[]=[]; const w=Math.max(8,Number(room.width)||12); const d=Math.max(8,Number(room.depth)||10); const h=Math.max(8,Number(room.height)||10)
   const wc=vc(room.wallColor||'Light grey'); const fc=vc(room.floorColor||'Medium stone grey'); const fm=vm(room.floorMaterial||'concrete'); const n=(room.name||'Room').replace(/\s+/g,'_')
@@ -85,14 +88,33 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
   pts.push(p(`${n}_WN`,w,h,0.3,ox,h/2,oz-d/2,wc,'smoothplastic')); pts.push(p(`${n}_WS`,w,h,0.3,ox,h/2,oz+d/2,wc,'smoothplastic')); pts.push(p(`${n}_WW`,0.3,h,d,ox-w/2,h/2,oz,wc,'smoothplastic')); pts.push(p(`${n}_WE`,0.3,h,d,ox+w/2,h/2,oz,wc,'smoothplastic'))
   pts.push(p(`${n}_SKN`,w+0.1,0.6,0.15,ox,0.8,oz-d/2+0.075,'White','smoothplastic')); pts.push(p(`${n}_SKS`,w+0.1,0.6,0.15,ox,0.8,oz+d/2-0.075,'White','smoothplastic')); pts.push(p(`${n}_SKW`,0.15,0.6,d+0.1,ox-w/2+0.075,0.8,oz,'White','smoothplastic')); pts.push(p(`${n}_SKE`,0.15,0.6,d+0.1,ox+w/2-0.075,0.8,oz,'White','smoothplastic'))
   pts.push(p(`${n}_DFL`,0.2,7.2,0.4,ox-1.5,3.6,oz-d/2-0.05,'White','smoothplastic')); pts.push(p(`${n}_DFR`,0.2,7.2,0.4,ox+1.5,3.6,oz-d/2-0.05,'White','smoothplastic')); pts.push(p(`${n}_DFT`,3.4,0.2,0.4,ox,7.1,oz-d/2-0.05,'White','smoothplastic')); pts.push(p(`${n}_Door`,3,7,0.15,ox,3.5,oz-d/2-0.08,'Reddish brown','wood')); pts.push(p(`${n}_Hndl`,0.15,0.15,0.35,ox+1.1,3.5,oz-d/2-0.17,'Medium stone grey','metal'))
-  const fur=room.furniture||[]; const walls:Record<string,typeof fur>={north_wall:[],south_wall:[],east_wall:[],west_wall:[],row:[],center:[]}
-  for(const f of fur){if(!f||!f.name)continue; const k=f.placement||'center'; if(walls[k])walls[k].push(f); else walls.center.push(f)}
-  const place=(items:typeof fur,wall:string)=>{let cur=0; for(const item of items){if(!item||!item.name)continue; const fw=Math.max(0.5,Number(item.size?.x)||2); const fh=Math.max(0.5,Number(item.size?.y)||1); const fd=Math.max(0.5,Number(item.size?.z)||2); const qty=Math.min(Number(item.quantity)||1,8); const step=(wall==='east_wall'||wall==='west_wall')?fd+0.5:fw+0.5; const iName=(item.name||'Item').replace(/\s+/g,'_'); for(let q=0;q<qty;q++){let fx=ox,fz=oz; switch(wall){case 'north_wall':fx=ox-w/2+2+cur+fw/2;fz=oz-d/2+1+fd/2;break; case 'south_wall':fx=ox-w/2+2+cur+fw/2;fz=oz+d/2-1-fd/2;break; case 'east_wall':fx=ox+w/2-1-fw/2;fz=oz-d/2+2+cur+fd/2;break; case 'west_wall':fx=ox-w/2+1+fw/2;fz=oz-d/2+2+cur+fd/2;break; default:fx=ox+((q%3)-1)*(fw+1);fz=oz+Math.floor(q/3)*(fd+1)} fx=Math.max(ox-w/2+1,Math.min(ox+w/2-1,fx)); fz=Math.max(oz-d/2+1,Math.min(oz+d/2-1,fz)); pts.push(p(`${n}_${iName}_${q}`,fw,fh,fd,fx,1+fh/2,fz,vc(item.color||'Reddish brown'),vm(item.material||'wood'))); cur+=step}}}
-  place(walls.north_wall,'north_wall'); place(walls.south_wall,'south_wall'); place(walls.east_wall,'east_wall'); place(walls.west_wall,'west_wall'); place([...walls.row,...walls.center],'center')
+  if (!options?.furniture) {
+    const fur=room.furniture||[]; const walls:Record<string,typeof fur>={north_wall:[],south_wall:[],east_wall:[],west_wall:[],row:[],center:[]}
+    for(const f of fur){if(!f||!f.name)continue; const k=f.placement||'center'; if(walls[k])walls[k].push(f); else walls.center.push(f)}
+    const place=(items:typeof fur,wall:string)=>{let cur=0; for(const item of items){if(!item||!item.name)continue; const fw=Math.max(0.5,Number(item.size?.x)||2); const fh=Math.max(0.5,Number(item.size?.y)||1); const fd=Math.max(0.5,Number(item.size?.z)||2); const qty=Math.min(Number(item.quantity)||1,8); const step=(wall==='east_wall'||wall==='west_wall')?fd+0.5:fw+0.5; const iName=(item.name||'Item').replace(/\s+/g,'_'); for(let q=0;q<qty;q++){let fx=ox,fz=oz; switch(wall){case 'north_wall':fx=ox-w/2+2+cur+fw/2;fz=oz-d/2+1+fd/2;break; case 'south_wall':fx=ox-w/2+2+cur+fw/2;fz=oz+d/2-1-fd/2;break; case 'east_wall':fx=ox+w/2-1-fw/2;fz=oz-d/2+2+cur+fd/2;break; case 'west_wall':fx=ox-w/2+1+fw/2;fz=oz-d/2+2+cur+fd/2;break; default:fx=ox+((q%3)-1)*(fw+1);fz=oz+Math.floor(q/3)*(fd+1)} fx=Math.max(ox-w/2+1,Math.min(ox+w/2-1,fx)); fz=Math.max(oz-d/2+1,Math.min(oz+d/2-1,fz)); pts.push(p(`${n}_${iName}_${q}`,fw,fh,fd,fx,1+fh/2,fz,vc(item.color||'Reddish brown'),vm(item.material||'wood'))); cur+=step}}}
+    place(walls.north_wall,'north_wall'); place(walls.south_wall,'south_wall'); place(walls.east_wall,'east_wall'); place(walls.west_wall,'west_wall'); place([...walls.row,...walls.center],'center')
+  } else {
+    const rType = getRoomType(room.name)
+    if (rType === 'office' || rType === 'meeting') {
+      buildDetailedDesk({name:`${n}_Desk0`,x:ox-w/4,y:0,z:oz-d/4}).forEach(dp=>pts.push(dp as RbxPart))
+      buildDetailedDesk({name:`${n}_Desk1`,x:ox+w/4,y:0,z:oz+d/4}).forEach(dp=>pts.push(dp as RbxPart))
+      buildDetailedChair({name:`${n}_Chair0`,x:ox-w/4,y:0,z:oz-d/4+2.5}).forEach(dp=>pts.push(dp as RbxPart))
+      buildDetailedChair({name:`${n}_Chair1`,x:ox+w/4,y:0,z:oz+d/4+2.5}).forEach(dp=>pts.push(dp as RbxPart))
+      buildWallDetails({name:`${n}_WD`,x:ox,y:0,z:oz-d/2,width:w,height:h,direction:'north',hasCCTV:true,hasPowerSocket:true}).forEach(dp=>pts.push(dp as RbxPart))
+    } else if (rType === 'reception') {
+      buildDetailedChair({name:`${n}_Chair0`,x:ox-w/3,y:0,z:oz,style:'waiting'}).forEach(dp=>pts.push(dp as RbxPart))
+      buildDetailedChair({name:`${n}_Chair1`,x:ox+w/3,y:0,z:oz,style:'waiting'}).forEach(dp=>pts.push(dp as RbxPart))
+    } else if (rType === 'locker') {
+      buildDetailedLocker({name:`${n}_Locker`,x:ox,y:0,z:oz-d/4,count:4}).forEach(dp=>pts.push(dp as RbxPart))
+    } else if (rType === 'storage') {
+      buildDetailedShelf({name:`${n}_Shelf`,x:ox,y:0,z:oz-d/4,width:Math.min(w-2,6),shelfCount:4}).forEach(dp=>pts.push(dp as RbxPart))
+    }
+  }
+  if (yOffset !== 0) { for (const part of pts) part.position.y += yOffset }
   return pts
 }
 
-function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
+function buildExterior(tw: number, td: number, r: ResearchResult, options?: { furniture?: boolean; scenery?: string; hasStaircases?: boolean }): RbxPart[] {
   try {
     const fh = 12
     const wallBase = 2.3
@@ -122,10 +144,11 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
     const structure = generateStructure(plan, dna)
     const roof = generateRoof(plan, dna)
     const facade = generateFacade(plan, dna)
-    const scenery = (r.scenery as SceneryLevel) || 'minimal'
+    const scenery = (options?.scenery || r.scenery || 'minimal') as SceneryLevel
     const terrain = generateTerrain(plan, dna, scenery)
+    const staircases = generateStaircases(plan, options?.hasStaircases === true)
 
-    const all = [...structure, ...roof, ...facade, ...terrain]
+    const all = [...structure, ...roof, ...facade, ...terrain, ...staircases]
 
     for (const part of all) {
       const n = part.name.toLowerCase()
@@ -145,19 +168,19 @@ function buildExterior(tw: number, td: number, r: ResearchResult): RbxPart[] {
   }
 }
 
-export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBlueprint {
+export function compileBlueprint(r:ResearchResult, seed?: number, options?: { furniture?: boolean; scenery?: string; hasStaircases?: boolean }):CompiledBlueprint {
   try {
   console.log('[blueprint] START:',r.buildingType,'fc:',r.floorCount,'style:',r.architecturalStyle,'ec:',r.exteriorColor)
   const style=(r.architecturalStyle||'modern').toLowerCase()
   const rooms:RbxPart[][]=[], layout:CompiledBlueprint['roomLayout']=[]
 
   const tw = Math.min(
-    Math.max(r.totalWidth || 40, 30),
-    55
+    Math.max(r.totalWidth || 40, 40),
+    120
   )
   const td = Math.min(
-    Math.max(r.totalDepth || 28, 20),
-    40
+    Math.max(r.totalDepth || 28, 24),
+    80
   )
 
   console.log('[blueprint] footprint:', tw, 'x', td)
@@ -194,28 +217,38 @@ export function compileBlueprint(r:ResearchResult, seed?: number):CompiledBluepr
     console.log('[blueprint] entrance room aligned to front:', entranceRoom.name)
   }
 
+  const floorCount = Math.max(1, r.floorCount || 1)
+  const floorHeight = r.floorHeight || 12
+
+  // Multi-floor distribution: sort by area descending, distribute across floors
+  const sortedByArea = [...placedRooms].sort((a, b) => (b.width * b.depth) - (a.width * a.depth))
+  const floorAssignments = new Map<string, number>()
+  sortedByArea.forEach((room, idx) => {
+    const nameL = room.name.toLowerCase()
+    const isGroundFloor = nameL.includes('reception') || nameL.includes('lobby') ||
+      nameL.includes('entrance') || nameL.includes('foyer') || nameL.includes('waiting')
+    floorAssignments.set(room.name, isGroundFloor ? 0 : idx % floorCount)
+  })
+
   let fallbackZ = td + 2
   for (let i = 0; i < r.rooms.length; i++) {
     const room = r.rooms[i]
     const placed = placedRooms[i]
+    const floorIndex = floorAssignments.get(room.name) ?? (i % floorCount)
+    const yOffset = floorIndex * floorHeight
     if (placed) {
-      rooms.push(compileRoom(room, placed.x, placed.z, style))
+      rooms.push(compileRoom(room, placed.x, placed.z, style, options, yOffset))
       layout.push({ name: room.name, x: placed.x, z: placed.z, width: placed.width, depth: placed.depth, type: placed.type })
     } else {
       const w = Math.max(8, Number(room.width) || 12)
       const d = Math.max(8, Number(room.depth) || 10)
-      rooms.push(compileRoom(room, tw / 2, fallbackZ + d / 2, style))
+      rooms.push(compileRoom(room, tw / 2, fallbackZ + d / 2, style, options, yOffset))
       layout.push({ name: room.name, x: tw / 2, z: fallbackZ + d / 2, width: w, depth: d, type: getRoomType(room.name) })
       fallbackZ += d + 2
     }
   }
 
-  // Section 10: Terrain + street furniture
-  const isChinese = style.includes('chinese') || style.includes('peranakan') ||
-    (r.buildingType||'').toLowerCase().includes('shophouse') || (r.buildingType||'').toLowerCase().includes('singapore')
-  const terrain = buildTerrain(tw, td, style, isChinese)
-
-  const exterior = [...buildExterior(tw, td, r), ...terrain]
+  const exterior = [...buildExterior(tw, td, r, options)]
   console.log('[blueprint] rooms:',rooms.length,'ext:',exterior.length,'total:',rooms.reduce((s,r2)=>s+r2.length,0)+exterior.length)
   return { buildingType:r.buildingType, rooms, exterior, totalWidth:tw, totalDepth:td, roomLayout:layout }
   } catch (e) {

@@ -109,7 +109,63 @@ function generateGableRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
 }
 
 function generateHipRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
-  return generateGableRoof(plan, dna)
+  const parts: RbxPart[] = []
+  const { tw, td, wallBase, floorCount, floorHeight } = plan
+  const baseY = wallBase + floorCount * floorHeight
+  const pitch = dna.roofPitch || 35
+  const overhang = dna.roofOverhang || 2
+  const rc = dna.roofColor
+
+  const roofH = Math.tan(pitch * Math.PI / 180) * (td / 2)
+  const ridgeLen = Math.max(1, tw - td)
+  const steps = 8
+
+  // Front + back slopes (trapezoidal, narrowing toward ridge)
+  for (let s = 0; s < steps; s++) {
+    const ratio = s / steps
+    const nextRatio = (s + 1) / steps
+    const sliceD = td / 2 / steps
+    const sliceY = baseY + roofH * ratio
+    const sliceH = roofH * (nextRatio - ratio) + 0.1
+    const widthAtBase = tw + overhang * 2
+    const widthAtRidge = Math.max(ridgeLen + 1, tw - td + overhang)
+    const sliceW = widthAtBase - (widthAtBase - widthAtRidge) * nextRatio
+
+    parts.push(p(`HipF_${s}`, sliceW, sliceH, sliceD,
+      tw / 2, sliceY + sliceH / 2, sliceD / 2 + s * sliceD, rc, 'smoothplastic'))
+    parts.push(p(`HipB_${s}`, sliceW, sliceH, sliceD,
+      tw / 2, sliceY + sliceH / 2, td - sliceD / 2 - s * sliceD, rc, 'smoothplastic'))
+  }
+
+  // Left + right end slopes (triangular, narrowing to ridge endpoints)
+  for (let s = 0; s < steps; s++) {
+    const ratio = s / steps
+    const nextRatio = (s + 1) / steps
+    const sliceW = td / 2 / steps
+    const sliceY = baseY + roofH * ratio
+    const sliceH = roofH * (nextRatio - ratio) + 0.1
+    const lenAtBase = td + overhang * 2
+    const sliceLen = lenAtBase * (1 - nextRatio) + 0.6
+
+    parts.push(p(`HipL_${s}`, sliceW, sliceH, Math.max(0.4, sliceLen),
+      sliceW / 2 + s * sliceW - overhang, sliceY + sliceH / 2, td / 2, rc, 'smoothplastic'))
+    parts.push(p(`HipR_${s}`, sliceW, sliceH, Math.max(0.4, sliceLen),
+      tw - sliceW / 2 - s * sliceW + overhang, sliceY + sliceH / 2, td / 2, rc, 'smoothplastic'))
+  }
+
+  parts.push(p('HipRidge', Math.max(ridgeLen, 1), 0.5, 0.8,
+    tw / 2, baseY + roofH + 0.25, td / 2, rc, 'smoothplastic'))
+
+  parts.push(p('HipGutF', tw + overhang * 2 + 0.5, 0.4, 0.6,
+    tw / 2, baseY + 0.2, -overhang - 0.3, dna.trimColor, 'smoothplastic'))
+  parts.push(p('HipGutB', tw + overhang * 2 + 0.5, 0.4, 0.6,
+    tw / 2, baseY + 0.2, td + overhang + 0.3, dna.trimColor, 'smoothplastic'))
+  parts.push(p('HipGutL', 0.6, 0.4, td + overhang * 2 + 0.5,
+    -overhang - 0.3, baseY + 0.2, td / 2, dna.trimColor, 'smoothplastic'))
+  parts.push(p('HipGutR', 0.6, 0.4, td + overhang * 2 + 0.5,
+    tw + overhang + 0.3, baseY + 0.2, td / 2, dna.trimColor, 'smoothplastic'))
+
+  return parts
 }
 
 function generateShedRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {

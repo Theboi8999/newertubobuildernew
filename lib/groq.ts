@@ -6,8 +6,8 @@ export async function groqGenerate(
   maxTokens = 1500
 ): Promise<string> {
   const client = new Groq({ apiKey: process.env.GROQ_API_KEY })
-  const truncSys = systemPrompt.substring(0, 800)
-  const truncUser = userPrompt.substring(0, 1500)
+  const truncSys = systemPrompt.substring(0, 4000)
+  const truncUser = userPrompt.substring(0, 6000)
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -17,8 +17,8 @@ export async function groqGenerate(
         await new Promise(r => setTimeout(r, delay))
       }
       const res = await client.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
-        max_tokens: Math.min(maxTokens, 1500),
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: Math.min(maxTokens, 8000),
         temperature: 0.3,
         messages: [
           { role: 'system', content: truncSys },

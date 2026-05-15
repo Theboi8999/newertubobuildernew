@@ -35,8 +35,6 @@ export async function researchBuildingType(bt:string, opts:{forceRefresh?:boolea
   console.log('[research] wiki:',w.length,'tavily:',t.length,'serper:',s.length,'knowledge:',k.length)
   const combined=[w&&`Wiki:${w}`,t&&`Web:${t}`,s&&`Search:${s}`,opts.teachingContext&&`Prev:${opts.teachingContext}`].filter(Boolean).join('\n\n').substring(0,1800)
   const user=`Building:${name}\n\nResearch:\n${combined}\n\n${k?`Quality:\n${k}\n\n`:''}Return JSON now.`
-  console.log('[research] waiting 4s...')
-  await new Promise(r=>setTimeout(r,4000))
   const fb=fallback(bt)
 
   // ── 3-step reasoning chain ──────────────────────────────────────────────

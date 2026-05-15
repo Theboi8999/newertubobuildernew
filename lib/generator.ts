@@ -29,7 +29,7 @@ export interface GenerateOptions {
   seed?: number
   scenery?: string
   mode?: string
-  furniture?: string
+  furniture?: boolean
   hasStaircases?: boolean
 }
 
@@ -194,7 +194,6 @@ export async function generateAsset(
         }
         if (options.scenery) researchResult.scenery = options.scenery
         if (options.mode) researchResult.mode = options.mode
-        if (options.furniture) researchResult.furniture = options.furniture
         if (options.hasStaircases !== undefined) researchResult.hasStaircases = options.hasStaircases
         if (options.buildingStyle) {
           const sm = matchStyleLibrary('', options.buildingStyle)
@@ -211,7 +210,7 @@ export async function generateAsset(
 
         console.log('[generateAsset] research confidence:', researchResult.confidence)
         await onProgress?.('🏗️ Compiling blueprint...', 75)
-        compiled = compileBlueprint(researchResult, options.seed)
+        compiled = compileBlueprint(researchResult, options.seed, { furniture: options.furniture, scenery: options.scenery, hasStaircases: options.hasStaircases })
         allParts = options.exteriorOnly
           ? [...compiled.exterior]
           : [...compiled.rooms.flat(), ...compiled.exterior]
@@ -238,7 +237,7 @@ export async function generateAsset(
     // FIX 5/7: Quality check + auto-retry if quality too low
     if (!usedFallback && allParts.length > 0) {
       try {
-        qualityCheckResult = checkBuildingQuality(allParts, researchResult, buildingType || 'building', compiled?.roomLayout)
+        qualityCheckResult = checkBuildingQuality(allParts, researchResult, buildingType || 'building', compiled?.roomLayout, { hasStaircases: options.hasStaircases })
         console.log('[generator] quality check:', qualityCheckResult.percentage + '%', 'suggestions:', qualityCheckResult.suggestions)
 
         if (qualityCheckResult.percentage < 70 && !options.isRetry && buildingType && researchResult) {
@@ -260,7 +259,7 @@ export async function generateAsset(
               retryResearch.exteriorMaterial = 'brick'
               retryResearch.architecturalStyle = 'victorian brick classical'
             }
-            const retryCompiled = compileBlueprint(retryResearch, (options.seed || 42) + 1)
+            const retryCompiled = compileBlueprint(retryResearch, (options.seed || 42) + 1, { furniture: options.furniture, scenery: options.scenery, hasStaircases: options.hasStaircases })
             const retryParts = options.exteriorOnly
               ? [...retryCompiled.exterior]
               : [...retryCompiled.rooms.flat(), ...retryCompiled.exterior]
@@ -270,7 +269,7 @@ export async function generateAsset(
               compiled = retryCompiled
               researchResult = retryResearch
               specItems = retryResearch.rooms.map(r => r.name)
-              qualityCheckResult = checkBuildingQuality(retryParts, retryResearch, buildingType, retryCompiled.roomLayout)
+              qualityCheckResult = checkBuildingQuality(retryParts, retryResearch, buildingType, retryCompiled.roomLayout, { hasStaircases: options.hasStaircases })
             }
           } catch (e) {
             console.error('[generator] retry failed:', e)

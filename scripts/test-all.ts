@@ -11,6 +11,7 @@ import { getStyleDNA } from '../lib/style/style-dna'
 import { generateStructure } from '../lib/passes/pass-1-structure'
 import { generateRoof } from '../lib/passes/pass-2-roof'
 import { generateTerrain } from '../lib/passes/pass-6-terrain'
+import { generateStaircases } from '../lib/passes/pass-5-staircases'
 import { createDefaultIntent, isIntentComplete, estimateGeneration } from '../lib/brain/build-intent'
 
 // ── Test runner ──────────────────────────────────────────────────────────────
@@ -861,6 +862,93 @@ test('estimateGeneration increases with mode and scenery', () => {
   const full = estimateGeneration({ ...createDefaultIntent('test'), mode: 'full', scenery: 'full' } as any)
   assert(full.parts > base.parts, `full mode should have more parts: ${full.parts} vs ${base.parts}`)
   assert(full.seconds > base.seconds, `full mode should take longer: ${full.seconds} vs ${base.seconds}`)
+})
+
+// ── STYLE DNA EXTENDED TESTS ─────────────────────────────────────────────────
+
+console.log('\n═══ STYLE DNA EXTENDED ═══')
+
+test('hospital gets flat roof StyleDNA', () => {
+  const dna = getStyleDNA('modern hospital', 'hospital', {})
+  assert(dna.roofType === 'flat', `expected flat roof for hospital, got ${dna.roofType}`)
+})
+
+test('mosque gets heavy ornament StyleDNA', () => {
+  const dna = getStyleDNA('mosque', 'mosque', {})
+  assert(dna.ornamentLevel === 'heavy', `expected heavy ornament for mosque, got ${dna.ornamentLevel}`)
+})
+
+// ── HIP ROOF TESTS ────────────────────────────────────────────────────────────
+
+console.log('\n═══ HIP ROOF ═══')
+
+test('hip roof returns 30+ parts', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 1, floorHeight: 12, buildingType: 'house', architecturalStyle: 'victorian' }
+  const dna = getStyleDNA('victorian', 'house', {})
+  dna.roofType = 'hip'
+  const parts = generateRoof(plan, dna)
+  assert(parts.length >= 30, `expected >= 30 hip roof parts, got ${parts.length}`)
+})
+
+test('hip roof has no GableStep parts', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 1, floorHeight: 12, buildingType: 'house', architecturalStyle: 'victorian' }
+  const dna = getStyleDNA('victorian', 'house', {})
+  dna.roofType = 'hip'
+  const parts = generateRoof(plan, dna)
+  assert(!parts.some(p => p.name.includes('GableStep')), 'hip roof should not have GableStep parts')
+})
+
+test('gable roof has no HipF parts', () => {
+  const plan: BuildPlan = { tw: 40, td: 28, th: 12, wallBase: 2.3, floorCount: 1, floorHeight: 12, buildingType: 'house', architecturalStyle: 'colonial' }
+  const dna = getStyleDNA('colonial', 'house', {})
+  dna.roofType = 'gable'
+  const parts = generateRoof(plan, dna)
+  assert(!parts.some(p => p.name.includes('HipF')), 'gable roof should not have HipF parts')
+})
+
+// ── STAIRCASE TESTS ───────────────────────────────────────────────────────────
+
+console.log('\n═══ STAIRCASES ═══')
+
+test('generateStaircases returns parts for multi-floor', () => {
+  const parts = generateStaircases({ tw: 40, td: 28, floorCount: 3, floorHeight: 12, wallBase: 2.3 }, true)
+  assert(parts.length > 20, `expected > 20 staircase parts, got ${parts.length}`)
+})
+
+test('generateStaircases returns empty for single floor', () => {
+  const parts = generateStaircases({ tw: 40, td: 28, floorCount: 1, floorHeight: 12, wallBase: 2.3 }, true)
+  assert(parts.length === 0, `single floor should return empty staircases, got ${parts.length}`)
+})
+
+test('generateStaircases returns empty when disabled', () => {
+  const parts = generateStaircases({ tw: 40, td: 28, floorCount: 3, floorHeight: 12, wallBase: 2.3 }, false)
+  assert(parts.length === 0, `disabled staircases should return empty, got ${parts.length}`)
+})
+
+// ── FURNITURE TESTS ───────────────────────────────────────────────────────────
+
+console.log('\n═══ FURNITURE ═══')
+
+test('furniture disabled produces no desk parts', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'office_building',
+    floorCount: 1,
+    rooms: [{ name: 'Office', width: 16, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' }]
+  }), undefined, { furniture: false })
+  const allParts = r.rooms.flat()
+  const hasDesk = allParts.some(p => p.name.includes('Surface') || p.name.includes('Monitor'))
+  assert(!hasDesk, 'furniture=false should not generate detailed desk parts')
+})
+
+test('furniture enabled produces desk parts for office room', () => {
+  const r = compileBlueprint(mockResearch({
+    buildingType: 'office_building',
+    floorCount: 1,
+    rooms: [{ name: 'Office', width: 16, depth: 12, height: 10, furniture: [], wallColor: 'Light grey', floorColor: 'Medium stone grey', floorMaterial: 'Concrete' }]
+  }), undefined, { furniture: true })
+  const allParts = r.rooms.flat()
+  const hasDesk = allParts.some(p => p.name.includes('Surface') || p.name.includes('Monitor'))
+  assert(hasDesk, 'furniture=true should generate detailed desk parts for office room')
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

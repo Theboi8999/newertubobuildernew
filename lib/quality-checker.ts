@@ -22,7 +22,8 @@ export function checkBuildingQuality(
   parts: RbxPart[],
   research: ResearchResult | null,
   buildingType: string,
-  roomLayout?: RoomLayoutItem[]
+  roomLayout?: RoomLayoutItem[],
+  options?: { hasStaircases?: boolean }
 ): QualityCheckResult {
   const checks: QualityCheck[] = []
   const suggestions: string[] = []
@@ -31,7 +32,7 @@ export function checkBuildingQuality(
   const colorsUsed = parts.map(p => p.color)
 
   const partCount = parts.length
-  const partScore = partCount >= 500 ? 100 : partCount >= 200 ? 80 : partCount >= 100 ? 60 : partCount >= 50 ? 40 : 20
+  const partScore = partCount >= 1000 ? 100 : partCount >= 600 ? 85 : partCount >= 300 ? 70 : partCount >= 150 ? 50 : partCount >= 50 ? 30 : 10
   checks.push({ name: 'Part Count', passed: partCount >= 50, score: partScore, note: `${partCount} parts` })
   if (partCount < 100) suggestions.push('Add more structural detail — target 100+ parts')
 
@@ -166,6 +167,22 @@ export function checkBuildingQuality(
       impact: 20
     })
     if (!colorApplied) suggestions.push(`CRITICAL: ${research.exteriorColor} not in output — color pipeline broken`)
+  }
+
+  if (research && (research.floorCount || 1) > 1) {
+    const hasMultiFloor = parts.some(p => {
+      const n = p.name
+      return n.includes('F1_') || n.includes('F2_') || n.includes('Floor_1') ||
+        n.includes('FloorSlab_F1') || n.includes('Stair_')
+    })
+    checks.push({ name: 'Multi-Floor Distribution', passed: hasMultiFloor, score: hasMultiFloor ? 100 : 40, note: hasMultiFloor ? 'Multi-floor parts present' : 'No multi-floor distribution detected' })
+    if (!hasMultiFloor) suggestions.push('Multi-floor building missing floor distribution parts')
+
+    if (options?.hasStaircases) {
+      const hasStairs = parts.some(p => p.name.includes('Stair_'))
+      checks.push({ name: 'Staircase Present', passed: hasStairs, score: hasStairs ? 100 : 0, note: hasStairs ? 'Staircases found' : 'MISSING — staircases requested but not generated' })
+      if (!hasStairs) suggestions.push('CRITICAL: Staircases missing despite hasStaircases=true')
+    }
   }
 
   const percentage = Math.round(checks.reduce((sum, c) => sum + c.score, 0) / checks.length)

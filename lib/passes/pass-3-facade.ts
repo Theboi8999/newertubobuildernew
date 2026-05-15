@@ -53,6 +53,46 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
       }
     }
 
+    if (f > 0) {
+      const swH = floorHeight * 0.58
+      const swY = fy + floorHeight * 0.52
+      const frontCount = Math.max(2, Math.floor((tw - 6) / 9))
+
+      const sideCount = Math.max(1, Math.floor(frontCount * 0.7))
+      const sideSpacing = (td - 4) / (sideCount + 1)
+      const sideWinW = Math.min(6.5, sideSpacing * 0.68)
+
+      for (let w = 0; w < sideCount; w++) {
+        const wz = 2 + sideSpacing * (w + 1)
+
+        parts.push(p(`SWLRec_F${f}_${w}`, 1.2, swH + 0.8, sideWinW + 0.8, -0.05, swY, wz, 'Really black', 'smoothplastic', 0.4))
+        parts.push(p(`SWLFrT_F${f}_${w}`, 0.5, 0.45, sideWinW + 0.8, -0.25, swY + swH / 2 + 0.22, wz, dna.primaryColor, 'smoothplastic'))
+        parts.push(p(`SWLFrB_F${f}_${w}`, 0.5, 0.45, sideWinW + 0.8, -0.25, swY - swH / 2 - 0.22, wz, dna.primaryColor, 'smoothplastic'))
+        parts.push(p(`SWLGlass_F${f}_${w}`, 0.1, swH, sideWinW, -0.85, swY, wz, 'Light blue', 'smoothplastic', 0.25))
+        parts.push(p(`SWLTrim_F${f}_${w}`, 0.35, swH + 0.6, sideWinW + 0.3, -0.55, swY, wz, dna.trimColor, 'smoothplastic'))
+
+        parts.push(p(`SWRRec_F${f}_${w}`, 1.2, swH + 0.8, sideWinW + 0.8, tw + 0.05, swY, wz, 'Really black', 'smoothplastic', 0.4))
+        parts.push(p(`SWRFrT_F${f}_${w}`, 0.5, 0.45, sideWinW + 0.8, tw + 0.25, swY + swH / 2 + 0.22, wz, dna.primaryColor, 'smoothplastic'))
+        parts.push(p(`SWRFrB_F${f}_${w}`, 0.5, 0.45, sideWinW + 0.8, tw + 0.25, swY - swH / 2 - 0.22, wz, dna.primaryColor, 'smoothplastic'))
+        parts.push(p(`SWRGlass_F${f}_${w}`, 0.1, swH, sideWinW, tw + 0.85, swY, wz, 'Light blue', 'smoothplastic', 0.25))
+        parts.push(p(`SWRTrim_F${f}_${w}`, 0.35, swH + 0.6, sideWinW + 0.3, tw + 0.55, swY, wz, dna.trimColor, 'smoothplastic'))
+      }
+
+      const backCount = Math.max(1, Math.floor(frontCount * 0.5))
+      const backSpacing = (tw - 4) / (backCount + 1)
+      const backWinW = Math.min(6.5, backSpacing * 0.68)
+
+      for (let w = 0; w < backCount; w++) {
+        const wx = 2.5 + backSpacing * (w + 1)
+
+        parts.push(p(`BWRec_F${f}_${w}`, backWinW + 0.8, swH + 0.8, 1.2, wx, swY, td + 0.05, 'Really black', 'smoothplastic', 0.4))
+        parts.push(p(`BWFrT_F${f}_${w}`, backWinW + 0.8, 0.45, 0.5, wx, swY + swH / 2 + 0.22, td + 0.25, dna.primaryColor, 'smoothplastic'))
+        parts.push(p(`BWFrB_F${f}_${w}`, backWinW + 0.8, 0.45, 0.5, wx, swY - swH / 2 - 0.22, td + 0.25, dna.primaryColor, 'smoothplastic'))
+        parts.push(p(`BWGlass_F${f}_${w}`, backWinW, swH, 0.1, wx, swY, td + 0.85, 'Light blue', 'smoothplastic', 0.25))
+        parts.push(p(`BWTrim_F${f}_${w}`, backWinW + 0.3, swH + 0.6, 0.35, wx, swY, td + 0.55, dna.trimColor, 'smoothplastic'))
+      }
+    }
+
     if (!isGround && dna.hasBalcony) {
       const railY = fy - 0.3
       const railH = 2.6

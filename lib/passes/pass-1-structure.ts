@@ -10,14 +10,28 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   parts.push(p('Foundation', tw + 1, wallBase, td + 1, tw / 2, wallBase / 2, td / 2, dna.primaryColor, 'concrete'))
   parts.push(p('Found_Step', tw + 0.4, 0.5, td + 0.4, tw / 2, wallBase + 0.25, td / 2, dna.primaryColor, 'smoothplastic'))
 
-  parts.push(p('WallFront', tw, th, 0.7, tw / 2, wallBase + th / 2, 0, dna.primaryColor, 'smoothplastic'))
-  parts.push(p('WallBack', tw, th, 0.7, tw / 2, wallBase + th / 2, td, dna.primaryColor, 'smoothplastic'))
-  parts.push(p('WallLeft', 0.7, th, td, 0, wallBase + th / 2, td / 2, dna.primaryColor, 'smoothplastic'))
-  parts.push(p('WallRight', 0.7, th, td, tw, wallBase + th / 2, td / 2, dna.primaryColor, 'smoothplastic'))
+  const wallMat = dna.wallMaterial || 'smoothplastic'
+  const wallSA = wallMat === 'brick' ? undefined
+    : wallMat === 'wood' ? undefined
+    : wallMat === 'concrete' ? 'concrete_clean'
+    : 'painted_wall'
+
+  const mkWall = (name: string, sx: number, sy: number, sz: number, px: number, py: number, pz: number): RbxPart => {
+    const part = p(name, sx, sy, sz, px, py, pz, dna.primaryColor, 'smoothplastic') as any
+    if (wallSA) part.surfaceAppearance = wallSA
+    return part as RbxPart
+  }
+
+  parts.push(mkWall('WallFront', tw, th, 0.7, tw / 2, wallBase + th / 2, 0))
+  parts.push(mkWall('WallBack', tw, th, 0.7, tw / 2, wallBase + th / 2, td))
+  parts.push(mkWall('WallLeft', 0.7, th, td, 0, wallBase + th / 2, td / 2))
+  parts.push(mkWall('WallRight', 0.7, th, td, tw, wallBase + th / 2, td / 2))
 
   for (let f = 1; f < plan.floorCount; f++) {
     const fy = wallBase + f * plan.floorHeight
-    parts.push(p(`FloorSlab_F${f}`, tw - 1, 0.5, td - 1, tw / 2, fy, td / 2, 'Medium stone grey', 'concrete'))
+    const slab = p(`FloorSlab_F${f}`, tw - 1, 0.5, td - 1, tw / 2, fy, td / 2, 'Medium stone grey', 'concrete') as any
+    slab.surfaceAppearance = 'concrete_clean'
+    parts.push(slab as RbxPart)
     // Horizontal floor band on facade
     parts.push(p(`Band_F${f}_Front`, tw + 0.2, 0.9, 0.55, tw / 2, fy + 0.45, -0.05, dna.floorBandColor, 'smoothplastic'))
     parts.push(p(`Band_F${f}_Back`,  tw + 0.2, 0.9, 0.55, tw / 2, fy + 0.45, td + 0.05, dna.floorBandColor, 'smoothplastic'))
