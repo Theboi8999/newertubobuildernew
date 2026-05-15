@@ -415,8 +415,11 @@ export function buildRbxmx(models: RbxModel[], style?: string, rootName?: string
 
   const wrappedXml = `\n  <Item class="Model" referent="ROOT_MODEL">\n    <Properties>\n      <string name="Name">${escapeXml(name)}</string>\n    </Properties>${itemsXml}\n  </Item>`
 
+  // Lighting service is NOT included — services cannot exist in .rbxmx model files
+  // (only .rbxlx place files support DataModel services). Including <Item class="Lighting">
+  // causes Roblox Studio to reject the file as corrupted.
   return `<?xml version="1.0" encoding="utf-8"?>
 <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
-  <Meta name="ExplicitAutoJoints">true</Meta>${wrappedXml}${getLightingXml((style || '').toLowerCase())}
+  <Meta name="ExplicitAutoJoints">true</Meta>${wrappedXml}
 </roblox>`
 }
