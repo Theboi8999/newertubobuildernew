@@ -623,8 +623,8 @@ test('Sand yellow passes through rbxmx unchanged', () => {
     name: 'TestWall', size: {x:10,y:10,z:1}, position: {x:5,y:5,z:0},
     color: 'Sand yellow', material: 'smoothplastic', anchored: true, transparency: 0, emissive: false
   }], scripts: [] }])
-  // BrickColor ID 226 = Sand yellow
-  assert(xml.includes('>226<'), 'Sand yellow BrickColor ID 226 should appear in XML output')
+  // BrickColor ID 138 = Sand yellow (correct Roblox ID)
+  assert(xml.includes('>138<'), 'Sand yellow BrickColor ID 138 should appear in XML output')
 })
 
 test('Dark green passes through rbxmx unchanged', () => {
