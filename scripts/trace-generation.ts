@@ -324,15 +324,21 @@ const xmlFinal = watermarkRbxmx(xml, 'trace-001', 'trace-user')
 
 const xmlLines = xmlFinal.split('\n')
 const partTagCount = (xmlFinal.match(/<Item class="Part"/g) || []).length
-const partNameMatches = [...xmlFinal.matchAll(/<string name="Name">([^<]+)<\/string>/g)]
-  .filter((_, i, arr) => {
-    // Filter to only Part name entries by checking surrounding context
-    return true
-  })
-  .map(m => m[1])
+const partNameRegex = /<string name="Name">([^<]+)<\/string>/g
+const partNameMatches: string[][] = []
+let partNameMatch: RegExpExecArray | null
+while ((partNameMatch = partNameRegex.exec(xmlFinal)) !== null) {
+  partNameMatches.push([partNameMatch[0], partNameMatch[1]])
+}
+const _partNameStrings = partNameMatches.map(m => m[1])
 
 // Extract names more cleanly: Part items have Name immediately after class="Part"
-const partBlocks = [...xmlFinal.matchAll(/<Item class="Part"[^>]*>[\s\S]*?<string name="Name">([^<]+)<\/string>/g)]
+const partBlockRegex = /<Item class="Part"[^>]*>[\s\S]*?<string name="Name">([^<]+)<\/string>/g
+const partBlocks: string[][] = []
+let partBlockMatch: RegExpExecArray | null
+while ((partBlockMatch = partBlockRegex.exec(xmlFinal)) !== null) {
+  partBlocks.push([partBlockMatch[0], partBlockMatch[1]])
+}
 const partNames = partBlocks.map(m => m[1])
 
 log('Total XML length:', xmlFinal.length, 'chars')
