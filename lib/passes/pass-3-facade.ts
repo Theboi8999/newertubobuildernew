@@ -247,35 +247,33 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
       parts.push(p(`ShopSign_${i}`, shutW - 0.8, 1.2, 0.1, sx, signY, signZ, dna.accentColor, 'smoothplastic'))
     }
 
-    // Entrance door
-    const entrW = 8
+    // Entrance door — width ~tw*0.2, height ~fh*0.8, flush with front wall face
+    const entrW = Math.max(5, Math.round(tw * 0.2))
     const entrH = floorHeight * 0.82
     const doorY = wallBase + entrH / 2
-    parts.push(p('EnSurround', entrW + 3, entrH + 2, 0.8, tw / 2, wallBase + entrH / 2 + 0.5, -0.5, dna.trimColor, 'smoothplastic'))
-    parts.push(p('EnArch', entrW + 1.5, 1.2, 0.6, tw / 2, wallBase + entrH + 0.6, -0.55, dna.trimColor, 'smoothplastic'))
-    parts.push(p('DoorL', entrW / 2 - 0.3, entrH - 0.4, 0.2, tw / 2 - entrW / 4, doorY, -0.55, dna.shutterColor, 'smoothplastic'))
-    parts.push(p('DoorR', entrW / 2 - 0.3, entrH - 0.4, 0.2, tw / 2 + entrW / 4, doorY, -0.55, dna.shutterColor, 'smoothplastic'))
-    parts.push(p('DoorFrL', 0.3, entrH, 0.3, tw / 2 - entrW / 2 - 0.15, doorY, -0.55, dna.trimColor, 'smoothplastic'))
-    parts.push(p('DoorFrR', 0.3, entrH, 0.3, tw / 2 + entrW / 2 + 0.15, doorY, -0.55, dna.trimColor, 'smoothplastic'))
-    parts.push(p('DoorFrT', entrW + 0.6, 0.3, 0.3, tw / 2, wallBase + entrH + 0.15, -0.55, dna.trimColor, 'smoothplastic'))
-    parts.push(p('HandleL', 0.2, 0.2, 0.25, tw / 2 - 0.7, doorY, -0.75, 'Bright yellow', 'smoothplastic'))
-    parts.push(p('HandleR', 0.2, 0.2, 0.25, tw / 2 + 0.7, doorY, -0.75, 'Bright yellow', 'smoothplastic'))
+    parts.push(p('DoorL', entrW / 2 - 0.3, entrH - 0.4, 0.2, tw / 2 - entrW / 4, doorY, -0.05, dna.shutterColor, 'smoothplastic'))
+    parts.push(p('DoorR', entrW / 2 - 0.3, entrH - 0.4, 0.2, tw / 2 + entrW / 4, doorY, -0.05, dna.shutterColor, 'smoothplastic'))
+    parts.push(p('DoorFrL', 0.3, entrH, 0.3, tw / 2 - entrW / 2 - 0.15, doorY, -0.15, dna.trimColor, 'smoothplastic'))
+    parts.push(p('DoorFrR', 0.3, entrH, 0.3, tw / 2 + entrW / 2 + 0.15, doorY, -0.15, dna.trimColor, 'smoothplastic'))
+    parts.push(p('DoorFrT', entrW + 0.6, 0.3, 0.3, tw / 2, wallBase + entrH + 0.15, -0.15, dna.trimColor, 'smoothplastic'))
+    parts.push(p('HandleL', 0.2, 0.2, 0.25, tw / 2 - 0.7, doorY, -0.25, 'Bright yellow', 'smoothplastic'))
+    parts.push(p('HandleR', 0.2, 0.2, 0.25, tw / 2 + 0.7, doorY, -0.25, 'Bright yellow', 'smoothplastic'))
 
     // ── Entrance canopy hood ──────────────────────────────────────────────────
-    const canopyW = entrW + 2
-    const canopyTopY = wallBase + entrH + 0.5   // 0.5 above door top
-    const canopySlabY = canopyTopY + 0.2         // center of 0.4-height slab
+    const canopyW = entrW + 1.5
+    const canopyTopY = wallBase + entrH + 0.4
+    const canopySlabY = canopyTopY + 0.2
     const bracketColor = dna.accentColor || 'Dark grey'
 
-    // Canopy top — 0.4 thick, protrudes 1.5 studs forward
-    parts.push(p('CanopyTop', canopyW, 0.4, 1.5, tw / 2, canopySlabY, -0.75, 'White', 'smoothplastic'))
+    // Canopy top — protrudes 1.2 studs forward from wall face
+    parts.push(p('CanopyTop', canopyW, 0.4, 1.2, tw / 2, canopySlabY, -0.6, 'White', 'smoothplastic'))
 
     // Canopy brackets — under canopy at door jamb positions
-    parts.push(p('CanopyBracketL', 0.3, 1.2, 1.5, tw / 2 - entrW / 2, canopyTopY - 0.4, -0.75, bracketColor, 'smoothplastic'))
-    parts.push(p('CanopyBracketR', 0.3, 1.2, 1.5, tw / 2 + entrW / 2, canopyTopY - 0.4, -0.75, bracketColor, 'smoothplastic'))
+    parts.push(p('CanopyBracketL', 0.3, 1.0, 1.2, tw / 2 - entrW / 2, canopyTopY - 0.3, -0.6, bracketColor, 'smoothplastic'))
+    parts.push(p('CanopyBracketR', 0.3, 1.0, 1.2, tw / 2 + entrW / 2, canopyTopY - 0.3, -0.6, bracketColor, 'smoothplastic'))
 
     // Canopy fascia — front vertical edge of canopy
-    parts.push(p('CanopyFascia', canopyW, 0.5, 0.2, tw / 2, canopyTopY + 0.05, -1.45, dna.accentColor, 'smoothplastic'))
+    parts.push(p('CanopyFascia', canopyW, 0.4, 0.2, tw / 2, canopyTopY, -1.15, dna.accentColor, 'smoothplastic'))
 
     // Decorative arch above canopy for asian/peranakan family
     if (dna.family === 'asian') {

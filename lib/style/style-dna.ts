@@ -29,6 +29,7 @@ export interface StyleDNA {
   doorAsset: string
   columnAsset: string
   forbidden: string[]
+  facadeGrammar?: string
 }
 
 export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
@@ -37,7 +38,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     primaryColor: 'Sand yellow',
     roofColor: 'Dark green',
     trimColor: 'White',
-    accentColor: 'Bright blue',
+    accentColor: 'Dark green',
     columnColor: 'White',
     shutterColor: 'Dark green',
     floorBandColor: 'White',
@@ -50,6 +51,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'limestone',
     groundMaterial: 'pavement',
     forbidden: ['flat_modern_roof', 'glass_curtain_wall'],
+    facadeGrammar: 'PILASTER|SHUTTER|WINDOW|SHUTTER|PILASTER',
   },
   'victorian': {
     family: 'european',
@@ -65,6 +67,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'heavy',
     wallMaterial: 'smoothplastic',
     forbidden: ['flat_roof', 'modern_glass'],
+    facadeGrammar: 'PILASTER|WINDOW|DOOR|WINDOW|PILASTER',
   },
   'modernist': {
     family: 'modern',
@@ -79,6 +82,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'none',
     wallMaterial: 'smoothplastic',
     forbidden: ['ornate_columns', 'pagoda_roof'],
+    facadeGrammar: 'WINDOW|WINDOW|WINDOW|WINDOW|WINDOW',
   },
   'japanese': {
     family: 'asian',
@@ -94,6 +98,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     windowShape: 'rectangular',
     ornamentLevel: 'minimal',
     wallMaterial: 'smoothplastic',
+    facadeGrammar: 'BLANK|WINDOW|DOOR|WINDOW|BLANK',
   },
   'brutalist': {
     family: 'modern',
@@ -106,6 +111,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'concrete',
     groundMaterial: 'concrete',
     forbidden: ['ornate', 'timber', 'pagoda'],
+    facadeGrammar: 'BLANK|WINDOW|WINDOW|WINDOW|BLANK',
   },
   'mediterranean': {
     family: 'european',
@@ -119,6 +125,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     windowShape: 'arched',
     ornamentLevel: 'moderate',
     wallMaterial: 'smoothplastic',
+    facadeGrammar: 'BLANK|ARCH|DOOR|ARCH|BLANK',
   },
   'cyberpunk': {
     family: 'modern',
@@ -130,6 +137,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'moderate',
     wallMaterial: 'smoothplastic',
     forbidden: ['timber', 'colonial', 'pagoda'],
+    facadeGrammar: 'BLANK|WINDOW|WINDOW|WINDOW|WINDOW|BLANK',
   },
   'industrial': {
     family: 'industrial',
@@ -142,6 +150,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'none',
     wallMaterial: 'concrete',
     groundMaterial: 'concrete',
+    facadeGrammar: 'BLANK|WINDOW|GARAGEDOOR|WINDOW|BLANK',
   },
   'georgian': {
     family: 'european',
@@ -155,6 +164,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'moderate',
     symmetry: 'strict',
     wallMaterial: 'smoothplastic',
+    facadeGrammar: 'PILASTER|WINDOW|DOOR|WINDOW|PILASTER',
   },
   'colonial': {
     family: 'european',
@@ -169,6 +179,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     hasColonnade: true,
     ornamentLevel: 'moderate',
     wallMaterial: 'smoothplastic',
+    facadeGrammar: 'ARCH|WINDOW|DOOR|WINDOW|ARCH',
   },
   'hospital': {
     family: 'modern',
@@ -185,6 +196,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
     forbidden: ['pagoda_roof', 'ornate_columns'],
+    facadeGrammar: 'BLANK|WINDOW|DOOR|WINDOW|BLANK',
   },
   'mosque': {
     family: 'asian',
@@ -204,6 +216,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     symmetry: 'strict',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'marble',
+    facadeGrammar: 'PILASTER|ARCH|ARCH|ARCH|ARCH|PILASTER',
   },
   'church': {
     family: 'european',
@@ -220,6 +233,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'moderate',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
+    facadeGrammar: 'BLANK|ARCH|GATE|ARCH|BLANK',
   },
   'parliament': {
     family: 'european',
@@ -240,6 +254,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'smoothplastic',
     groundMaterial: 'marble',
     forbidden: ['shed_roof', 'modern_glass'],
+    facadeGrammar: 'PILASTER|ARCH|GATE|ARCH|PILASTER',
   },
   'castle': {
     family: 'fantasy',
@@ -256,6 +271,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'concrete',
     groundMaterial: 'concrete',
     forbidden: ['modern_glass', 'flat_modern'],
+    facadeGrammar: 'TOWER|BLANK|GATE|BLANK|TOWER',
   },
   'art deco': {
     family: 'modern',
@@ -272,6 +288,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     symmetry: 'strict',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'marble',
+    facadeGrammar: 'PILASTER|WINDOW|WINDOW|WINDOW|PILASTER',
   },
   'school': {
     family: 'european',
@@ -288,6 +305,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'minimal',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
+    facadeGrammar: 'BLANK|WINDOW|DOOR|WINDOW|BLANK',
   },
   'warehouse': {
     family: 'industrial',
@@ -304,6 +322,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'metal',
     groundMaterial: 'concrete',
     forbidden: ['pagoda', 'ornate'],
+    facadeGrammar: 'BLANK|GARAGEDOOR|GARAGEDOOR|BLANK',
   },
   'apartment': {
     family: 'modern',
@@ -320,6 +339,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'minimal',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
+    facadeGrammar: 'BLANK|WINDOW|WINDOW|WINDOW|BLANK',
   },
   'hotel': {
     family: 'modern',
@@ -339,6 +359,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     symmetry: 'strict',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'marble',
+    facadeGrammar: 'PILASTER|WINDOW|DOOR|WINDOW|PILASTER',
   },
   'fire': {
     family: 'modern',
@@ -354,6 +375,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'none',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
+    facadeGrammar: 'BLANK|GARAGEDOOR|GARAGEDOOR|BLANK',
   },
   'bank': {
     family: 'european',
@@ -373,6 +395,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     symmetry: 'strict',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'marble',
+    facadeGrammar: 'PILASTER|ARCH|GATE|ARCH|PILASTER',
   },
   'tudor': {
     family: 'european',
@@ -391,6 +414,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     ornamentLevel: 'moderate',
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
+    facadeGrammar: 'BLANK|WINDOW|DOOR|WINDOW|BLANK',
   },
   'gothic': {
     family: 'fantasy',
@@ -409,6 +433,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'concrete',
     groundMaterial: 'concrete',
     forbidden: ['flat_roof', 'modern_glass'],
+    facadeGrammar: 'BLANK|ARCH|GATE|ARCH|BLANK',
   },
   'stadium': {
     family: 'modern',
@@ -425,6 +450,7 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     wallMaterial: 'smoothplastic',
     groundMaterial: 'concrete',
     forbidden: ['pagoda', 'ornate_columns'],
+    facadeGrammar: 'BLANK|ARCH|ARCH|ARCH|ARCH|BLANK',
   },
 }
 

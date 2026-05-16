@@ -100,21 +100,25 @@ function generateShophouseRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   const { tw, td, wallBase, floorCount, floorHeight } = plan
   const topY = wallBase + floorCount * floorHeight
   const ec = dna.primaryColor
+  const parapetH = plan.proportions?.parapetHeight ?? 1.5
 
   // Flat roof deck — concrete, wall color
   parts.push(p('Roof', tw + 0.4, 0.8, td + 0.4, tw / 2, topY + 0.4, td / 2, ec, 'concrete'))
 
-  // Parapet walls — same as wall color, all 4 sides
-  parts.push(p('Parapet_F', tw + 0.4, 1.5, 0.5, tw / 2, topY + 1.55, 0.25, ec, 'smoothplastic'))
-  parts.push(p('Parapet_B', tw + 0.4, 1.5, 0.5, tw / 2, topY + 1.55, td - 0.25, ec, 'smoothplastic'))
-  parts.push(p('Parapet_L', 0.5, 1.5, td, 0.25, topY + 1.55, td / 2, ec, 'smoothplastic'))
-  parts.push(p('Parapet_R', 0.5, 1.5, td, tw - 0.25, topY + 1.55, td / 2, ec, 'smoothplastic'))
+  // Parapet walls — proportional height, all 4 sides; Light stone grey for peranakan-style parapets
+  const parY = topY + 0.8 + parapetH / 2
+  const parColor = 'Light stone grey'
+  parts.push(p('Parapet_F', tw + 0.4, parapetH, 0.5, tw / 2, parY, 0.25, parColor, 'smoothplastic'))
+  parts.push(p('Parapet_B', tw + 0.4, parapetH, 0.5, tw / 2, parY, td - 0.25, parColor, 'smoothplastic'))
+  parts.push(p('Parapet_L', 0.5, parapetH, td, 0.25, parY, td / 2, parColor, 'smoothplastic'))
+  parts.push(p('Parapet_R', 0.5, parapetH, td, tw - 0.25, parY, td / 2, parColor, 'smoothplastic'))
 
   // Parapet coping — white cap on each parapet
-  parts.push(p('ParapetCop_F', tw + 0.8, 0.4, 0.7, tw / 2, topY + 2.5, 0.35, 'White', 'smoothplastic'))
-  parts.push(p('ParapetCop_B', tw + 0.8, 0.4, 0.7, tw / 2, topY + 2.5, td - 0.35, 'White', 'smoothplastic'))
-  parts.push(p('ParapetCop_L', 0.7, 0.4, td + 0.8, 0.35, topY + 2.5, td / 2, 'White', 'smoothplastic'))
-  parts.push(p('ParapetCop_R', 0.7, 0.4, td + 0.8, tw - 0.35, topY + 2.5, td / 2, 'White', 'smoothplastic'))
+  const copY = topY + 0.8 + parapetH + 0.4
+  parts.push(p('ParapetCop_F', tw + 0.8, 0.4, 0.7, tw / 2, copY, 0.35, 'White', 'smoothplastic'))
+  parts.push(p('ParapetCop_B', tw + 0.8, 0.4, 0.7, tw / 2, copY, td - 0.35, 'White', 'smoothplastic'))
+  parts.push(p('ParapetCop_L', 0.7, 0.4, td + 0.8, 0.35, copY, td / 2, 'White', 'smoothplastic'))
+  parts.push(p('ParapetCop_R', 0.7, 0.4, td + 0.8, tw - 0.35, copY, td / 2, 'White', 'smoothplastic'))
 
   // Decorative pilasters on front parapet — every 2.5 studs
   const pilSpacing = 2.5
