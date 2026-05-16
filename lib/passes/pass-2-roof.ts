@@ -4,6 +4,7 @@ import { StyleDNA } from '../style/style-dna'
 import { BuildPlan } from '../blueprint-compiler'
 
 export function generateRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
+  if (plan.buildingType.toLowerCase().includes('shophouse')) return generateShophouseRoof(plan, dna)
   switch (dna.roofType) {
     case 'pagoda': return generatePagodaRoof(plan, dna)
     case 'gable':  return generateGableRoof(plan, dna)
@@ -85,11 +86,48 @@ function generatePagodaRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   }
 
   const topRy = wallBase + floorCount * floorHeight
-  parts.push(p('TopRoofCap', tw + 4, 0.6, td + 4, tw / 2, topRy + 1.8, td / 2, rc, 'smoothplastic'))
+  parts.push(p('TopRoofCap', 2.0, 0.6, 2.0, tw / 2, topRy + 1.8, td / 2, rc, 'smoothplastic'))
   parts.push(p('TopRoofRidge', tw + 2, 0.5, 0.6, tw / 2, topRy + 2.1, td / 2, rc, 'smoothplastic'))
   parts.push(p('RoofAC1', 2.5, 1.5, 2.5, tw / 3, topRy + 2.0, td / 3, 'Dark grey', 'smoothplastic'))
   parts.push(p('RoofAC2', 2.5, 1.5, 2.5, tw * 2 / 3, topRy + 2.0, td * 2 / 3, 'Dark grey', 'smoothplastic'))
   parts.push(p('RoofTank', 2.2, 3.0, 2.2, tw / 2, topRy + 3.3, td / 2, 'Medium stone grey', 'smoothplastic'))
+
+  return parts
+}
+
+function generateShophouseRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
+  const parts: RbxPart[] = []
+  const { tw, td, wallBase, floorCount, floorHeight } = plan
+  const topY = wallBase + floorCount * floorHeight
+  const ec = dna.primaryColor
+
+  // Flat roof deck — concrete, wall color
+  parts.push(p('Roof', tw + 0.4, 0.8, td + 0.4, tw / 2, topY + 0.4, td / 2, ec, 'concrete'))
+
+  // Parapet walls — same as wall color, all 4 sides
+  parts.push(p('Parapet_F', tw + 0.4, 1.5, 0.5, tw / 2, topY + 1.55, 0.25, ec, 'smoothplastic'))
+  parts.push(p('Parapet_B', tw + 0.4, 1.5, 0.5, tw / 2, topY + 1.55, td - 0.25, ec, 'smoothplastic'))
+  parts.push(p('Parapet_L', 0.5, 1.5, td, 0.25, topY + 1.55, td / 2, ec, 'smoothplastic'))
+  parts.push(p('Parapet_R', 0.5, 1.5, td, tw - 0.25, topY + 1.55, td / 2, ec, 'smoothplastic'))
+
+  // Parapet coping — white cap on each parapet
+  parts.push(p('ParapetCop_F', tw + 0.8, 0.4, 0.7, tw / 2, topY + 2.5, 0.35, 'White', 'smoothplastic'))
+  parts.push(p('ParapetCop_B', tw + 0.8, 0.4, 0.7, tw / 2, topY + 2.5, td - 0.35, 'White', 'smoothplastic'))
+  parts.push(p('ParapetCop_L', 0.7, 0.4, td + 0.8, 0.35, topY + 2.5, td / 2, 'White', 'smoothplastic'))
+  parts.push(p('ParapetCop_R', 0.7, 0.4, td + 0.8, tw - 0.35, topY + 2.5, td / 2, 'White', 'smoothplastic'))
+
+  // Decorative pilasters on front parapet — every 2.5 studs
+  const pilSpacing = 2.5
+  const pilCount = Math.max(4, Math.floor(tw / pilSpacing) - 1)
+  for (let pi = 0; pi < pilCount; pi++) {
+    const px = tw / (pilCount + 1) * (pi + 1)
+    parts.push(p(`ParPil_${pi}`, 0.6, 1.0, 0.6, px, topY + 1.8, 0.3, 'White', 'smoothplastic'))
+  }
+
+  // Roof detail
+  parts.push(p('RoofAC1', 3, 1.8, 3, tw / 3, topY + 1.9, td / 3, 'Dark grey', 'smoothplastic'))
+  parts.push(p('RoofAC2', 3, 1.8, 3, tw * 2 / 3, topY + 1.9, td * 2 / 3, 'Dark grey', 'smoothplastic'))
+  parts.push(p('RoofTank', 2.2, 3.0, 2.2, tw / 2, topY + 3.3, td / 2, 'Medium stone grey', 'smoothplastic'))
 
   return parts
 }

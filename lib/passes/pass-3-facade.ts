@@ -63,6 +63,16 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
           parts.push(p(`WLV_F${f}_${w}`, 0.1, winH - 0.2, 0.08, wx, winY, -0.8, dna.trimColor, 'smoothplastic'))
         }
 
+        // Arched window head for asian/arched style on upper floors
+        if (!isGround && (dna.windowShape === 'arched' || dna.family === 'asian')) {
+          const winTopY = winY + winH / 2
+          const archW = winW * 0.3
+          parts.push(p(`WArch_F_${f}_${w}_Key`, archW, 0.8, 0.4, wx, winTopY + 0.4, -0.35, 'White', 'smoothplastic'))
+          parts.push(p(`WArch_F_${f}_${w}_L`, archW, 0.6, 0.4, wx - winW * 0.25, winTopY + 0.2, -0.35, 'White', 'smoothplastic'))
+          parts.push(p(`WArch_F_${f}_${w}_R`, archW, 0.6, 0.4, wx + winW * 0.25, winTopY + 0.2, -0.35, 'White', 'smoothplastic'))
+          parts.push(p(`WArch_F_${f}_${w}_Fill`, winW * 0.7, 0.5, 0.4, wx, winTopY + 0.25, -0.35, 'Bright blue', 'smoothplastic', 0.4))
+        }
+
         if (dna.shutterColor && !isGround) {
           const shutW = winW * 0.42
           parts.push(p(`ShutL_F${f}_${w}`, shutW, winH * 0.95, 0.15, wx - winW / 2 - shutW / 2 - 0.1, winY, -0.55, dna.shutterColor, 'smoothplastic'))
@@ -75,6 +85,22 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
         for (let wp = 0; wp < winCount - 1; wp++) {
           const px = 2.5 + winSpacing * (wp + 1) + winSpacing / 2
           parts.push(p(`WPilF${f}_${wp}`, 1.0, floorHeight * 0.7, 0.3, px, fy + floorHeight * 0.5, -0.15, dna.primaryColor, 'smoothplastic'))
+        }
+      }
+
+      // Ornate decorative panels between windows (asian/moderate/heavy ornament, upper floors)
+      if (!isGround && (dna.ornamentLevel === 'heavy' || dna.ornamentLevel === 'moderate' || dna.family === 'asian')) {
+        const panelH = winH * 0.6
+        const panelW = Math.max(0.4, winSpacing - winW - 0.4)
+        for (let wp = 0; wp < winCount - 1; wp++) {
+          const panelX = 2.5 + winSpacing * (wp + 1) + winSpacing / 2
+          parts.push(p(`OrnPanel_${f}_${wp}`, panelW, panelH, 0.2, panelX, winY, -0.1, 'White', 'smoothplastic'))
+          parts.push(p(`OrnDetail_${f}_${wp}`, 1.0, 1.0, 0.25, panelX, winY, -0.22, dna.accentColor, 'smoothplastic'))
+          parts.push(p(`OrnBorderT_${f}_${wp}`, panelW + 0.3, 0.15, 0.25, panelX, winY + panelH / 2 + 0.07, -0.12, dna.accentColor, 'smoothplastic'))
+          parts.push(p(`OrnBorderB_${f}_${wp}`, panelW + 0.3, 0.15, 0.25, panelX, winY - panelH / 2 - 0.07, -0.12, dna.accentColor, 'smoothplastic'))
+          parts.push(p(`OrnBorderL_${f}_${wp}`, 0.15, panelH + 0.3, 0.25, panelX - panelW / 2 - 0.07, winY, -0.12, dna.accentColor, 'smoothplastic'))
+          parts.push(p(`OrnBorderR_${f}_${wp}`, 0.15, panelH + 0.3, 0.25, panelX + panelW / 2 + 0.07, winY, -0.12, dna.accentColor, 'smoothplastic'))
+          parts.push(p(`PilStrip_${f}_${wp}`, 0.6, floorHeight, 0.25, panelX, fy + floorHeight / 2, -0.12, 'White', 'smoothplastic'))
         }
       }
     }
@@ -179,12 +205,14 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
 
     for (let i = 0; i < colCount; i++) {
       const cx = cs * (i + 1)
-      parts.push(p(`ColPl_${i}`, 2.2, 1.0, 2.2, cx, wallBase + 0.5, colZ, dna.columnColor, 'smoothplastic'))
-      parts.push(p(`ColSh_${i}`, 1.8, colShaftH, 1.8, cx, wallBase + colShaftH / 2, colZ, dna.columnColor, 'smoothplastic'))
-      parts.push(p(`ColCp_${i}`, 2.4, 0.8, 2.4, cx, colTop + 0.4, colZ, dna.columnColor, 'smoothplastic'))
-      // Column shaft detail rings — entasis torus rings at base and near capital
-      parts.push(p(`ColRingB_${i}`, 2.2, 0.35, 2.2, cx, wallBase + 1.3, colZ, dna.columnColor, 'smoothplastic'))
-      parts.push(p(`ColRingT_${i}`, 2.2, 0.35, 2.2, cx, colTop - 0.25, colZ, dna.columnColor, 'smoothplastic'))
+      const shaftH = colShaftH * 0.82
+      const shaftBase = wallBase + 0.5
+      parts.push(p(`Col_${i}_Base`, 1.3, 0.5, 1.3, cx, wallBase + 0.25, colZ, 'White', 'smoothplastic'))
+      parts.push(p(`Col_${i}_Shaft`, 0.9, shaftH, 0.9, cx, shaftBase + shaftH / 2, colZ, dna.columnColor, 'smoothplastic'))
+      parts.push(p(`Col_${i}_DiagA`, 0.7, shaftH, 0.7, cx, shaftBase + shaftH / 2, colZ, dna.columnColor, 'smoothplastic'))
+      parts.push(p(`Col_${i}_Cap`, 1.3, 0.6, 1.3, cx, shaftBase + shaftH + 0.3, colZ, 'White', 'smoothplastic'))
+      parts.push(p(`Col_${i}_BotRing`, 1.1, 0.3, 1.1, cx, shaftBase + 0.5, colZ, 'White', 'smoothplastic'))
+      parts.push(p(`Col_${i}_TopRing`, 1.1, 0.3, 1.1, cx, shaftBase + shaftH - 0.3, colZ, 'White', 'smoothplastic'))
       // Arch keystone in each span
       if (i < colCount - 1) {
         parts.push(p(`ColArcKey_${i}`, 1.0, 0.6, 0.8, cx + cs / 2, colTop + 0.9, colZ, dna.trimColor, 'smoothplastic'))

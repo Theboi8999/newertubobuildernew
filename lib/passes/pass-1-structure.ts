@@ -5,8 +5,10 @@ import { BuildPlan } from '../blueprint-compiler'
 
 function rustBandColor(ec: string): string {
   if (ec === 'Sand yellow') return 'Brick yellow'
-  if (ec === 'White') return 'Light grey'
-  if (ec === 'Reddish brown') return 'Dark orange'
+  if (ec === 'White') return 'Light stone grey'
+  if (ec === 'Reddish brown') return 'Dark red'
+  if (ec === 'Bright green' || ec === 'Medium green') return 'Dark green'
+  if (ec === 'Light grey') return 'Medium stone grey'
   return ec
 }
 
@@ -30,7 +32,7 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   parts.push(mkWall('WallRight', 0.7, th, td, tw, wallBase + th / 2, td / 2))
 
   const isAsian = dna.family === 'asian'
-  const bandColor = isAsian ? dna.accentColor : dna.floorBandColor
+  const bandColor = dna.primaryColor
   const rc2 = rustBandColor(dna.primaryColor)
 
   for (let f = 1; f < plan.floorCount; f++) {
@@ -59,8 +61,8 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
     parts.push(p(`RustR_${f}`, 0.3, 0.6, td + 0.1, tw + 0.15, rustY + 0.3, td / 2, rc2, 'smoothplastic'))
   }
 
-  // Plinth base band at ground level
-  const plinthColor = bandColor
+  // Plinth base band at ground level — always wall color
+  const plinthColor = dna.primaryColor
   parts.push(p('PlinthBand_F', tw + 0.4, 2.0, 1.0, tw / 2, wallBase + 1.0, -0.5, plinthColor, 'smoothplastic'))
   parts.push(p('PlinthBand_B', tw + 0.4, 2.0, 1.0, tw / 2, wallBase + 1.0, td + 0.5, plinthColor, 'smoothplastic'))
   parts.push(p('PlinthBand_L', 1.0, 2.0, td + 0.4, -0.5, wallBase + 1.0, td / 2, plinthColor, 'smoothplastic'))
@@ -104,7 +106,7 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   // Mid-floor accent bands — subtle horizontal groove strip at 2/3 height of each floor
   for (let f = 0; f < plan.floorCount; f++) {
     const midY = wallBase + f * fh + fh * 0.66
-    const midColor = isAsian ? dna.accentColor : dna.trimColor
+    const midColor = dna.trimColor
     parts.push(p(`MidBand_F${f}_Front`, tw + 0.1, 0.3, 0.25, tw / 2, midY, -0.12, midColor, 'smoothplastic'))
     parts.push(p(`MidBand_F${f}_Back`,  tw + 0.1, 0.3, 0.25, tw / 2, midY, td + 0.12, midColor, 'smoothplastic'))
     parts.push(p(`MidBand_F${f}_Left`,  0.25, 0.3, td + 0.1, -0.12, midY, td / 2, midColor, 'smoothplastic'))

@@ -225,7 +225,7 @@ test('multi storey has more exterior parts than single', () => {
   assert(multi.exterior.length > single.exterior.length, `multi(${multi.exterior.length}) should have more parts than single(${single.exterior.length})`)
 })
 
-test('peranakan generates pagoda parts', () => {
+test('peranakan generates flat parapet roof', () => {
   const r = compileBlueprint(mockResearch({
     buildingType: 'peranakan_shophouse',
     floorCount: 3,
@@ -234,8 +234,8 @@ test('peranakan generates pagoda parts', () => {
     exteriorColor: 'Sand yellow',
     roofColor: 'Dark green'
   }))
-  const hasPagoda = r.exterior.some(p => p.name.includes('Pag'))
-  assert(hasPagoda, 'peranakan building should have pagoda parts')
+  const hasParapet = r.exterior.some(p => p.name === 'Parapet_F' || p.name === 'Roof')
+  assert(hasParapet, 'peranakan shophouse should have flat parapet roof, not pagoda')
 })
 
 test('exterior color matches research', () => {
@@ -526,7 +526,7 @@ test('generator forces Sand yellow for peranakan prompt', () => {
   assert(isPeranakan === true, 'should detect peranakan from buildingType and prompt')
 })
 
-test('peranakan building has pagoda parts after compile', () => {
+test('peranakan shophouse has flat parapet roof after compile', () => {
   const r = compileBlueprint(mockResearch({
     buildingType: 'peranakan_shophouse',
     floorCount: 3,
@@ -538,8 +538,8 @@ test('peranakan building has pagoda parts after compile', () => {
     totalDepth: 28,
   }))
   const allParts = [...r.exterior, ...r.rooms.flat()]
-  const hasPagoda = allParts.some(p => p.name.toLowerCase().includes('pag'))
-  assert(hasPagoda, `no pagoda parts found. Part names sample: ${allParts.slice(0, 10).map(p => p.name).join(',')}`)
+  const hasParapet = allParts.some(p => p.name === 'Parapet_F' || p.name === 'Roof')
+  assert(hasParapet, `no flat roof parts found. Part names sample: ${allParts.slice(0, 10).map(p => p.name).join(',')}`)
 })
 
 test('peranakan building has Sand yellow walls', () => {
@@ -652,7 +652,7 @@ test('peranakan compile produces Sand yellow walls', () => {
   assert(sandYellow.length > 0, `no Sand yellow walls. Colors: ${Array.from(new Set(walls.map(p=>p.color))).join(',')}`)
 })
 
-test('peranakan compile produces pagoda parts', () => {
+test('peranakan compile produces parapet roof parts', () => {
   const r = compileBlueprint(mockResearch({
     buildingType: 'peranakan_shophouse',
     floorCount: 3,
@@ -663,8 +663,8 @@ test('peranakan compile produces pagoda parts', () => {
     totalWidth: 40,
     totalDepth: 28,
   }))
-  const pagodas = r.exterior.filter(p => p.name.toLowerCase().startsWith('pag'))
-  assert(pagodas.length > 0, `no pagoda parts. Sample names: ${r.exterior.slice(0,15).map(p=>p.name).join(',')}`)
+  const parapets = r.exterior.filter(p => p.name.startsWith('Parapet_') || p.name === 'Roof')
+  assert(parapets.length > 0, `no parapet roof parts. Sample names: ${r.exterior.slice(0,15).map(p=>p.name).join(',')}`)
 })
 
 test('peranakan compile produces colonnade parts', () => {
@@ -761,7 +761,7 @@ test('white columns for peranakan', () => {
     hasColonnade: true,
     exteriorColor: 'Sand yellow',
   }))
-  const cols = r.exterior.filter(p => p.name.startsWith('ColSh'))
+  const cols = r.exterior.filter(p => p.name.includes('_Shaft'))
   assert(cols.length > 0, 'should have column shafts')
   assert(cols.every(p => p.material === 'smoothplastic'), `columns should be smoothplastic, got: ${cols.map(p=>p.material).join(',')}`)
   assert(cols.every(p => p.color === 'White'), `columns should be White, got: ${cols.map(p=>p.color).join(',')}`)
@@ -809,8 +809,8 @@ test('generateStructure returns foundation and walls', () => {
 })
 
 test('generateRoof pagoda creates per-floor tiers', () => {
-  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 4, floorHeight: 12, buildingType: 'shophouse', architecturalStyle: 'peranakan' }
-  const dna = getStyleDNA('peranakan', 'shophouse', { roofColor: 'Dark green' })
+  const plan: BuildPlan = { tw: 40, td: 28, th: 48, wallBase: 2.3, floorCount: 4, floorHeight: 12, buildingType: 'pagoda_temple', architecturalStyle: 'peranakan' }
+  const dna = getStyleDNA('peranakan', 'pagoda_temple', { roofColor: 'Dark green' })
   const parts = generateRoof(plan, dna)
   const pagodas = parts.filter(p => p.name.startsWith('Pag') && !p.name.startsWith('PagO') && !p.name.startsWith('PagR') && !p.name.startsWith('PagU') && !p.name.startsWith('PagC') && !p.name.startsWith('PagT'))
   assert(pagodas.length >= 4, `should have 4 pagoda slabs got ${pagodas.length}`)

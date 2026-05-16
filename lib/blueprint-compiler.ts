@@ -186,6 +186,20 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
     80
   )
 
+  const PERANAKAN_VALID_COLORS = [
+    'Sand yellow', 'Brick yellow', 'White', 'Institutional white',
+    'Light green', 'Bright green', 'Medium green', 'Cashmere',
+    'Light orange', 'Bright blue', 'Cyan', 'Hot pink', 'Sand green',
+  ]
+  const isPeranakan = isShophouse || style.includes('peranakan')
+  let rEffective = r
+  if (isPeranakan) {
+    const ec = (r.exteriorColor || '').trim()
+    if (!PERANAKAN_VALID_COLORS.some(c => c.toLowerCase() === ec.toLowerCase())) {
+      rEffective = { ...r, exteriorColor: 'Sand yellow' }
+    }
+  }
+
   console.log('[blueprint] footprint:', tw, 'x', td)
 
   const roomSpecs = r.rooms.map(room => ({
@@ -254,7 +268,7 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
     }
   }
 
-  const exterior = [...buildExterior(tw, td, r, options)]
+  const exterior = [...buildExterior(tw, td, rEffective, options)]
   console.log('[blueprint] rooms:',rooms.length,'ext:',exterior.length,'total:',rooms.reduce((s,r2)=>s+r2.length,0)+exterior.length)
   return { buildingType:r.buildingType, rooms, exterior, totalWidth:tw, totalDepth:td, roomLayout:layout }
   } catch (e) {
