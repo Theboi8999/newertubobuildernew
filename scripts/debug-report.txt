@@ -1,8 +1,8 @@
 === DEBUG REPORT ===
-Generated: 2026-05-16T02:10:39.180Z
+Generated: 2026-05-16T02:44:38.930Z
 Total parts in compiled blueprint: 290
-XML total length: 303130 chars
-XML total lines: 7904
+XML total length: 300512 chars
+XML total lines: 7850
 
 --- Parts with empty or undefined name ---
   NONE
@@ -20,16 +20,16 @@ XML total lines: 7904
   1: <?xml version="1.0" encoding="utf-8"?>
   2: <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
   3:   <Meta name="ExplicitAutoJoints">true</Meta>
-  4:   <Item class="StringValue" referent="WATERMARK">
+  4:   <Item class="Model" referent="ROOT_MODEL">
   5:     <Properties>
-  6:       <string name="Name">TurboBuilder_ID</string>
-  7:       <string name="Value">debug-gen-001|debug-user|2026-05-16T02:10:39.177Z</string>
-  8:     </Properties>
-  9:   </Item>
-  10:   <Item class="Model" referent="ROOT_MODEL">
-  11:     <Properties>
-  12:       <string name="Name">Test_1778897439177</string>
-  13:     </Properties>
+  6:       <string name="Name">Test_1778899478928</string>
+  7:     </Properties>
+  8:   <Item class="StringValue" referent="WATERMARK_001">
+  9:     <Properties>
+  10:       <string name="Name">TurboBuilder_ID</string>
+  11:       <string name="Value">debug-gen-001|debug-user|2026-05-16T02:44:38.928Z</string>
+  12:     </Properties>
+  13:   </Item>
   14:   <Item class="Model" referent="RBX1">
   15:     <Properties>
   16:       <string name="Name">Test</string>
@@ -46,7 +46,7 @@ XML total lines: 7904
   27:         <R10>0</R10><R11>1</R11><R12>0</R12>
   28:         <R20>0</R20><R21>0</R21><R22>1</R22>
   29:       </CoordinateFrame>
-  30:       <int name="BrickColor">226</int>
+  30:       <int name="BrickColor">138</int>
   31:       <Color3 name="Color"><R>0.706</R><G>0.639</G><B>0.49</B></Color3>
   32:       <token name="Material">816</token>
   33:       <bool name="Anchored">true</bool>
@@ -69,26 +69,26 @@ XML total lines: 7904
   50:       </Vector3>
 
 --- Last 20 lines of XML ---
-  7885:         <R20>0</R20><R21>0</R21><R22>1</R22>
-  7886:       </CoordinateFrame>
-  7887:       <int name="BrickColor">194</int>
-  7888:       <Color3 name="Color"><R>0.639</R><G>0.635</G><B>0.647</B></Color3>
-  7889:       <token name="Material">816</token>
-  7890:       <bool name="Anchored">true</bool>
-  7891:       <float name="Transparency">0</float>
-  7892:       <bool name="CanCollide">true</bool>
-  7893:       <bool name="CastShadow">true</bool>
-  7894:       <token name="TopSurface">0</token>
-  7895:       <token name="BottomSurface">0</token>
-  7896:       <token name="FrontSurface">0</token>
-  7897:       <token name="BackSurface">0</token>
-  7898:       <token name="LeftSurface">0</token>
-  7899:       <token name="RightSurface">0</token>
-  7900:     </Properties>
-  7901:   </Item>
-  7902:   </Item>
-  7903:   </Item>
-  7904: </roblox>
+  7831:         <R20>0</R20><R21>0</R21><R22>1</R22>
+  7832:       </CoordinateFrame>
+  7833:       <int name="BrickColor">194</int>
+  7834:       <Color3 name="Color"><R>0.639</R><G>0.635</G><B>0.647</B></Color3>
+  7835:       <token name="Material">816</token>
+  7836:       <bool name="Anchored">true</bool>
+  7837:       <float name="Transparency">0</float>
+  7838:       <bool name="CanCollide">true</bool>
+  7839:       <bool name="CastShadow">true</bool>
+  7840:       <token name="TopSurface">0</token>
+  7841:       <token name="BottomSurface">0</token>
+  7842:       <token name="FrontSurface">0</token>
+  7843:       <token name="BackSurface">0</token>
+  7844:       <token name="LeftSurface">0</token>
+  7845:       <token name="RightSurface">0</token>
+  7846:     </Properties>
+  7847:   </Item>
+  7848:   </Item>
+  7849:   </Item>
+  7850: </roblox>
 
 --- Lines containing "NaN" or "Infinity" ---
   NONE

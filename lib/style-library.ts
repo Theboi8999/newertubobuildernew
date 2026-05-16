@@ -55,9 +55,8 @@ export function applyStyleDefaults(r: ResearchResult): ResearchResult {
   if (!match) { console.log('[style] no match for:', r.buildingType); return r }
   const def = STYLE_LIBRARY[match]
   console.log('[style] matched:', match)
-  return {
+  const result: ResearchResult = {
     ...r,
-    floorCount: Math.max(r.floorCount, def.floorCount),
     floorHeight: r.floorHeight !== 10 ? r.floorHeight : def.floorHeight,
     hasColonnade: r.hasColonnade || def.hasColonnade,
     hasGlassFront: r.hasGlassFront || def.hasGlassFront,
@@ -71,4 +70,8 @@ export function applyStyleDefaults(r: ResearchResult): ResearchResult {
     columnMaterial: r.columnMaterial || def.columnMaterial,
     floorBandMaterial: r.floorBandMaterial || def.floorBandMaterial,
   }
+  if (def.floorCount && r.floorCount < def.floorCount) {
+    result.floorCount = def.floorCount
+  }
+  return result
 }

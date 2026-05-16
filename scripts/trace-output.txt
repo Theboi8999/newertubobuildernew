@@ -1,0 +1,918 @@
+
+════════════════════════════════════════════════════════════
+=== STEP 1: PROMPT ANALYSIS ===
+════════════════════════════════════════════════════════════
+Prompt: Singapore Peranakan shophouse 4 floors
+analysePrompt output:
+{
+  "buildingType": "singapore_peranakan_shophouse",
+  "region": "singapore",
+  "era": "",
+  "styleHints": [
+    "peranakan"
+  ],
+  "floorCountHint": 4
+}
+
+════════════════════════════════════════════════════════════
+=== STEP 2: RESEARCH RESULT (simulated AI output — pre-override) ===
+════════════════════════════════════════════════════════════
+NOTE: In production this comes from groqGenerate. Using representative mock.
+buildingType: singapore_peranakan_shophouse
+floorCount: 2
+floorHeight: 10
+architecturalStyle: modern
+exteriorColor: Light grey
+roofColor: Dark grey
+accentColor: not set
+hasColonnade: false
+hasGlassFront: false
+hasPagodaRoof: not set
+confidence: 85
+rooms:
+  [0] Reception: 14w × 10d × 10h | wall:Light grey floor:Medium stone grey/concrete
+  [1] Office: 14w × 12d × 10h | wall:Light grey floor:Medium stone grey/concrete
+  [2] Storage: 10w × 8d × 10h | wall:Light grey floor:Medium stone grey/concrete
+Full ResearchResult:
+{
+  "buildingType": "singapore_peranakan_shophouse",
+  "floorCount": 2,
+  "floorHeight": 10,
+  "architecturalStyle": "modern",
+  "hasGlassFront": false,
+  "hasColonnade": false,
+  "exteriorMaterial": "smoothplastic",
+  "exteriorColor": "Light grey",
+  "roofColor": "Dark grey",
+  "totalWidth": 40,
+  "totalDepth": 28,
+  "culturalNotes": "Peranakan shophouses feature five-foot ways, ornate tiles, shuttered windows",
+  "confidence": 85,
+  "rooms": [
+    {
+      "name": "Reception",
+      "width": 14,
+      "depth": 10,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    },
+    {
+      "name": "Office",
+      "width": 14,
+      "depth": 12,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    },
+    {
+      "name": "Storage",
+      "width": 10,
+      "depth": 8,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    }
+  ]
+}
+
+════════════════════════════════════════════════════════════
+=== STEP 3: STYLE LIBRARY MATCH ===
+════════════════════════════════════════════════════════════
+Search text: "singapore_peranakan_shophouse modern"
+Matched style key: peranakan
+
+── Before → After for every field changed by applyStyleDefaults ──
+  floorCount: 2 → 3
+  floorHeight: 10 → 12
+  architecturalStyle: "modern" → "peranakan chinese colonial"
+  hasColonnade: false → true
+  exteriorColor: "Light grey" → "Sand yellow"
+  roofColor: "Dark grey" → "Dark green"
+Full result after applyStyleDefaults:
+{
+  "buildingType": "singapore_peranakan_shophouse",
+  "floorCount": 3,
+  "floorHeight": 12,
+  "architecturalStyle": "peranakan chinese colonial",
+  "hasGlassFront": false,
+  "hasColonnade": true,
+  "exteriorMaterial": "smoothplastic",
+  "exteriorColor": "Sand yellow",
+  "roofColor": "Dark green",
+  "totalWidth": 40,
+  "totalDepth": 28,
+  "culturalNotes": "Peranakan shophouses feature five-foot ways, ornate tiles, shuttered windows",
+  "confidence": 85,
+  "rooms": [
+    {
+      "name": "Reception",
+      "width": 14,
+      "depth": 10,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    },
+    {
+      "name": "Office",
+      "width": 14,
+      "depth": 12,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    },
+    {
+      "name": "Storage",
+      "width": 10,
+      "depth": 8,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    }
+  ],
+  "wallMaterial": "limestone",
+  "roofMaterial": "slate",
+  "groundMaterial": "pavement",
+  "columnMaterial": "concrete",
+  "floorBandMaterial": "smoothplastic"
+}
+
+════════════════════════════════════════════════════════════
+=== STEP 4: FORCED OVERRIDES (generator.ts logic) ===
+════════════════════════════════════════════════════════════
+isPeranakan: true
+isVictorian: false
+isModernGlass: false
+floorCountHint from analysePrompt: 4 — but isPeranakan override already set floorCount=4
+
+── Changes applied by forced overrides ──
+  floorCount: 3 → 4
+Final ResearchResult going into compilation:
+{
+  "buildingType": "singapore_peranakan_shophouse",
+  "floorCount": 4,
+  "floorHeight": 12,
+  "architecturalStyle": "peranakan chinese colonial",
+  "hasGlassFront": false,
+  "hasColonnade": true,
+  "exteriorMaterial": "smoothplastic",
+  "exteriorColor": "Sand yellow",
+  "roofColor": "Dark green",
+  "totalWidth": 40,
+  "totalDepth": 28,
+  "culturalNotes": "Peranakan shophouses feature five-foot ways, ornate tiles, shuttered windows",
+  "confidence": 85,
+  "rooms": [
+    {
+      "name": "Reception",
+      "width": 14,
+      "depth": 10,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    },
+    {
+      "name": "Office",
+      "width": 14,
+      "depth": 12,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    },
+    {
+      "name": "Storage",
+      "width": 10,
+      "depth": 8,
+      "height": 10,
+      "furniture": [],
+      "wallColor": "Light grey",
+      "floorColor": "Medium stone grey",
+      "floorMaterial": "concrete"
+    }
+  ],
+  "wallMaterial": "limestone",
+  "roofMaterial": "slate",
+  "groundMaterial": "pavement",
+  "columnMaterial": "concrete",
+  "floorBandMaterial": "smoothplastic"
+}
+
+════════════════════════════════════════════════════════════
+=== STEP 5: PRE-GATE RESULT ===
+════════════════════════════════════════════════════════════
+passed: true
+issues: (none)
+warnings: (none)
+
+════════════════════════════════════════════════════════════
+=== STEP 6: BLUEPRINT COMPILATION ===
+════════════════════════════════════════════════════════════
+Calling compileBlueprint with seed: 42 exteriorOnly: true (rooms excluded from analysis)
+
+Footprint: tw = 36 , td = 28
+floorCount going into buildExterior: 4 → clamped to: 4
+floorHeight: used from research: 12 (clamped 8–18)
+Total exterior parts: 700
+Room layout ( 3 rooms):
+  [0] Reception (office) @ x=28.0 z=8.0 | 14.0w × 10.0d
+  [1] Office (reception) @ x=17.0 z=8.0 | 14.0w × 10.0d
+  [2] Storage (storage) @ x=6.0 z=6.5 | 10.0w × 7.0d
+
+── Exterior part breakdown by name prefix ──
+    64x  Pag
+    32x  Quoin
+    18x  WLH
+    16x  MidBand_F
+    16x  PagDrip
+    15x  Band_F
+    12x  Band
+    12x  Pil
+     9x  WRec_F
+     9x  WOFrT_F
+     9x  WOFrB_F
+     9x  WOFrL_F
+     9x  WOFrR_F
+     9x  WFrT_F
+     9x  WFrB_F
+     9x  WFrL_F
+     9x  WFrR_F
+     9x  WSill_F
+     9x  WGlass_F
+     9x  WLintel_F
+     9x  WArcKey_F
+     9x  WArcL_F
+     9x  WArcR_F
+     9x  WRevL_F
+     9x  WRevR_F
+     9x  WLV_F
+     9x  ShutL_F
+     9x  ShutR_F
+     6x  Rust
+     6x  Band_
+     6x  WPilF
+     6x  SWLRec_F
+     6x  SWLFrT_F
+     6x  SWLFrB_F
+     6x  SWLGlass_F
+     6x  SWLTrim_F
+     6x  SWLLintel_F
+     6x  SWLSill_F
+     6x  SWLRevF_F
+     6x  SWLRevB_F
+     6x  SWLArcKey_F
+     6x  SWLArcF_F
+     6x  SWLArcB_F
+     6x  SWRRec_F
+     6x  SWRFrT_F
+     6x  SWRFrB_F
+     6x  SWRGlass_F
+     6x  SWRTrim_F
+     6x  SWRLintel_F
+     6x  SWRSill_F
+     6x  SWRRevF_F
+     6x  SWRRevB_F
+     6x  SWRArcKey_F
+     6x  SWRArcF_F
+     6x  SWRArcB_F
+     6x  AC_F
+     6x  ACVent_F
+     5x  ColPl
+     5x  ColSh
+     5x  ColCp
+     5x  ColRingB
+     5x  ColRingT
+     5x  Transom
+     4x  Wall
+     4x  Plinth
+     4x  FdnCorner
+     4x  Crown
+     4x  PagSoffit
+     4x  ColArcKey
+     4x  ColAr
+     4x  Shut
+     4x  ShopSign
+     4x  Drain
+     3x  Floor
+     3x  RustF
+     3x  RustB
+     3x  Band_B
+     3x  Drip_F
+     3x  Drip_B
+     3x  BWRec_F
+     3x  BWFrT_F
+     3x  BWFrB_F
+     3x  BWGlass_F
+     3x  BWTrim_F
+     3x  BWLintel_F
+     3x  BWSill_F
+     3x  BWRevL_F
+     3x  BWRevR_F
+     3x  BWArcKey_F
+     3x  BWArcL_F
+     3x  BWArcR_F
+     2x  PlinthBand_
+     2x  Crown_
+     2x  Downpipe_F
+     2x  Other
+     2x  RoofAC
+     2x  Door
+     2x  DoorFr
+     2x  Handle
+     2x  CanopyBracket
+     2x  Arch
+     1x  Foundation
+     1x  Found_Step
+     1x  PlinthBand_F
+     1x  PlinthBand_B
+     1x  Crown_F
+     1x  Crown_B
+     1x  RoofTank
+     1x  FFW_Ceil
+     1x  FFW_Floor
+     1x  EnSurround
+     1x  EnArch
+     1x  DoorFrT
+     1x  Canopy
+     1x  CanopyFascia
+     1x  ArchKey
+     1x  ServiceDoor
+     1x  Ground
+
+════════════════════════════════════════════════════════════
+=== STEP 7: PART AUDIT ===
+════════════════════════════════════════════════════════════
+
+── Color distribution ──
+   405x  White
+    82x  Sand yellow
+    63x  Bright blue
+    56x  Dark green
+    29x  Dark grey
+    24x  Really black
+    12x  Brick yellow
+    10x  Institutional white
+     8x  Dark stone grey
+     5x  Medium stone grey
+     4x  Medium green
+     2x  Bright yellow
+
+── Material distribution ──
+   674x  smoothplastic
+    16x  metal
+     9x  concrete
+     1x  marble
+
+── Suspicious parts (size dimension < 0.5 or y position < 0) ──
+  SUSPICIOUS: "BandCap_F1_Front" size=(36.4,0.3,1.3) pos=(18,16.25,-0.65)
+  SUSPICIOUS: "BandCap_F1_Back" size=(36.4,0.3,1.3) pos=(18,16.25,28.65)
+  SUSPICIOUS: "BandCap_F1_Left" size=(1.3,0.3,28.4) pos=(-0.65,16.25,14)
+  SUSPICIOUS: "BandCap_F1_Right" size=(1.3,0.3,28.4) pos=(36.65,16.25,14)
+  SUSPICIOUS: "RustF_1" size=(36.1,0.6,0.3) pos=(18,15.80,-0.15)
+  SUSPICIOUS: "RustB_1" size=(36.1,0.6,0.3) pos=(18,15.80,28.15)
+  SUSPICIOUS: "RustL_1" size=(0.3,0.6,28.1) pos=(-0.15,15.80,14)
+  SUSPICIOUS: "RustR_1" size=(0.3,0.6,28.1) pos=(36.15,15.80,14)
+  SUSPICIOUS: "BandCap_F2_Front" size=(36.4,0.3,1.3) pos=(18,28.25,-0.65)
+  SUSPICIOUS: "BandCap_F2_Back" size=(36.4,0.3,1.3) pos=(18,28.25,28.65)
+  SUSPICIOUS: "BandCap_F2_Left" size=(1.3,0.3,28.4) pos=(-0.65,28.25,14)
+  SUSPICIOUS: "BandCap_F2_Right" size=(1.3,0.3,28.4) pos=(36.65,28.25,14)
+  SUSPICIOUS: "RustF_2" size=(36.1,0.6,0.3) pos=(18,27.80,-0.15)
+  SUSPICIOUS: "RustB_2" size=(36.1,0.6,0.3) pos=(18,27.80,28.15)
+  SUSPICIOUS: "RustL_2" size=(0.3,0.6,28.1) pos=(-0.15,27.80,14)
+  SUSPICIOUS: "RustR_2" size=(0.3,0.6,28.1) pos=(36.15,27.80,14)
+  SUSPICIOUS: "BandCap_F3_Front" size=(36.4,0.3,1.3) pos=(18,40.25,-0.65)
+  SUSPICIOUS: "BandCap_F3_Back" size=(36.4,0.3,1.3) pos=(18,40.25,28.65)
+  SUSPICIOUS: "BandCap_F3_Left" size=(1.3,0.3,28.4) pos=(-0.65,40.25,14)
+  SUSPICIOUS: "BandCap_F3_Right" size=(1.3,0.3,28.4) pos=(36.65,40.25,14)
+  SUSPICIOUS: "RustF_3" size=(36.1,0.6,0.3) pos=(18,39.80,-0.15)
+  SUSPICIOUS: "RustB_3" size=(36.1,0.6,0.3) pos=(18,39.80,28.15)
+  SUSPICIOUS: "RustL_3" size=(0.3,0.6,28.1) pos=(-0.15,39.80,14)
+  SUSPICIOUS: "RustR_3" size=(0.3,0.6,28.1) pos=(36.15,39.80,14)
+  SUSPICIOUS: "PlinthCap_F" size=(36.6,0.25,1.2) pos=(18,4.42,-0.6)
+  SUSPICIOUS: "PlinthCap_B" size=(36.6,0.25,1.2) pos=(18,4.42,28.6)
+  SUSPICIOUS: "PlinthCap_L" size=(1.2,0.25,28.6) pos=(-0.6,4.42,14)
+  SUSPICIOUS: "PlinthCap_R" size=(1.2,0.25,28.6) pos=(36.6,4.42,14)
+  SUSPICIOUS: "MidBand_F0_Front" size=(36.1,0.3,0.25) pos=(18,10.22,-0.12)
+  SUSPICIOUS: "MidBand_F0_Back" size=(36.1,0.3,0.25) pos=(18,10.22,28.12)
+  SUSPICIOUS: "MidBand_F0_Left" size=(0.25,0.3,28.1) pos=(-0.12,10.22,14)
+  SUSPICIOUS: "MidBand_F0_Right" size=(0.25,0.3,28.1) pos=(36.12,10.22,14)
+  SUSPICIOUS: "MidBand_F1_Front" size=(36.1,0.3,0.25) pos=(18,22.22,-0.12)
+  SUSPICIOUS: "MidBand_F1_Back" size=(36.1,0.3,0.25) pos=(18,22.22,28.12)
+  SUSPICIOUS: "MidBand_F1_Left" size=(0.25,0.3,28.1) pos=(-0.12,22.22,14)
+  SUSPICIOUS: "MidBand_F1_Right" size=(0.25,0.3,28.1) pos=(36.12,22.22,14)
+  SUSPICIOUS: "MidBand_F2_Front" size=(36.1,0.3,0.25) pos=(18,34.22,-0.12)
+  SUSPICIOUS: "MidBand_F2_Back" size=(36.1,0.3,0.25) pos=(18,34.22,28.12)
+  SUSPICIOUS: "MidBand_F2_Left" size=(0.25,0.3,28.1) pos=(-0.12,34.22,14)
+  SUSPICIOUS: "MidBand_F2_Right" size=(0.25,0.3,28.1) pos=(36.12,34.22,14)
+  SUSPICIOUS: "MidBand_F3_Front" size=(36.1,0.3,0.25) pos=(18,46.22,-0.12)
+  SUSPICIOUS: "MidBand_F3_Back" size=(36.1,0.3,0.25) pos=(18,46.22,28.12)
+  SUSPICIOUS: "MidBand_F3_Left" size=(0.25,0.3,28.1) pos=(-0.12,46.22,14)
+  SUSPICIOUS: "MidBand_F3_Right" size=(0.25,0.3,28.1) pos=(36.12,46.22,14)
+  SUSPICIOUS: "CrownCap_F" size=(36.8,0.3,1) pos=(18,51.65,-0.5)
+  SUSPICIOUS: "CrownCap_B" size=(36.8,0.3,1) pos=(18,51.65,28.5)
+  SUSPICIOUS: "CrownCap_L" size=(1,0.3,28.8) pos=(-0.5,51.65,14)
+  SUSPICIOUS: "CrownCap_R" size=(1,0.3,28.8) pos=(36.5,51.65,14)
+  SUSPICIOUS: "Downpipe_FL" size=(0.4,50.3,0.4) pos=(1.5,25.15,-0.2)
+  SUSPICIOUS: "Downpipe_FR" size=(0.4,50.3,0.4) pos=(34.5,25.15,-0.2)
+  SUSPICIOUS: "PagL3_0" size=(38,0.4,30) pos=(18,14.20,14)
+  SUSPICIOUS: "PagDrip_0_F" size=(44.2,0.3,0.4) pos=(18,14.15,-4.2)
+  SUSPICIOUS: "PagDrip_0_B" size=(44.2,0.3,0.4) pos=(18,14.15,32.2)
+  SUSPICIOUS: "PagDrip_0_L" size=(0.4,0.3,36.2) pos=(-4.2,14.15,14)
+  SUSPICIOUS: "PagDrip_0_R" size=(0.4,0.3,36.2) pos=(40.2,14.15,14)
+  SUSPICIOUS: "PagSoffit_0" size=(42,0.3,34) pos=(18,14.15,14)
+  SUSPICIOUS: "Drip_F1" size=(38,0.3,0.5) pos=(18,14.15,-0.7)
+  SUSPICIOUS: "Drip_B1" size=(38,0.3,0.5) pos=(18,14.15,28.7)
+  SUSPICIOUS: "PagL3_1" size=(38,0.4,30) pos=(18,26.20,14)
+  SUSPICIOUS: "PagDrip_1_F" size=(44.2,0.3,0.4) pos=(18,26.15,-4.2)
+  SUSPICIOUS: "PagDrip_1_B" size=(44.2,0.3,0.4) pos=(18,26.15,32.2)
+  SUSPICIOUS: "PagDrip_1_L" size=(0.4,0.3,36.2) pos=(-4.2,26.15,14)
+  SUSPICIOUS: "PagDrip_1_R" size=(0.4,0.3,36.2) pos=(40.2,26.15,14)
+  SUSPICIOUS: "PagSoffit_1" size=(42,0.3,34) pos=(18,26.15,14)
+  SUSPICIOUS: "Drip_F2" size=(38,0.3,0.5) pos=(18,26.15,-0.7)
+  SUSPICIOUS: "Drip_B2" size=(38,0.3,0.5) pos=(18,26.15,28.7)
+  SUSPICIOUS: "PagL3_2" size=(38,0.4,30) pos=(18,38.20,14)
+  SUSPICIOUS: "PagDrip_2_F" size=(44.2,0.3,0.4) pos=(18,38.15,-4.2)
+  SUSPICIOUS: "PagDrip_2_B" size=(44.2,0.3,0.4) pos=(18,38.15,32.2)
+  SUSPICIOUS: "PagDrip_2_L" size=(0.4,0.3,36.2) pos=(-4.2,38.15,14)
+  SUSPICIOUS: "PagDrip_2_R" size=(0.4,0.3,36.2) pos=(40.2,38.15,14)
+  SUSPICIOUS: "PagSoffit_2" size=(42,0.3,34) pos=(18,38.15,14)
+  SUSPICIOUS: "Drip_F3" size=(38,0.3,0.5) pos=(18,38.15,-0.7)
+  SUSPICIOUS: "Drip_B3" size=(38,0.3,0.5) pos=(18,38.15,28.7)
+  SUSPICIOUS: "PagL3_3" size=(38,0.4,30) pos=(18,50.20,14)
+  SUSPICIOUS: "PagDrip_3_F" size=(44.2,0.3,0.4) pos=(18,50.15,-4.2)
+  SUSPICIOUS: "PagDrip_3_B" size=(44.2,0.3,0.4) pos=(18,50.15,32.2)
+  SUSPICIOUS: "PagDrip_3_L" size=(0.4,0.3,36.2) pos=(-4.2,50.15,14)
+  SUSPICIOUS: "PagDrip_3_R" size=(0.4,0.3,36.2) pos=(40.2,50.15,14)
+  SUSPICIOUS: "PagSoffit_3" size=(42,0.3,34) pos=(18,50.15,14)
+  SUSPICIOUS: "WOFrT_F1_0" size=(6.24,0.45,0.5) pos=(10.5,24.24,-0.25)
+  SUSPICIOUS: "WOFrB_F1_0" size=(6.24,0.45,0.5) pos=(10.5,16.84,-0.25)
+  SUSPICIOUS: "WOFrL_F1_0" size=(0.45,7.759999999999999,0.5) pos=(7.359999999999999,20.54,-0.25)
+  SUSPICIOUS: "WOFrR_F1_0" size=(0.45,7.759999999999999,0.5) pos=(13.64,20.54,-0.25)
+  SUSPICIOUS: "WFrT_F1_0" size=(5.74,0.3,0.35) pos=(10.5,24.17,-0.55)
+  SUSPICIOUS: "WFrB_F1_0" size=(5.74,0.3,0.35) pos=(10.5,16.91,-0.55)
+  SUSPICIOUS: "WFrL_F1_0" size=(0.3,7.559999999999999,0.35) pos=(7.629999999999999,20.54,-0.55)
+  SUSPICIOUS: "WFrR_F1_0" size=(0.3,7.559999999999999,0.35) pos=(13.370000000000001,20.54,-0.55)
+  SUSPICIOUS: "WSill_F1_0" size=(6.24,0.4,0.8) pos=(10.5,16.86,-0.4)
+  SUSPICIOUS: "WGlass_F1_0" size=(5.44,6.959999999999999,0.1) pos=(10.5,20.54,-0.8)
+  SUSPICIOUS: "WArcL_F1_0" size=(2.8200000000000003,0.45,0.5) pos=(8.84,24.62,-0.35)
+  SUSPICIOUS: "WArcR_F1_0" size=(2.8200000000000003,0.45,0.5) pos=(12.16,24.62,-0.35)
+  SUSPICIOUS: "WLH1_F1_0" size=(5.24,0.1,0.1) pos=(10.5,22.28,-0.8)
+  SUSPICIOUS: "WLH2_F1_0" size=(5.24,0.1,0.1) pos=(10.5,18.80,-0.8)
+  SUSPICIOUS: "WLV_F1_0" size=(0.1,6.759999999999999,0.1) pos=(10.5,20.54,-0.8)
+  SUSPICIOUS: "ShutL_F1_0" size=(2.2848,6.611999999999999,0.15) pos=(6.537599999999999,20.54,-0.55)
+  SUSPICIOUS: "ShutR_F1_0" size=(2.2848,6.611999999999999,0.15) pos=(14.4624,20.54,-0.55)
+  SUSPICIOUS: "WOFrT_F1_1" size=(6.24,0.45,0.5) pos=(18.5,24.24,-0.25)
+  SUSPICIOUS: "WOFrB_F1_1" size=(6.24,0.45,0.5) pos=(18.5,16.84,-0.25)
+  SUSPICIOUS: "WOFrL_F1_1" size=(0.45,7.759999999999999,0.5) pos=(15.36,20.54,-0.25)
+  SUSPICIOUS: "WOFrR_F1_1" size=(0.45,7.759999999999999,0.5) pos=(21.64,20.54,-0.25)
+  SUSPICIOUS: "WFrT_F1_1" size=(5.74,0.3,0.35) pos=(18.5,24.17,-0.55)
+  SUSPICIOUS: "WFrB_F1_1" size=(5.74,0.3,0.35) pos=(18.5,16.91,-0.55)
+  SUSPICIOUS: "WFrL_F1_1" size=(0.3,7.559999999999999,0.35) pos=(15.629999999999999,20.54,-0.55)
+  SUSPICIOUS: "WFrR_F1_1" size=(0.3,7.559999999999999,0.35) pos=(21.369999999999997,20.54,-0.55)
+  SUSPICIOUS: "WSill_F1_1" size=(6.24,0.4,0.8) pos=(18.5,16.86,-0.4)
+  SUSPICIOUS: "WGlass_F1_1" size=(5.44,6.959999999999999,0.1) pos=(18.5,20.54,-0.8)
+  SUSPICIOUS: "WArcL_F1_1" size=(2.8200000000000003,0.45,0.5) pos=(16.84,24.62,-0.35)
+  SUSPICIOUS: "WArcR_F1_1" size=(2.8200000000000003,0.45,0.5) pos=(20.16,24.62,-0.35)
+  SUSPICIOUS: "WLH1_F1_1" size=(5.24,0.1,0.1) pos=(18.5,22.28,-0.8)
+  SUSPICIOUS: "WLH2_F1_1" size=(5.24,0.1,0.1) pos=(18.5,18.80,-0.8)
+  SUSPICIOUS: "WLV_F1_1" size=(0.1,6.759999999999999,0.1) pos=(18.5,20.54,-0.8)
+  SUSPICIOUS: "ShutL_F1_1" size=(2.2848,6.611999999999999,0.15) pos=(14.5376,20.54,-0.55)
+  SUSPICIOUS: "ShutR_F1_1" size=(2.2848,6.611999999999999,0.15) pos=(22.4624,20.54,-0.55)
+  SUSPICIOUS: "WOFrT_F1_2" size=(6.24,0.45,0.5) pos=(26.5,24.24,-0.25)
+  SUSPICIOUS: "WOFrB_F1_2" size=(6.24,0.45,0.5) pos=(26.5,16.84,-0.25)
+  SUSPICIOUS: "WOFrL_F1_2" size=(0.45,7.759999999999999,0.5) pos=(23.36,20.54,-0.25)
+  SUSPICIOUS: "WOFrR_F1_2" size=(0.45,7.759999999999999,0.5) pos=(29.64,20.54,-0.25)
+  SUSPICIOUS: "WFrT_F1_2" size=(5.74,0.3,0.35) pos=(26.5,24.17,-0.55)
+  SUSPICIOUS: "WFrB_F1_2" size=(5.74,0.3,0.35) pos=(26.5,16.91,-0.55)
+  SUSPICIOUS: "WFrL_F1_2" size=(0.3,7.559999999999999,0.35) pos=(23.630000000000003,20.54,-0.55)
+  SUSPICIOUS: "WFrR_F1_2" size=(0.3,7.559999999999999,0.35) pos=(29.369999999999997,20.54,-0.55)
+  SUSPICIOUS: "WSill_F1_2" size=(6.24,0.4,0.8) pos=(26.5,16.86,-0.4)
+  SUSPICIOUS: "WGlass_F1_2" size=(5.44,6.959999999999999,0.1) pos=(26.5,20.54,-0.8)
+  SUSPICIOUS: "WArcL_F1_2" size=(2.8200000000000003,0.45,0.5) pos=(24.84,24.62,-0.35)
+  SUSPICIOUS: "WArcR_F1_2" size=(2.8200000000000003,0.45,0.5) pos=(28.16,24.62,-0.35)
+  SUSPICIOUS: "WLH1_F1_2" size=(5.24,0.1,0.1) pos=(26.5,22.28,-0.8)
+  SUSPICIOUS: "WLH2_F1_2" size=(5.24,0.1,0.1) pos=(26.5,18.80,-0.8)
+  SUSPICIOUS: "WLV_F1_2" size=(0.1,6.759999999999999,0.1) pos=(26.5,20.54,-0.8)
+  SUSPICIOUS: "ShutL_F1_2" size=(2.2848,6.611999999999999,0.15) pos=(22.5376,20.54,-0.55)
+  SUSPICIOUS: "ShutR_F1_2" size=(2.2848,6.611999999999999,0.15) pos=(30.4624,20.54,-0.55)
+  SUSPICIOUS: "WPilF1_0" size=(1,8.399999999999999,0.3) pos=(14.5,20.30,-0.15)
+  SUSPICIOUS: "WPilF1_1" size=(1,8.399999999999999,0.3) pos=(22.5,20.30,-0.15)
+  SUSPICIOUS: "SWLFrT_F1_0" size=(0.5,0.45,6.24) pos=(-0.25,24.24,10)
+  SUSPICIOUS: "SWLFrB_F1_0" size=(0.5,0.45,6.24) pos=(-0.25,16.84,10)
+  SUSPICIOUS: "SWLGlass_F1_0" size=(0.1,6.959999999999999,5.44) pos=(-0.8,20.54,10)
+  SUSPICIOUS: "SWLTrim_F1_0" size=(0.35,7.559999999999999,5.74) pos=(-0.55,20.54,10)
+  SUSPICIOUS: "SWLSill_F1_0" size=(0.8,0.4,6.24) pos=(-0.4,16.86,10)
+  SUSPICIOUS: "SWLArcF_F1_0" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,24.62,8.34)
+  SUSPICIOUS: "SWLArcB_F1_0" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,24.62,11.66)
+  SUSPICIOUS: "SWRFrT_F1_0" size=(0.5,0.45,6.24) pos=(36.25,24.24,10)
+  SUSPICIOUS: "SWRFrB_F1_0" size=(0.5,0.45,6.24) pos=(36.25,16.84,10)
+  SUSPICIOUS: "SWRGlass_F1_0" size=(0.1,6.959999999999999,5.44) pos=(36.8,20.54,10)
+  SUSPICIOUS: "SWRTrim_F1_0" size=(0.35,7.559999999999999,5.74) pos=(36.55,20.54,10)
+  SUSPICIOUS: "SWRSill_F1_0" size=(0.8,0.4,6.24) pos=(36.4,16.86,10)
+  SUSPICIOUS: "SWRArcF_F1_0" size=(0.5,0.45,2.8200000000000003) pos=(36.35,24.62,8.34)
+  SUSPICIOUS: "SWRArcB_F1_0" size=(0.5,0.45,2.8200000000000003) pos=(36.35,24.62,11.66)
+  SUSPICIOUS: "SWLFrT_F1_1" size=(0.5,0.45,6.24) pos=(-0.25,24.24,18)
+  SUSPICIOUS: "SWLFrB_F1_1" size=(0.5,0.45,6.24) pos=(-0.25,16.84,18)
+  SUSPICIOUS: "SWLGlass_F1_1" size=(0.1,6.959999999999999,5.44) pos=(-0.8,20.54,18)
+  SUSPICIOUS: "SWLTrim_F1_1" size=(0.35,7.559999999999999,5.74) pos=(-0.55,20.54,18)
+  SUSPICIOUS: "SWLSill_F1_1" size=(0.8,0.4,6.24) pos=(-0.4,16.86,18)
+  SUSPICIOUS: "SWLArcF_F1_1" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,24.62,16.34)
+  SUSPICIOUS: "SWLArcB_F1_1" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,24.62,19.66)
+  SUSPICIOUS: "SWRFrT_F1_1" size=(0.5,0.45,6.24) pos=(36.25,24.24,18)
+  SUSPICIOUS: "SWRFrB_F1_1" size=(0.5,0.45,6.24) pos=(36.25,16.84,18)
+  SUSPICIOUS: "SWRGlass_F1_1" size=(0.1,6.959999999999999,5.44) pos=(36.8,20.54,18)
+  SUSPICIOUS: "SWRTrim_F1_1" size=(0.35,7.559999999999999,5.74) pos=(36.55,20.54,18)
+  SUSPICIOUS: "SWRSill_F1_1" size=(0.8,0.4,6.24) pos=(36.4,16.86,18)
+  SUSPICIOUS: "SWRArcF_F1_1" size=(0.5,0.45,2.8200000000000003) pos=(36.35,24.62,16.34)
+  SUSPICIOUS: "SWRArcB_F1_1" size=(0.5,0.45,2.8200000000000003) pos=(36.35,24.62,19.66)
+  SUSPICIOUS: "BWFrT_F1_0" size=(7.3,0.45,0.5) pos=(18.5,24.24,28.25)
+  SUSPICIOUS: "BWFrB_F1_0" size=(7.3,0.45,0.5) pos=(18.5,16.84,28.25)
+  SUSPICIOUS: "BWGlass_F1_0" size=(6.5,6.959999999999999,0.1) pos=(18.5,20.54,28.8)
+  SUSPICIOUS: "BWTrim_F1_0" size=(6.8,7.559999999999999,0.35) pos=(18.5,20.54,28.55)
+  SUSPICIOUS: "BWSill_F1_0" size=(7.3,0.4,0.8) pos=(18.5,16.86,28.4)
+  SUSPICIOUS: "BWArcL_F1_0" size=(3.35,0.45,0.5) pos=(16.575,24.62,28.35)
+  SUSPICIOUS: "BWArcR_F1_0" size=(3.35,0.45,0.5) pos=(20.425,24.62,28.35)
+  SUSPICIOUS: "WOFrT_F2_0" size=(6.24,0.45,0.5) pos=(10.5,36.24,-0.25)
+  SUSPICIOUS: "WOFrB_F2_0" size=(6.24,0.45,0.5) pos=(10.5,28.84,-0.25)
+  SUSPICIOUS: "WOFrL_F2_0" size=(0.45,7.759999999999999,0.5) pos=(7.359999999999999,32.54,-0.25)
+  SUSPICIOUS: "WOFrR_F2_0" size=(0.45,7.759999999999999,0.5) pos=(13.64,32.54,-0.25)
+  SUSPICIOUS: "WFrT_F2_0" size=(5.74,0.3,0.35) pos=(10.5,36.17,-0.55)
+  SUSPICIOUS: "WFrB_F2_0" size=(5.74,0.3,0.35) pos=(10.5,28.91,-0.55)
+  SUSPICIOUS: "WFrL_F2_0" size=(0.3,7.559999999999999,0.35) pos=(7.629999999999999,32.54,-0.55)
+  SUSPICIOUS: "WFrR_F2_0" size=(0.3,7.559999999999999,0.35) pos=(13.370000000000001,32.54,-0.55)
+  SUSPICIOUS: "WSill_F2_0" size=(6.24,0.4,0.8) pos=(10.5,28.86,-0.4)
+  SUSPICIOUS: "WGlass_F2_0" size=(5.44,6.959999999999999,0.1) pos=(10.5,32.54,-0.8)
+  SUSPICIOUS: "WArcL_F2_0" size=(2.8200000000000003,0.45,0.5) pos=(8.84,36.62,-0.35)
+  SUSPICIOUS: "WArcR_F2_0" size=(2.8200000000000003,0.45,0.5) pos=(12.16,36.62,-0.35)
+  SUSPICIOUS: "WLH1_F2_0" size=(5.24,0.1,0.1) pos=(10.5,34.28,-0.8)
+  SUSPICIOUS: "WLH2_F2_0" size=(5.24,0.1,0.1) pos=(10.5,30.80,-0.8)
+  SUSPICIOUS: "WLV_F2_0" size=(0.1,6.759999999999999,0.1) pos=(10.5,32.54,-0.8)
+  SUSPICIOUS: "ShutL_F2_0" size=(2.2848,6.611999999999999,0.15) pos=(6.537599999999999,32.54,-0.55)
+  SUSPICIOUS: "ShutR_F2_0" size=(2.2848,6.611999999999999,0.15) pos=(14.4624,32.54,-0.55)
+  SUSPICIOUS: "WOFrT_F2_1" size=(6.24,0.45,0.5) pos=(18.5,36.24,-0.25)
+  SUSPICIOUS: "WOFrB_F2_1" size=(6.24,0.45,0.5) pos=(18.5,28.84,-0.25)
+  SUSPICIOUS: "WOFrL_F2_1" size=(0.45,7.759999999999999,0.5) pos=(15.36,32.54,-0.25)
+  SUSPICIOUS: "WOFrR_F2_1" size=(0.45,7.759999999999999,0.5) pos=(21.64,32.54,-0.25)
+  SUSPICIOUS: "WFrT_F2_1" size=(5.74,0.3,0.35) pos=(18.5,36.17,-0.55)
+  SUSPICIOUS: "WFrB_F2_1" size=(5.74,0.3,0.35) pos=(18.5,28.91,-0.55)
+  SUSPICIOUS: "WFrL_F2_1" size=(0.3,7.559999999999999,0.35) pos=(15.629999999999999,32.54,-0.55)
+  SUSPICIOUS: "WFrR_F2_1" size=(0.3,7.559999999999999,0.35) pos=(21.369999999999997,32.54,-0.55)
+  SUSPICIOUS: "WSill_F2_1" size=(6.24,0.4,0.8) pos=(18.5,28.86,-0.4)
+  SUSPICIOUS: "WGlass_F2_1" size=(5.44,6.959999999999999,0.1) pos=(18.5,32.54,-0.8)
+  SUSPICIOUS: "WArcL_F2_1" size=(2.8200000000000003,0.45,0.5) pos=(16.84,36.62,-0.35)
+  SUSPICIOUS: "WArcR_F2_1" size=(2.8200000000000003,0.45,0.5) pos=(20.16,36.62,-0.35)
+  SUSPICIOUS: "WLH1_F2_1" size=(5.24,0.1,0.1) pos=(18.5,34.28,-0.8)
+  SUSPICIOUS: "WLH2_F2_1" size=(5.24,0.1,0.1) pos=(18.5,30.80,-0.8)
+  SUSPICIOUS: "WLV_F2_1" size=(0.1,6.759999999999999,0.1) pos=(18.5,32.54,-0.8)
+  SUSPICIOUS: "ShutL_F2_1" size=(2.2848,6.611999999999999,0.15) pos=(14.5376,32.54,-0.55)
+  SUSPICIOUS: "ShutR_F2_1" size=(2.2848,6.611999999999999,0.15) pos=(22.4624,32.54,-0.55)
+  SUSPICIOUS: "WOFrT_F2_2" size=(6.24,0.45,0.5) pos=(26.5,36.24,-0.25)
+  SUSPICIOUS: "WOFrB_F2_2" size=(6.24,0.45,0.5) pos=(26.5,28.84,-0.25)
+  SUSPICIOUS: "WOFrL_F2_2" size=(0.45,7.759999999999999,0.5) pos=(23.36,32.54,-0.25)
+  SUSPICIOUS: "WOFrR_F2_2" size=(0.45,7.759999999999999,0.5) pos=(29.64,32.54,-0.25)
+  SUSPICIOUS: "WFrT_F2_2" size=(5.74,0.3,0.35) pos=(26.5,36.17,-0.55)
+  SUSPICIOUS: "WFrB_F2_2" size=(5.74,0.3,0.35) pos=(26.5,28.91,-0.55)
+  SUSPICIOUS: "WFrL_F2_2" size=(0.3,7.559999999999999,0.35) pos=(23.630000000000003,32.54,-0.55)
+  SUSPICIOUS: "WFrR_F2_2" size=(0.3,7.559999999999999,0.35) pos=(29.369999999999997,32.54,-0.55)
+  SUSPICIOUS: "WSill_F2_2" size=(6.24,0.4,0.8) pos=(26.5,28.86,-0.4)
+  SUSPICIOUS: "WGlass_F2_2" size=(5.44,6.959999999999999,0.1) pos=(26.5,32.54,-0.8)
+  SUSPICIOUS: "WArcL_F2_2" size=(2.8200000000000003,0.45,0.5) pos=(24.84,36.62,-0.35)
+  SUSPICIOUS: "WArcR_F2_2" size=(2.8200000000000003,0.45,0.5) pos=(28.16,36.62,-0.35)
+  SUSPICIOUS: "WLH1_F2_2" size=(5.24,0.1,0.1) pos=(26.5,34.28,-0.8)
+  SUSPICIOUS: "WLH2_F2_2" size=(5.24,0.1,0.1) pos=(26.5,30.80,-0.8)
+  SUSPICIOUS: "WLV_F2_2" size=(0.1,6.759999999999999,0.1) pos=(26.5,32.54,-0.8)
+  SUSPICIOUS: "ShutL_F2_2" size=(2.2848,6.611999999999999,0.15) pos=(22.5376,32.54,-0.55)
+  SUSPICIOUS: "ShutR_F2_2" size=(2.2848,6.611999999999999,0.15) pos=(30.4624,32.54,-0.55)
+  SUSPICIOUS: "WPilF2_0" size=(1,8.399999999999999,0.3) pos=(14.5,32.30,-0.15)
+  SUSPICIOUS: "WPilF2_1" size=(1,8.399999999999999,0.3) pos=(22.5,32.30,-0.15)
+  SUSPICIOUS: "SWLFrT_F2_0" size=(0.5,0.45,6.24) pos=(-0.25,36.24,10)
+  SUSPICIOUS: "SWLFrB_F2_0" size=(0.5,0.45,6.24) pos=(-0.25,28.84,10)
+  SUSPICIOUS: "SWLGlass_F2_0" size=(0.1,6.959999999999999,5.44) pos=(-0.8,32.54,10)
+  SUSPICIOUS: "SWLTrim_F2_0" size=(0.35,7.559999999999999,5.74) pos=(-0.55,32.54,10)
+  SUSPICIOUS: "SWLSill_F2_0" size=(0.8,0.4,6.24) pos=(-0.4,28.86,10)
+  SUSPICIOUS: "SWLArcF_F2_0" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,36.62,8.34)
+  SUSPICIOUS: "SWLArcB_F2_0" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,36.62,11.66)
+  SUSPICIOUS: "SWRFrT_F2_0" size=(0.5,0.45,6.24) pos=(36.25,36.24,10)
+  SUSPICIOUS: "SWRFrB_F2_0" size=(0.5,0.45,6.24) pos=(36.25,28.84,10)
+  SUSPICIOUS: "SWRGlass_F2_0" size=(0.1,6.959999999999999,5.44) pos=(36.8,32.54,10)
+  SUSPICIOUS: "SWRTrim_F2_0" size=(0.35,7.559999999999999,5.74) pos=(36.55,32.54,10)
+  SUSPICIOUS: "SWRSill_F2_0" size=(0.8,0.4,6.24) pos=(36.4,28.86,10)
+  SUSPICIOUS: "SWRArcF_F2_0" size=(0.5,0.45,2.8200000000000003) pos=(36.35,36.62,8.34)
+  SUSPICIOUS: "SWRArcB_F2_0" size=(0.5,0.45,2.8200000000000003) pos=(36.35,36.62,11.66)
+  SUSPICIOUS: "SWLFrT_F2_1" size=(0.5,0.45,6.24) pos=(-0.25,36.24,18)
+  SUSPICIOUS: "SWLFrB_F2_1" size=(0.5,0.45,6.24) pos=(-0.25,28.84,18)
+  SUSPICIOUS: "SWLGlass_F2_1" size=(0.1,6.959999999999999,5.44) pos=(-0.8,32.54,18)
+  SUSPICIOUS: "SWLTrim_F2_1" size=(0.35,7.559999999999999,5.74) pos=(-0.55,32.54,18)
+  SUSPICIOUS: "SWLSill_F2_1" size=(0.8,0.4,6.24) pos=(-0.4,28.86,18)
+  SUSPICIOUS: "SWLArcF_F2_1" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,36.62,16.34)
+  SUSPICIOUS: "SWLArcB_F2_1" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,36.62,19.66)
+  SUSPICIOUS: "SWRFrT_F2_1" size=(0.5,0.45,6.24) pos=(36.25,36.24,18)
+  SUSPICIOUS: "SWRFrB_F2_1" size=(0.5,0.45,6.24) pos=(36.25,28.84,18)
+  SUSPICIOUS: "SWRGlass_F2_1" size=(0.1,6.959999999999999,5.44) pos=(36.8,32.54,18)
+  SUSPICIOUS: "SWRTrim_F2_1" size=(0.35,7.559999999999999,5.74) pos=(36.55,32.54,18)
+  SUSPICIOUS: "SWRSill_F2_1" size=(0.8,0.4,6.24) pos=(36.4,28.86,18)
+  SUSPICIOUS: "SWRArcF_F2_1" size=(0.5,0.45,2.8200000000000003) pos=(36.35,36.62,16.34)
+  SUSPICIOUS: "SWRArcB_F2_1" size=(0.5,0.45,2.8200000000000003) pos=(36.35,36.62,19.66)
+  SUSPICIOUS: "BWFrT_F2_0" size=(7.3,0.45,0.5) pos=(18.5,36.24,28.25)
+  SUSPICIOUS: "BWFrB_F2_0" size=(7.3,0.45,0.5) pos=(18.5,28.84,28.25)
+  SUSPICIOUS: "BWGlass_F2_0" size=(6.5,6.959999999999999,0.1) pos=(18.5,32.54,28.8)
+  SUSPICIOUS: "BWTrim_F2_0" size=(6.8,7.559999999999999,0.35) pos=(18.5,32.54,28.55)
+  SUSPICIOUS: "BWSill_F2_0" size=(7.3,0.4,0.8) pos=(18.5,28.86,28.4)
+  SUSPICIOUS: "BWArcL_F2_0" size=(3.35,0.45,0.5) pos=(16.575,36.62,28.35)
+  SUSPICIOUS: "BWArcR_F2_0" size=(3.35,0.45,0.5) pos=(20.425,36.62,28.35)
+  SUSPICIOUS: "WOFrT_F3_0" size=(6.24,0.45,0.5) pos=(10.5,48.24,-0.25)
+  SUSPICIOUS: "WOFrB_F3_0" size=(6.24,0.45,0.5) pos=(10.5,40.84,-0.25)
+  SUSPICIOUS: "WOFrL_F3_0" size=(0.45,7.759999999999999,0.5) pos=(7.359999999999999,44.54,-0.25)
+  SUSPICIOUS: "WOFrR_F3_0" size=(0.45,7.759999999999999,0.5) pos=(13.64,44.54,-0.25)
+  SUSPICIOUS: "WFrT_F3_0" size=(5.74,0.3,0.35) pos=(10.5,48.17,-0.55)
+  SUSPICIOUS: "WFrB_F3_0" size=(5.74,0.3,0.35) pos=(10.5,40.91,-0.55)
+  SUSPICIOUS: "WFrL_F3_0" size=(0.3,7.559999999999999,0.35) pos=(7.629999999999999,44.54,-0.55)
+  SUSPICIOUS: "WFrR_F3_0" size=(0.3,7.559999999999999,0.35) pos=(13.370000000000001,44.54,-0.55)
+  SUSPICIOUS: "WSill_F3_0" size=(6.24,0.4,0.8) pos=(10.5,40.86,-0.4)
+  SUSPICIOUS: "WGlass_F3_0" size=(5.44,6.959999999999999,0.1) pos=(10.5,44.54,-0.8)
+  SUSPICIOUS: "WArcL_F3_0" size=(2.8200000000000003,0.45,0.5) pos=(8.84,48.62,-0.35)
+  SUSPICIOUS: "WArcR_F3_0" size=(2.8200000000000003,0.45,0.5) pos=(12.16,48.62,-0.35)
+  SUSPICIOUS: "WLH1_F3_0" size=(5.24,0.1,0.1) pos=(10.5,46.28,-0.8)
+  SUSPICIOUS: "WLH2_F3_0" size=(5.24,0.1,0.1) pos=(10.5,42.80,-0.8)
+  SUSPICIOUS: "WLV_F3_0" size=(0.1,6.759999999999999,0.1) pos=(10.5,44.54,-0.8)
+  SUSPICIOUS: "ShutL_F3_0" size=(2.2848,6.611999999999999,0.15) pos=(6.537599999999999,44.54,-0.55)
+  SUSPICIOUS: "ShutR_F3_0" size=(2.2848,6.611999999999999,0.15) pos=(14.4624,44.54,-0.55)
+  SUSPICIOUS: "WOFrT_F3_1" size=(6.24,0.45,0.5) pos=(18.5,48.24,-0.25)
+  SUSPICIOUS: "WOFrB_F3_1" size=(6.24,0.45,0.5) pos=(18.5,40.84,-0.25)
+  SUSPICIOUS: "WOFrL_F3_1" size=(0.45,7.759999999999999,0.5) pos=(15.36,44.54,-0.25)
+  SUSPICIOUS: "WOFrR_F3_1" size=(0.45,7.759999999999999,0.5) pos=(21.64,44.54,-0.25)
+  SUSPICIOUS: "WFrT_F3_1" size=(5.74,0.3,0.35) pos=(18.5,48.17,-0.55)
+  SUSPICIOUS: "WFrB_F3_1" size=(5.74,0.3,0.35) pos=(18.5,40.91,-0.55)
+  SUSPICIOUS: "WFrL_F3_1" size=(0.3,7.559999999999999,0.35) pos=(15.629999999999999,44.54,-0.55)
+  SUSPICIOUS: "WFrR_F3_1" size=(0.3,7.559999999999999,0.35) pos=(21.369999999999997,44.54,-0.55)
+  SUSPICIOUS: "WSill_F3_1" size=(6.24,0.4,0.8) pos=(18.5,40.86,-0.4)
+  SUSPICIOUS: "WGlass_F3_1" size=(5.44,6.959999999999999,0.1) pos=(18.5,44.54,-0.8)
+  SUSPICIOUS: "WArcL_F3_1" size=(2.8200000000000003,0.45,0.5) pos=(16.84,48.62,-0.35)
+  SUSPICIOUS: "WArcR_F3_1" size=(2.8200000000000003,0.45,0.5) pos=(20.16,48.62,-0.35)
+  SUSPICIOUS: "WLH1_F3_1" size=(5.24,0.1,0.1) pos=(18.5,46.28,-0.8)
+  SUSPICIOUS: "WLH2_F3_1" size=(5.24,0.1,0.1) pos=(18.5,42.80,-0.8)
+  SUSPICIOUS: "WLV_F3_1" size=(0.1,6.759999999999999,0.1) pos=(18.5,44.54,-0.8)
+  SUSPICIOUS: "ShutL_F3_1" size=(2.2848,6.611999999999999,0.15) pos=(14.5376,44.54,-0.55)
+  SUSPICIOUS: "ShutR_F3_1" size=(2.2848,6.611999999999999,0.15) pos=(22.4624,44.54,-0.55)
+  SUSPICIOUS: "WOFrT_F3_2" size=(6.24,0.45,0.5) pos=(26.5,48.24,-0.25)
+  SUSPICIOUS: "WOFrB_F3_2" size=(6.24,0.45,0.5) pos=(26.5,40.84,-0.25)
+  SUSPICIOUS: "WOFrL_F3_2" size=(0.45,7.759999999999999,0.5) pos=(23.36,44.54,-0.25)
+  SUSPICIOUS: "WOFrR_F3_2" size=(0.45,7.759999999999999,0.5) pos=(29.64,44.54,-0.25)
+  SUSPICIOUS: "WFrT_F3_2" size=(5.74,0.3,0.35) pos=(26.5,48.17,-0.55)
+  SUSPICIOUS: "WFrB_F3_2" size=(5.74,0.3,0.35) pos=(26.5,40.91,-0.55)
+  SUSPICIOUS: "WFrL_F3_2" size=(0.3,7.559999999999999,0.35) pos=(23.630000000000003,44.54,-0.55)
+  SUSPICIOUS: "WFrR_F3_2" size=(0.3,7.559999999999999,0.35) pos=(29.369999999999997,44.54,-0.55)
+  SUSPICIOUS: "WSill_F3_2" size=(6.24,0.4,0.8) pos=(26.5,40.86,-0.4)
+  SUSPICIOUS: "WGlass_F3_2" size=(5.44,6.959999999999999,0.1) pos=(26.5,44.54,-0.8)
+  SUSPICIOUS: "WArcL_F3_2" size=(2.8200000000000003,0.45,0.5) pos=(24.84,48.62,-0.35)
+  SUSPICIOUS: "WArcR_F3_2" size=(2.8200000000000003,0.45,0.5) pos=(28.16,48.62,-0.35)
+  SUSPICIOUS: "WLH1_F3_2" size=(5.24,0.1,0.1) pos=(26.5,46.28,-0.8)
+  SUSPICIOUS: "WLH2_F3_2" size=(5.24,0.1,0.1) pos=(26.5,42.80,-0.8)
+  SUSPICIOUS: "WLV_F3_2" size=(0.1,6.759999999999999,0.1) pos=(26.5,44.54,-0.8)
+  SUSPICIOUS: "ShutL_F3_2" size=(2.2848,6.611999999999999,0.15) pos=(22.5376,44.54,-0.55)
+  SUSPICIOUS: "ShutR_F3_2" size=(2.2848,6.611999999999999,0.15) pos=(30.4624,44.54,-0.55)
+  SUSPICIOUS: "WPilF3_0" size=(1,8.399999999999999,0.3) pos=(14.5,44.30,-0.15)
+  SUSPICIOUS: "WPilF3_1" size=(1,8.399999999999999,0.3) pos=(22.5,44.30,-0.15)
+  SUSPICIOUS: "SWLFrT_F3_0" size=(0.5,0.45,6.24) pos=(-0.25,48.24,10)
+  SUSPICIOUS: "SWLFrB_F3_0" size=(0.5,0.45,6.24) pos=(-0.25,40.84,10)
+  SUSPICIOUS: "SWLGlass_F3_0" size=(0.1,6.959999999999999,5.44) pos=(-0.8,44.54,10)
+  SUSPICIOUS: "SWLTrim_F3_0" size=(0.35,7.559999999999999,5.74) pos=(-0.55,44.54,10)
+  SUSPICIOUS: "SWLSill_F3_0" size=(0.8,0.4,6.24) pos=(-0.4,40.86,10)
+  SUSPICIOUS: "SWLArcF_F3_0" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,48.62,8.34)
+  SUSPICIOUS: "SWLArcB_F3_0" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,48.62,11.66)
+  SUSPICIOUS: "SWRFrT_F3_0" size=(0.5,0.45,6.24) pos=(36.25,48.24,10)
+  SUSPICIOUS: "SWRFrB_F3_0" size=(0.5,0.45,6.24) pos=(36.25,40.84,10)
+  SUSPICIOUS: "SWRGlass_F3_0" size=(0.1,6.959999999999999,5.44) pos=(36.8,44.54,10)
+  SUSPICIOUS: "SWRTrim_F3_0" size=(0.35,7.559999999999999,5.74) pos=(36.55,44.54,10)
+  SUSPICIOUS: "SWRSill_F3_0" size=(0.8,0.4,6.24) pos=(36.4,40.86,10)
+  SUSPICIOUS: "SWRArcF_F3_0" size=(0.5,0.45,2.8200000000000003) pos=(36.35,48.62,8.34)
+  SUSPICIOUS: "SWRArcB_F3_0" size=(0.5,0.45,2.8200000000000003) pos=(36.35,48.62,11.66)
+  SUSPICIOUS: "SWLFrT_F3_1" size=(0.5,0.45,6.24) pos=(-0.25,48.24,18)
+  SUSPICIOUS: "SWLFrB_F3_1" size=(0.5,0.45,6.24) pos=(-0.25,40.84,18)
+  SUSPICIOUS: "SWLGlass_F3_1" size=(0.1,6.959999999999999,5.44) pos=(-0.8,44.54,18)
+  SUSPICIOUS: "SWLTrim_F3_1" size=(0.35,7.559999999999999,5.74) pos=(-0.55,44.54,18)
+  SUSPICIOUS: "SWLSill_F3_1" size=(0.8,0.4,6.24) pos=(-0.4,40.86,18)
+  SUSPICIOUS: "SWLArcF_F3_1" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,48.62,16.34)
+  SUSPICIOUS: "SWLArcB_F3_1" size=(0.5,0.45,2.8200000000000003) pos=(-0.35,48.62,19.66)
+  SUSPICIOUS: "SWRFrT_F3_1" size=(0.5,0.45,6.24) pos=(36.25,48.24,18)
+  SUSPICIOUS: "SWRFrB_F3_1" size=(0.5,0.45,6.24) pos=(36.25,40.84,18)
+  SUSPICIOUS: "SWRGlass_F3_1" size=(0.1,6.959999999999999,5.44) pos=(36.8,44.54,18)
+  SUSPICIOUS: "SWRTrim_F3_1" size=(0.35,7.559999999999999,5.74) pos=(36.55,44.54,18)
+  SUSPICIOUS: "SWRSill_F3_1" size=(0.8,0.4,6.24) pos=(36.4,40.86,18)
+  SUSPICIOUS: "SWRArcF_F3_1" size=(0.5,0.45,2.8200000000000003) pos=(36.35,48.62,16.34)
+  SUSPICIOUS: "SWRArcB_F3_1" size=(0.5,0.45,2.8200000000000003) pos=(36.35,48.62,19.66)
+  SUSPICIOUS: "BWFrT_F3_0" size=(7.3,0.45,0.5) pos=(18.5,48.24,28.25)
+  SUSPICIOUS: "BWFrB_F3_0" size=(7.3,0.45,0.5) pos=(18.5,40.84,28.25)
+  SUSPICIOUS: "BWGlass_F3_0" size=(6.5,6.959999999999999,0.1) pos=(18.5,44.54,28.8)
+  SUSPICIOUS: "BWTrim_F3_0" size=(6.8,7.559999999999999,0.35) pos=(18.5,44.54,28.55)
+  SUSPICIOUS: "BWSill_F3_0" size=(7.3,0.4,0.8) pos=(18.5,40.86,28.4)
+  SUSPICIOUS: "BWArcL_F3_0" size=(3.35,0.45,0.5) pos=(16.575,48.62,28.35)
+  SUSPICIOUS: "BWArcR_F3_0" size=(3.35,0.45,0.5) pos=(20.425,48.62,28.35)
+  SUSPICIOUS: "ColRingB_0" size=(2.2,0.35,2.2) pos=(6,3.60,0.5)
+  SUSPICIOUS: "ColRingT_0" size=(2.2,0.35,2.2) pos=(6,12.37,0.5)
+  SUSPICIOUS: "ColRingB_1" size=(2.2,0.35,2.2) pos=(12,3.60,0.5)
+  SUSPICIOUS: "ColRingT_1" size=(2.2,0.35,2.2) pos=(12,12.37,0.5)
+  SUSPICIOUS: "ColRingB_2" size=(2.2,0.35,2.2) pos=(18,3.60,0.5)
+  SUSPICIOUS: "ColRingT_2" size=(2.2,0.35,2.2) pos=(18,12.37,0.5)
+  SUSPICIOUS: "ColRingB_3" size=(2.2,0.35,2.2) pos=(24,3.60,0.5)
+  SUSPICIOUS: "ColRingT_3" size=(2.2,0.35,2.2) pos=(24,12.37,0.5)
+  SUSPICIOUS: "ColRingB_4" size=(2.2,0.35,2.2) pos=(30,3.60,0.5)
+  SUSPICIOUS: "ColRingT_4" size=(2.2,0.35,2.2) pos=(30,12.37,0.5)
+  SUSPICIOUS: "FFW_Floor" size=(36.5,0.4,5) pos=(18,2.50,-2.5)
+  SUSPICIOUS: "Transom_0" size=(4.2,3,0.1) pos=(6,12.68,-0.5)
+  SUSPICIOUS: "Shut_0" size=(4.2,8.879999999999999,0.2) pos=(6,6.74,-0.5)
+  SUSPICIOUS: "ShopSign_0" size=(3.4000000000000004,1.2,0.1) pos=(6,9.50,-1.5)
+  SUSPICIOUS: "Transom_1" size=(4.2,3,0.1) pos=(12,12.68,-0.5)
+  SUSPICIOUS: "Shut_1" size=(4.2,8.879999999999999,0.2) pos=(12,6.74,-0.5)
+  SUSPICIOUS: "ShopSign_1" size=(3.4000000000000004,1.2,0.1) pos=(12,9.50,-1.5)
+  SUSPICIOUS: "Transom_2" size=(4.2,3,0.1) pos=(18,12.68,-0.5)
+  SUSPICIOUS: "Transom_3" size=(4.2,3,0.1) pos=(24,12.68,-0.5)
+  SUSPICIOUS: "Shut_3" size=(4.2,8.879999999999999,0.2) pos=(24,6.74,-0.5)
+  SUSPICIOUS: "ShopSign_3" size=(3.4000000000000004,1.2,0.1) pos=(24,9.50,-1.5)
+  SUSPICIOUS: "Transom_4" size=(4.2,3,0.1) pos=(30,12.68,-0.5)
+  SUSPICIOUS: "Shut_4" size=(4.2,8.879999999999999,0.2) pos=(30,6.74,-0.5)
+  SUSPICIOUS: "ShopSign_4" size=(3.4000000000000004,1.2,0.1) pos=(30,9.50,-1.5)
+  SUSPICIOUS: "DoorL" size=(3.7,9.44,0.2) pos=(16,7.22,-0.55)
+  SUSPICIOUS: "DoorR" size=(3.7,9.44,0.2) pos=(20,7.22,-0.55)
+  SUSPICIOUS: "DoorFrL" size=(0.3,9.84,0.3) pos=(13.85,7.22,-0.55)
+  SUSPICIOUS: "DoorFrR" size=(0.3,9.84,0.3) pos=(22.15,7.22,-0.55)
+  SUSPICIOUS: "DoorFrT" size=(8.6,0.3,0.3) pos=(18,12.29,-0.55)
+  SUSPICIOUS: "HandleL" size=(0.2,0.2,0.25) pos=(17.3,7.22,-0.75)
+  SUSPICIOUS: "HandleR" size=(0.2,0.2,0.25) pos=(18.7,7.22,-0.75)
+  SUSPICIOUS: "CanopyTop" size=(10,0.4,1.5) pos=(18,12.84,-0.75)
+  SUSPICIOUS: "CanopyBracketL" size=(0.3,1.2,1.5) pos=(14,12.24,-0.75)
+  SUSPICIOUS: "CanopyBracketR" size=(0.3,1.2,1.5) pos=(22,12.24,-0.75)
+  SUSPICIOUS: "CanopyFascia" size=(10,0.5,0.2) pos=(18,12.69,-1.45)
+  SUSPICIOUS: "ACVent_F1_L" size=(3.3,0.15,0.3) pos=(10.799999999999999,20.30,28.45)
+  SUSPICIOUS: "ACVent_F1_R" size=(3.3,0.15,0.3) pos=(25.2,20.30,28.45)
+  SUSPICIOUS: "ACVent_F2_L" size=(3.3,0.15,0.3) pos=(10.799999999999999,32.30,28.45)
+  SUSPICIOUS: "ACVent_F2_R" size=(3.3,0.15,0.3) pos=(25.2,32.30,28.45)
+  SUSPICIOUS: "ACVent_F3_L" size=(3.3,0.15,0.3) pos=(10.799999999999999,44.30,28.45)
+  SUSPICIOUS: "ACVent_F3_R" size=(3.3,0.15,0.3) pos=(25.2,44.30,28.45)
+  SUSPICIOUS: "ServiceDoor" size=(4,9,0.2) pos=(27,6.80,28.1)
+  SUSPICIOUS: "Drain_0.5" size=(0.35,52,0.35) pos=(0.5,26.00,0.5)
+  SUSPICIOUS: "Drain_35.5" size=(0.35,52,0.35) pos=(35.5,26.00,0.5)
+  SUSPICIOUS: "Drain_0.5" size=(0.35,52,0.35) pos=(0.5,26.00,27.5)
+  SUSPICIOUS: "Drain_35.5" size=(0.35,52,0.35) pos=(35.5,26.00,27.5)
+
+── Emissive parts (PointLight) ──
+  0 emissive parts: (none)
+
+── Part names containing "Window" or "Glass" or "Pag" or "Col" ──
+  Window/Glass parts: 78
+    WRec_F1_0
+    WFrT_F1_0
+    WFrB_F1_0
+    WFrL_F1_0
+    WFrR_F1_0
+    WGlass_F1_0
+    WRec_F1_1
+    WFrT_F1_1
+    WFrB_F1_1
+    WFrL_F1_1
+    WFrR_F1_1
+    WGlass_F1_1
+    WRec_F1_2
+    WFrT_F1_2
+    WFrB_F1_2
+    WFrL_F1_2
+    WFrR_F1_2
+    WGlass_F1_2
+    SWLGlass_F1_0
+    SWRGlass_F1_0
+  Pagoda parts: 84
+    Pag0
+    PagL2_0
+    PagL3_0
+    PagTip_0_0_0
+    PagTip_0_0_1
+    PagTip_0_0_2
+    PagTip_0_0_3
+    PagTip_0_1_0
+    PagTip_0_1_1
+    PagTip_0_1_2
+    PagTip_0_1_3
+    PagTip_0_2_0
+    PagTip_0_2_1
+    PagTip_0_2_2
+    PagTip_0_2_3
+    PagDrip_0_F
+    PagDrip_0_B
+    PagDrip_0_L
+    PagDrip_0_R
+    PagSoffit_0
+  ✅ All 4 pagoda tiers present (Pag0–Pag3)
+  ✅ Top tier Pag3 Y = 51.00 (expected ~50.70)
+  Colonnade parts: 33
+    ColPl_0
+    ColSh_0
+    ColCp_0
+    ColRingB_0
+    ColRingT_0
+    ColArcKey_0
+    ColAr_0
+    ColPl_1
+    ColSh_1
+    ColCp_1
+
+── Windows by facade (Front/Back/Left/Right side wall) ──
+  Front wall windows: 78
+  Back wall windows: 0
+  Left wall windows: 0
+  Right wall windows: 0
+
+════════════════════════════════════════════════════════════
+=== STEP 8: QUALITY CHECK ===
+════════════════════════════════════════════════════════════
+Overall score: 92%
+
+Individual checks:
+  ✅ [ 85] Part Count: 700 parts
+  ✅ [100] Color Variety: 12 distinct colors
+  ✅ [100] Wall Parts: Walls present
+  ✅ [100] Floor/Ground Parts: Floor/ground present
+  ✅ [100] Wall Color: Walls use Sand yellow
+  ❌ [ 30] Street Furniture: No street furniture
+  ✅ [100] Exterior Detail: Exterior details present
+  ✅ [100] Building Height: 55 studs tall (expected ~48)
+  ✅ [100] Window Details: Windows present
+  ✅ [100] Material Variety: 4 distinct materials
+  ✅ [100] Footprint Size: 44×36 (target ~40×28)
+  ❌ [ 60] Room Overlap: 2 overlapping room pair(s)
+  ✅ [100] Pagoda Roof Tiers: found | expected: Pag* parts on each floor | found: found
+  ✅ [100] Colonnade: found | expected: Col* or Arch* parts | found: found
+  ✅ [100] Exterior Color Applied: Sand yellow | expected: Sand yellow | found: Sand yellow
+  ✅ [100] Multi-Floor Distribution: Multi-floor parts present
+
+Suggestions:
+  • Add street furniture (trees, benches, road)
+  • 2 room(s) overlap — BSP layout may need review
+
+════════════════════════════════════════════════════════════
+=== STEP 9: FINAL XML STATS ===
+════════════════════════════════════════════════════════════
+Total XML length: 722249 chars
+Total XML lines: 18920
+Total <Item class="Part"> count: 700
+XML starts with <?xml: YES
+XML ends with </roblox>: YES
+Contains NaN: NO
+Contains Infinity: NO
+Contains XML comments (<!--): NO
+Contains SurfaceAppearance: NO
+
+── First 10 Part names in XML ──
+  [1] Foundation
+  [2] Found_Step
+  [3] WallFront
+  [4] WallBack
+  [5] WallLeft
+  [6] WallRight
+  [7] FloorSlab_F1
+  [8] Band_F1_Front
+  [9] Band_F1_Back
+  [10] Band_F1_Left
+
+── Last 10 Part names in XML ──
+  [691] AC_F3_L
+  [692] AC_F3_R
+  [693] ACVent_F3_L
+  [694] ACVent_F3_R
+  [695] ServiceDoor
+  [696] Drain_0.5
+  [697] Drain_35.5
+  [698] Drain_0.5
+  [699] Drain_35.5
+  [700] Ground
+
+── First 15 lines of XML ──
+  1: <?xml version="1.0" encoding="utf-8"?>
+  2: <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
+  3:   <Meta name="ExplicitAutoJoints">true</Meta>
+  4:   <Item class="Model" referent="ROOT_MODEL">
+  5:     <Properties>
+  6:       <string name="Name">Trace_Shophouse_1778919101726</string>
+  7:     </Properties>
+  8:   <Item class="StringValue" referent="WATERMARK_001">
+  9:     <Properties>
+  10:       <string name="Name">TurboBuilder_ID</string>
+  11:       <string name="Value">trace-001|trace-user|2026-05-16T08:11:41.726Z</string>
+  12:     </Properties>
+  13:   </Item>
+  14:   <Item class="Model" referent="RBX1">
+  15:     <Properties>

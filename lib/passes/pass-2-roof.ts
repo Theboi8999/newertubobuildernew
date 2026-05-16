@@ -18,40 +18,75 @@ function generatePagodaRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   const parts: RbxPart[] = []
   const { tw, td, wallBase, floorCount, floorHeight } = plan
   const rc = dna.roofColor
+  const isChinese = dna.family === 'asian'
+  const bandColor = isChinese ? (dna.roofColor || 'Dark green') : dna.floorBandColor
+
+  // Inner eave color — lighter variant of roof color
+  const innerEaveColor = rc === 'Dark green' ? 'Medium green'
+    : rc === 'Dark grey' ? 'Light stone grey'
+    : rc
 
   for (let f = 0; f < floorCount; f++) {
     const fy = wallBase + f * floorHeight
     const ry = fy + floorHeight
-    const pw = tw + 2.5
-    const pd = td + 2.5
 
     if (f > 0) {
-      parts.push(p(`Band_F${f}`, tw + 1.5, 2.0, 1.0, tw / 2, fy + 1.0, -0.5, dna.floorBandColor, 'smoothplastic'))
-      parts.push(p(`Band_B${f}`, tw + 1.5, 2.0, 1.0, tw / 2, fy + 1.0, td + 0.5, dna.floorBandColor, 'smoothplastic'))
-      parts.push(p(`Band_L${f}`, 1.0, 2.0, td + 1.5, -0.5, fy + 1.0, td / 2, dna.floorBandColor, 'smoothplastic'))
-      parts.push(p(`Band_R${f}`, 1.0, 2.0, td + 1.5, tw + 0.5, fy + 1.0, td / 2, dna.floorBandColor, 'smoothplastic'))
-      parts.push(p(`Drip_F${f}`, tw + 2.0, 0.3, 0.5, tw / 2, fy - 0.15, -0.7, dna.floorBandColor, 'smoothplastic'))
-      parts.push(p(`Drip_B${f}`, tw + 2.0, 0.3, 0.5, tw / 2, fy - 0.15, td + 0.7, dna.floorBandColor, 'smoothplastic'))
+      parts.push(p(`Band_F${f}`, tw + 1.5, 2.0, 1.2, tw / 2, fy + 1.0, -0.6, bandColor, 'smoothplastic'))
+      parts.push(p(`Band_B${f}`, tw + 1.5, 2.0, 1.2, tw / 2, fy + 1.0, td + 0.6, bandColor, 'smoothplastic'))
+      parts.push(p(`Band_L${f}`, 1.2, 2.0, td + 1.5, -0.6, fy + 1.0, td / 2, bandColor, 'smoothplastic'))
+      parts.push(p(`Band_R${f}`, 1.2, 2.0, td + 1.5, tw + 0.6, fy + 1.0, td / 2, bandColor, 'smoothplastic'))
+      parts.push(p(`Drip_F${f}`, tw + 2.0, 0.3, 0.5, tw / 2, fy - 0.15, -0.7, bandColor, 'smoothplastic'))
+      parts.push(p(`Drip_B${f}`, tw + 2.0, 0.3, 0.5, tw / 2, fy - 0.15, td + 0.7, bandColor, 'smoothplastic'))
     }
 
-    parts.push(p(`Pag${f}`, pw, 0.8, pd, tw / 2, ry + 0.4, td / 2, rc, 'smoothplastic'))
-    parts.push(p(`PagU${f}`, pw + 0.2, 0.3, pd + 0.2, tw / 2, ry - 0.15, td / 2, rc, 'smoothplastic'))
-    parts.push(p(`PagOF${f}`, pw + 2, 0.5, 1.6, tw / 2, ry + 0.1, -1.5, rc, 'smoothplastic'))
-    parts.push(p(`PagOB${f}`, pw + 2, 0.5, 1.6, tw / 2, ry + 0.1, td + 1.5, rc, 'smoothplastic'))
-    parts.push(p(`PagOL${f}`, 1.6, 0.5, pd + 2, -1.5, ry + 0.1, td / 2, rc, 'smoothplastic'))
-    parts.push(p(`PagOR${f}`, 1.6, 0.5, pd + 2, tw + 1.5, ry + 0.1, td / 2, rc, 'smoothplastic'))
-    parts.push(p(`PagRidge${f}`, pw - 2, 0.5, 0.6, tw / 2, ry + 1.0, td / 2, rc, 'smoothplastic'))
+    // Layer 1 — main eave: tw+8 × 1.4 × td+8 (4 studs each side)
+    const L1y = ry + 0.7
+    parts.push(p(`Pag${f}`, tw + 8, 1.4, td + 8, tw / 2, L1y, td / 2, rc, 'smoothplastic'))
 
-    const corners: [number, number][] = [[-2, -2], [tw + 2, -2], [-2, td + 2], [tw + 2, td + 2]]
-    for (const [ci, [cx2, cz2]] of Array.from(corners.entries())) {
-      parts.push(p(`PagC${f}_${ci}`, 1.6, 0.9, 1.6, cx2, ry + 0.6, cz2, rc, 'smoothplastic'))
-      parts.push(p(`PagTip${f}_${ci}`, 0.8, 0.5, 0.8, cx2, ry + 1.15, cz2, rc, 'smoothplastic'))
+    // Layer 2 — mid eave: tw+5 × 0.5 × td+5, 0.4 below Layer 1
+    const L2y = L1y - 0.4
+    parts.push(p(`PagL2_${f}`, tw + 5, 0.5, td + 5, tw / 2, L2y, td / 2, rc, 'smoothplastic'))
+
+    // Layer 3 — inner eave: tw+2 × 0.4 × td+2, 0.8 below Layer 1
+    const L3y = L1y - 0.8
+    parts.push(p(`PagL3_${f}`, tw + 2, 0.4, td + 2, tw / 2, L3y, td / 2, innerEaveColor, 'smoothplastic'))
+
+    // Upturned corner tips per layer — 1.5 × 1.5 × 1.5 White, Y = layer Y + 0.6
+    const layers = [
+      { y: L1y + 0.6, offset: 4.0 },
+      { y: L2y + 0.6, offset: 2.5 },
+      { y: L3y + 0.6, offset: 1.0 },
+    ]
+    for (let li = 0; li < layers.length; li++) {
+      const layer = layers[li]
+      const cx0 = tw / 2 - layer.offset; const cx1 = tw / 2 + layer.offset
+      const cz0 = td / 2 - layer.offset; const cz1 = td / 2 + layer.offset
+      const tipCorners: [number, number][] = [[cx0, cz0], [cx1, cz0], [cx0, cz1], [cx1, cz1]]
+      for (let ci = 0; ci < tipCorners.length; ci++) {
+        const [cpx, cpz] = tipCorners[ci]
+        parts.push(p(`PagTip_${f}_${li}_${ci}`, 1.5, 1.5, 1.5, cpx, layer.y, cpz, 'White', 'smoothplastic'))
+      }
     }
+
+    // Drip edge along bottom outer edge of Layer 1 — 0.3 tall, Dark grey metal
+    const dripY = L1y - 0.7 - 0.15  // bottom face of layer 1
+    const eaveHalf = (tw + 8) / 2
+    const eaveHalfD = (td + 8) / 2
+    parts.push(p(`PagDrip_${f}_F`, tw + 8.2, 0.3, 0.4, tw / 2, dripY, td / 2 - eaveHalfD - 0.2, 'Dark grey', 'metal'))
+    parts.push(p(`PagDrip_${f}_B`, tw + 8.2, 0.3, 0.4, tw / 2, dripY, td / 2 + eaveHalfD + 0.2, 'Dark grey', 'metal'))
+    parts.push(p(`PagDrip_${f}_L`, 0.4, 0.3, td + 8.2, tw / 2 - eaveHalf - 0.2, dripY, td / 2, 'Dark grey', 'metal'))
+    parts.push(p(`PagDrip_${f}_R`, 0.4, 0.3, td + 8.2, tw / 2 + eaveHalf + 0.2, dripY, td / 2, 'Dark grey', 'metal'))
+
+    // Underside soffit — tw+6 × 0.3 × td+6, Institutional white, 0.7 below L1
+    parts.push(p(`PagSoffit_${f}`, tw + 6, 0.3, td + 6, tw / 2, L1y - 0.7 - 0.15, td / 2, 'Institutional white', 'smoothplastic'))
+
+    // Ridge sits on top of main eave
+    parts.push(p(`PagRidge${f}`, tw + 6, 0.5, 0.6, tw / 2, L1y + 0.7 + 0.25, td / 2, rc, 'smoothplastic'))
   }
 
   const topRy = wallBase + floorCount * floorHeight
-  parts.push(p('TopRoofCap', tw - 2, 0.6, td - 2, tw / 2, topRy + 1.8, td / 2, rc, 'smoothplastic'))
-  parts.push(p('TopRoofRidge', tw - 4, 0.5, 0.6, tw / 2, topRy + 2.1, td / 2, rc, 'smoothplastic'))
+  parts.push(p('TopRoofCap', tw + 4, 0.6, td + 4, tw / 2, topRy + 1.8, td / 2, rc, 'smoothplastic'))
+  parts.push(p('TopRoofRidge', tw + 2, 0.5, 0.6, tw / 2, topRy + 2.1, td / 2, rc, 'smoothplastic'))
   parts.push(p('RoofAC1', 2.5, 1.5, 2.5, tw / 3, topRy + 2.0, td / 3, 'Dark grey', 'smoothplastic'))
   parts.push(p('RoofAC2', 2.5, 1.5, 2.5, tw * 2 / 3, topRy + 2.0, td * 2 / 3, 'Dark grey', 'smoothplastic'))
   parts.push(p('RoofTank', 2.2, 3.0, 2.2, tw / 2, topRy + 3.3, td / 2, 'Medium stone grey', 'smoothplastic'))
@@ -120,7 +155,6 @@ function generateHipRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   const ridgeLen = Math.max(1, tw - td)
   const steps = 8
 
-  // Front + back slopes (trapezoidal, narrowing toward ridge)
   for (let s = 0; s < steps; s++) {
     const ratio = s / steps
     const nextRatio = (s + 1) / steps
@@ -137,7 +171,6 @@ function generateHipRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
       tw / 2, sliceY + sliceH / 2, td - sliceD / 2 - s * sliceD, rc, 'smoothplastic'))
   }
 
-  // Left + right end slopes (triangular, narrowing to ridge endpoints)
   for (let s = 0; s < steps; s++) {
     const ratio = s / steps
     const nextRatio = (s + 1) / steps

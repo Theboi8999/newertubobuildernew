@@ -31,7 +31,7 @@ export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; ext
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
 
 const VC:Record<string,string>={'white':'White','institutional white':'Institutional white','light grey':'Light grey','light gray':'Light grey','medium stone grey':'Medium stone grey','medium stone gray':'Medium stone grey','dark grey':'Dark grey','dark gray':'Dark grey','light stone grey':'Light stone grey','dark stone grey':'Dark stone grey','really black':'Really black','black':'Really black','bright red':'Bright red','dark red':'Dark red','rust':'Rust','reddish brown':'Reddish brown','bright orange':'Bright orange','dark orange':'Dark orange','bright yellow':'Bright yellow','sand yellow':'Sand yellow','brick yellow':'Brick yellow','bright green':'Bright green','dark green':'Dark green','sand green':'Sand green','medium green':'Medium green','bright blue':'Bright blue','navy blue':'Navy blue','sand blue':'Sand blue','light blue':'Light blue','hot pink':'Hot pink','cashmere':'Cashmere','teal':'Bright bluish green','cyan':'Bright bluish green','brown':'Reddish brown','beige':'Sand yellow','cream':'White','grey':'Light grey','gray':'Light grey','green':'Bright green','blue':'Bright blue','red':'Bright red','yellow':'Bright yellow','orange':'Bright orange','pink':'Hot pink'}
-const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',oak:'wood',pine:'wood',teak:'wood',bamboo:'wood',brick:'brick',sandstone:'brick',terracotta:'brick',clay:'brick',limestone:'smoothplastic',lime:'smoothplastic',concrete:'concrete',stone:'concrete',slate:'concrete',granite:'concrete',tile:'concrete',tiles:'concrete',paving:'concrete',pavement:'concrete',tarmac:'concrete',asphalt:'concrete',cobblestone:'concrete',metal:'metal',steel:'metal',copper:'metal',aluminium:'metal',aluminum:'metal',iron:'metal',zinc:'metal',cladding:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'glass',glazed:'glass',render:'smoothplastic',stucco:'smoothplastic',plaster:'smoothplastic',painted:'smoothplastic',grass:'concrete'}
+const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',oak:'wood',pine:'wood',teak:'wood',bamboo:'wood',brick:'brick',sandstone:'brick',terracotta:'brick',clay:'brick',limestone:'smoothplastic',lime:'smoothplastic',concrete:'concrete',stone:'concrete',slate:'concrete',granite:'concrete',tile:'concrete',tiles:'concrete',paving:'concrete',pavement:'concrete',tarmac:'concrete',asphalt:'concrete',cobblestone:'concrete',metal:'metal',steel:'metal',copper:'metal',aluminium:'metal',aluminum:'metal',iron:'metal',zinc:'metal',cladding:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',glazed:'smoothplastic',render:'smoothplastic',stucco:'smoothplastic',plaster:'smoothplastic',painted:'smoothplastic',grass:'concrete'}
 
 function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase().trim(); if(VC[k])return VC[k]; for(const [key,val] of Object.entries(VC)){if(k.includes(key)||key.includes(k))return val} console.log('[color] no match:',c); return 'Light grey' }
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
@@ -175,12 +175,14 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
   const style=(r.architecturalStyle||'modern').toLowerCase()
   const rooms:RbxPart[][]=[], layout:CompiledBlueprint['roomLayout']=[]
 
+  const isShophouse = (r.buildingType || '').toLowerCase().includes('shophouse') ||
+    (r.architecturalStyle || '').toLowerCase().includes('peranakan')
   const tw = Math.min(
     Math.max(r.totalWidth || 40, 40),
-    120
+    isShophouse ? 36 : 120
   )
   const td = Math.min(
-    Math.max(r.totalDepth || 28, 24),
+    Math.max(r.totalDepth || 28, isShophouse ? 22 : 24),
     80
   )
 
