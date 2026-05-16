@@ -119,19 +119,23 @@ Output ONLY JSON: {"safe": boolean, "issues": ["issue1", "issue2"]}`,
 }
 
 export function watermarkRbxmx(rbxmx: string, generationId: string, userId: string): string {
-  // Roblox Studio's parser does NOT support XML comments anywhere in rbxmx files.
-  // Official Studio exports contain zero comments. We store the watermark as a
-  // StringValue instance inside ROOT_MODEL — valid Roblox metadata approach.
+  // Roblox Studio's importer expects exactly ONE top-level <Item> in an rbxmx file.
+  // Any sibling Items at the root level cause "The file is corrupted".
+  // We inject the watermark StringValue as the FIRST CHILD of ROOT_MODEL
+  // (after its Properties block) — never as a sibling of the root Model.
   const timestamp = new Date().toISOString()
   const watermarkItem = `
-  <Item class="StringValue" referent="WATERMARK">
-    <Properties>
-      <string name="Name">TurboBuilder_ID</string>
-      <string name="Value">${generationId}|${userId}|${timestamp}</string>
-    </Properties>
-  </Item>`
-  return rbxmx.replace(
-    '<Meta name="ExplicitAutoJoints">true</Meta>',
-    `<Meta name="ExplicitAutoJoints">true</Meta>${watermarkItem}`
-  )
+    <Item class="StringValue" referent="WATERMARK">
+      <Properties>
+        <string name="Name">TurboBuilder_ID</string>
+        <string name="Value">${generationId}|${userId}|${timestamp}</string>
+      </Properties>
+    </Item>`
+  // Find ROOT_MODEL's Properties closing tag — insert watermark immediately after it
+  const rootStart = rbxmx.indexOf('referent="ROOT_MODEL">')
+  if (rootStart === -1) return rbxmx
+  const propsEnd = rbxmx.indexOf('</Properties>', rootStart)
+  if (propsEnd === -1) return rbxmx
+  const insertAt = propsEnd + '</Properties>'.length
+  return rbxmx.slice(0, insertAt) + watermarkItem + rbxmx.slice(insertAt)
 }
