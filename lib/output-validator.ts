@@ -119,11 +119,19 @@ Output ONLY JSON: {"safe": boolean, "issues": ["issue1", "issue2"]}`,
 }
 
 export function watermarkRbxmx(rbxmx: string, generationId: string, userId: string): string {
-  const watermark = `<!-- TurboBuilder | Generation: ${generationId} | User: ${userId} | ${new Date().toISOString()} -->`
-  // Place watermark INSIDE <roblox>, not in the XML prolog between <?xml> and <roblox>.
-  // Roblox Studio's parser rejects comments before the root element.
+  // Roblox Studio's parser does NOT support XML comments anywhere in rbxmx files.
+  // Official Studio exports contain zero comments. We store the watermark as a
+  // StringValue instance inside ROOT_MODEL — valid Roblox metadata approach.
+  const timestamp = new Date().toISOString()
+  const watermarkItem = `
+  <Item class="StringValue" referent="WATERMARK">
+    <Properties>
+      <string name="Name">TurboBuilder_ID</string>
+      <string name="Value">${generationId}|${userId}|${timestamp}</string>
+    </Properties>
+  </Item>`
   return rbxmx.replace(
     '<Meta name="ExplicitAutoJoints">true</Meta>',
-    `<Meta name="ExplicitAutoJoints">true</Meta>\n  ${watermark}`
+    `<Meta name="ExplicitAutoJoints">true</Meta>${watermarkItem}`
   )
 }

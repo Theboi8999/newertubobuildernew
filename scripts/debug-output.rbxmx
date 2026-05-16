@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
   <Meta name="ExplicitAutoJoints">true</Meta>
-  <!-- TurboBuilder | Generation: debug-gen-001 | User: debug-user | 2026-05-16T01:48:02.923Z -->
+  <Item class="StringValue" referent="WATERMARK">
+    <Properties>
+      <string name="Name">TurboBuilder_ID</string>
+      <string name="Value">debug-gen-001|debug-user|2026-05-16T02:10:39.177Z</string>
+    </Properties>
+  </Item>
   <Item class="Model" referent="ROOT_MODEL">
     <Properties>
-      <string name="Name">Test_1778896082923</string>
+      <string name="Name">Test_1778897439177</string>
     </Properties>
   <Item class="Model" referent="RBX1">
     <Properties>
@@ -97,7 +102,6 @@
         <Content name="MetalnessMap"><null></null></Content>
         <Content name="NormalMap"><url>rbxassetid://9854489786</url></Content>
         <Content name="RoughnessMap"><null></null></Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>
   </Item>
@@ -134,7 +138,6 @@
         <Content name="MetalnessMap"><null></null></Content>
         <Content name="NormalMap"><url>rbxassetid://9854489786</url></Content>
         <Content name="RoughnessMap"><null></null></Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>
   </Item>
@@ -171,7 +174,6 @@
         <Content name="MetalnessMap"><null></null></Content>
         <Content name="NormalMap"><url>rbxassetid://9854489786</url></Content>
         <Content name="RoughnessMap"><null></null></Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>
   </Item>
@@ -208,7 +210,6 @@
         <Content name="MetalnessMap"><null></null></Content>
         <Content name="NormalMap"><url>rbxassetid://9854489786</url></Content>
         <Content name="RoughnessMap"><null></null></Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>
   </Item>
@@ -245,7 +246,6 @@
         <Content name="MetalnessMap"><null></null></Content>
         <Content name="NormalMap"><url>rbxassetid://6372755232</url></Content>
         <Content name="RoughnessMap"><url>rbxassetid://6372755233</url></Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>
   </Item>
@@ -390,7 +390,6 @@
         <Content name="MetalnessMap"><null></null></Content>
         <Content name="NormalMap"><url>rbxassetid://6372755232</url></Content>
         <Content name="RoughnessMap"><url>rbxassetid://6372755233</url></Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>
   </Item>

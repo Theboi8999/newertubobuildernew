@@ -149,7 +149,6 @@ function getSurfaceAppearanceXml(textureKey: string, ref: string): string {
         <Content name="MetalnessMap">${metalnessContent}</Content>
         <Content name="NormalMap">${normalContent}</Content>
         <Content name="RoughnessMap">${roughnessContent}</Content>
-        <float name="SpecularScale">1</float>
       </Properties>
     </Item>`
 }
