@@ -136,14 +136,20 @@ const PBR_TEXTURES: Record<string, {color:string;normal:string;roughness:string;
 function getSurfaceAppearanceXml(textureKey: string, ref: string): string {
   const t = PBR_TEXTURES[textureKey]
   if (!t) return ''
+  // Empty Content properties must use <null></null> — blank strings corrupt the file
+  const colorContent = t.color ? `<url>${t.color}</url>` : '<null></null>'
+  const metalnessContent = t.metalness ? `<url>${t.metalness}</url>` : '<null></null>'
+  const normalContent = t.normal ? `<url>${t.normal}</url>` : '<null></null>'
+  const roughnessContent = t.roughness ? `<url>${t.roughness}</url>` : '<null></null>'
   return `
     <Item class="SurfaceAppearance" referent="${ref}_SA">
       <Properties>
-        ${t.color ? `<Content name="ColorMap"><url>${t.color}</url></Content>` : ''}
-        ${t.normal ? `<Content name="NormalMap"><url>${t.normal}</url></Content>` : ''}
-        ${t.roughness ? `<Content name="RoughnessMap"><url>${t.roughness}</url></Content>` : ''}
-        ${t.metalness ? `<Content name="MetalnessMap"><url>${t.metalness}</url></Content>` : ''}
         <token name="AlphaMode">0</token>
+        <Content name="ColorMap">${colorContent}</Content>
+        <Content name="MetalnessMap">${metalnessContent}</Content>
+        <Content name="NormalMap">${normalContent}</Content>
+        <Content name="RoughnessMap">${roughnessContent}</Content>
+        <float name="SpecularScale">1</float>
       </Properties>
     </Item>`
 }

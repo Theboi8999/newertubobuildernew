@@ -120,8 +120,10 @@ Output ONLY JSON: {"safe": boolean, "issues": ["issue1", "issue2"]}`,
 
 export function watermarkRbxmx(rbxmx: string, generationId: string, userId: string): string {
   const watermark = `<!-- TurboBuilder | Generation: ${generationId} | User: ${userId} | ${new Date().toISOString()} -->`
+  // Place watermark INSIDE <roblox>, not in the XML prolog between <?xml> and <roblox>.
+  // Roblox Studio's parser rejects comments before the root element.
   return rbxmx.replace(
-    '<?xml version="1.0" encoding="utf-8"?>',
-    `<?xml version="1.0" encoding="utf-8"?>\n${watermark}`
+    '<Meta name="ExplicitAutoJoints">true</Meta>',
+    `<Meta name="ExplicitAutoJoints">true</Meta>\n  ${watermark}`
   )
 }
