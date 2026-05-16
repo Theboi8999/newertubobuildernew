@@ -10,8 +10,9 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   parts.push(p('Foundation', tw + 1, wallBase, td + 1, tw / 2, wallBase / 2, td / 2, dna.primaryColor, 'concrete'))
   parts.push(p('Found_Step', tw + 0.4, 0.5, td + 0.4, tw / 2, wallBase + 0.25, td / 2, dna.primaryColor, 'smoothplastic'))
 
+  const wallMat = dna.wallMaterial || 'smoothplastic'
   const mkWall = (name: string, sx: number, sy: number, sz: number, px: number, py: number, pz: number): RbxPart => {
-    return p(name, sx, sy, sz, px, py, pz, dna.primaryColor, 'smoothplastic')
+    return p(name, sx, sy, sz, px, py, pz, dna.primaryColor, wallMat)
   }
 
   parts.push(mkWall('WallFront', tw, th, 0.7, tw / 2, wallBase + th / 2, 0))

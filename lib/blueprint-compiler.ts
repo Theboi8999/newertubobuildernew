@@ -1,6 +1,6 @@
 import { RbxPart } from './rbxmx'
 import { ResearchResult } from './research-agent'
-import { placeRoomsWithBSP, getRoomType } from './room-placer'
+import { placeRoomsWithBSP, getRoomType, separateOverlappingRooms } from './room-placer'
 import { calculateWindowPositions, buildProportionalWindow } from './window-system'
 import { generateStructure } from './passes/pass-1-structure'
 import { generateRoof } from './passes/pass-2-roof'
@@ -31,7 +31,7 @@ export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; ext
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
 
 const VC:Record<string,string>={'white':'White','institutional white':'Institutional white','light grey':'Light grey','light gray':'Light grey','medium stone grey':'Medium stone grey','medium stone gray':'Medium stone grey','dark grey':'Dark grey','dark gray':'Dark grey','light stone grey':'Light stone grey','dark stone grey':'Dark stone grey','really black':'Really black','black':'Really black','bright red':'Bright red','dark red':'Dark red','rust':'Rust','reddish brown':'Reddish brown','bright orange':'Bright orange','dark orange':'Dark orange','bright yellow':'Bright yellow','sand yellow':'Sand yellow','brick yellow':'Brick yellow','bright green':'Bright green','dark green':'Dark green','sand green':'Sand green','medium green':'Medium green','bright blue':'Bright blue','navy blue':'Navy blue','sand blue':'Sand blue','light blue':'Light blue','hot pink':'Hot pink','cashmere':'Cashmere','teal':'Bright bluish green','cyan':'Bright bluish green','brown':'Reddish brown','beige':'Sand yellow','cream':'White','grey':'Light grey','gray':'Light grey','green':'Bright green','blue':'Bright blue','red':'Bright red','yellow':'Bright yellow','orange':'Bright orange','pink':'Hot pink'}
-const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',brick:'brick',concrete:'concrete',stone:'concrete',metal:'metal',steel:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',render:'smoothplastic',grass:'concrete',limestone:'smoothplastic',pavement:'concrete',cobblestone:'concrete',sandstone:'smoothplastic',slate:'smoothplastic'}
+const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',oak:'wood',pine:'wood',teak:'wood',bamboo:'wood',brick:'brick',limestone:'brick',sandstone:'brick',terracotta:'brick',clay:'brick',concrete:'concrete',stone:'concrete',slate:'concrete',granite:'concrete',tile:'concrete',tiles:'concrete',paving:'concrete',pavement:'concrete',tarmac:'concrete',asphalt:'concrete',cobblestone:'concrete',metal:'metal',steel:'metal',copper:'metal',aluminium:'metal',aluminum:'metal',iron:'metal',zinc:'metal',cladding:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'glass',glazed:'glass',render:'smoothplastic',stucco:'smoothplastic',plaster:'smoothplastic',painted:'smoothplastic',grass:'concrete',lime:'brick'}
 
 function vc(c:string):string { if(!c)return 'Light grey'; const k=c.toLowerCase().trim(); if(VC[k])return VC[k]; for(const [key,val] of Object.entries(VC)){if(k.includes(key)||key.includes(k))return val} console.log('[color] no match:',c); return 'Light grey' }
 function vm(m:string):string { return VM[(m||'').toLowerCase().trim()]||'smoothplastic' }
@@ -117,7 +117,7 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
 
 function buildExterior(tw: number, td: number, r: ResearchResult, options?: { furniture?: boolean; scenery?: string; hasStaircases?: boolean }): RbxPart[] {
   try {
-    const fh = 12
+    const fh = Math.max(8, Math.min(18, Number(r.floorHeight) || 12))
     const wallBase = 2.3
     const fc = Math.max(3, Math.min(10, r.floorCount || 4))
     const th = fc * fh
@@ -217,6 +217,9 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
     entranceRoom.z = entranceRoom.depth / 2 + 3
     console.log('[blueprint] entrance room aligned to front:', entranceRoom.name)
   }
+
+  // Re-run separation after clamping and alignment may have reintroduced overlaps
+  separateOverlappingRooms(placedRooms, tw, td)
 
   const floorCount = Math.max(1, r.floorCount || 1)
   const floorHeight = r.floorHeight || 12

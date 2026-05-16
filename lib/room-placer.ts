@@ -113,6 +113,38 @@ function assignRoomsToLeaves(
   return rooms
 }
 
+export function separateOverlappingRooms(rooms: Room[], tw: number, td: number): Room[] {
+  const MAX_ITERATIONS = 10
+  for (let iter = 0; iter < MAX_ITERATIONS; iter++) {
+    let anyOverlap = false
+    for (let i = 0; i < rooms.length; i++) {
+      for (let j = i + 1; j < rooms.length; j++) {
+        const a = rooms[i]
+        const b = rooms[j]
+        const overlapX = (a.width + b.width) / 2 - Math.abs(a.x - b.x)
+        const overlapZ = (a.depth + b.depth) / 2 - Math.abs(a.z - b.z)
+        if (overlapX > 0 && overlapZ > 0) {
+          anyOverlap = true
+          const push = overlapX < overlapZ
+            ? overlapX / 2 + 0.5
+            : overlapZ / 2 + 0.5
+          if (overlapX < overlapZ) {
+            if (a.x < b.x) { a.x -= push; b.x += push } else { a.x += push; b.x -= push }
+          } else {
+            if (a.z < b.z) { a.z -= push; b.z += push } else { a.z += push; b.z -= push }
+          }
+          a.x = Math.max(a.width / 2 + 1, Math.min(tw - a.width / 2 - 1, a.x))
+          a.z = Math.max(a.depth / 2 + 1, Math.min(td - a.depth / 2 - 1, a.z))
+          b.x = Math.max(b.width / 2 + 1, Math.min(tw - b.width / 2 - 1, b.x))
+          b.z = Math.max(b.depth / 2 + 1, Math.min(td - b.depth / 2 - 1, b.z))
+        }
+      }
+    }
+    if (!anyOverlap) break
+  }
+  return rooms
+}
+
 export function placeRoomsWithBSP(
   totalWidth: number,
   totalDepth: number,
@@ -133,7 +165,8 @@ export function placeRoomsWithBSP(
     const depth = Math.min(5, Math.ceil(Math.log2(roomSpecs.length + 1)))
     splitNode(root, depth)
     const leaves = getLeaves(root)
-    return assignRoomsToLeaves(leaves, roomSpecs)
+    const placed = assignRoomsToLeaves(leaves, roomSpecs)
+    return separateOverlappingRooms(placed, totalWidth, totalDepth)
   } finally {
     Math.random = origRandom
   }

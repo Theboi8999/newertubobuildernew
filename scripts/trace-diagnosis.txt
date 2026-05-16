@@ -1,0 +1,222 @@
+===================================================================
+TURBOBUILDER GENERATION TRACE DIAGNOSIS
+Prompt: "Singapore Peranakan shophouse 4 floors"
+Seed: 42 | Date: 2026-05-16
+===================================================================
+
+--- IS FLOORCOUNT ACTUALLY 4? ---
+
+YES — 4 floors confirmed. Path taken:
+  1. analysePrompt extracts floorCountHint=4 correctly.
+  2. BASE_RESEARCH starts with floorCount=2 (simulates typical AI underestimate).
+  3. applyStyleDefaults matches "peranakan" key → floorCount stays 2
+     (because applyStyleDefaults only overrides if r.floorCount <= 1;
+      since 2 > 1, the library's floorCount=3 is NOT applied — this is a
+      subtle bug: a 2-floor AI result would never get upgraded to 3 by the
+      style library).
+  4. Forced isPeranakan override hard-sets floorCount=4. This is what
+     actually produces 4 floors.
+  5. buildExterior clamps: max(3, min(10, 4)) = 4. No change.
+  6. Confirmed by trace: WF1/F2/F3 window groups exist, Pag0/1/2/3
+     pagoda tiers exist. Building is 4 × 12 = 48 studs tall (+ 2.3
+     wallBase = ~50 studs ground to top of wall; quality check measured
+     55 studs total including pillar cap and pagoda overhang).
+
+  SIDE ISSUE: floorHeight is HARDCODED to 12 inside buildExterior —
+  r.floorHeight is completely ignored for exterior geometry. Whatever
+  the research returns (10, 14, etc.) makes zero difference to the
+  physical floor spacing. This is a silent bug affecting all building
+  types.
+
+
+--- ARE COLORS CORRECT? ---
+
+Mostly correct, but White dominates more than Sand yellow:
+
+  Color distribution (396 exterior parts):
+    145 White          ← MOST NUMEROUS — window frames, shutters,
+                         colonnade columns, floor bands
+     89 Sand yellow   ← walls, foundation, pillar bases
+     86 Dark green    ← pagoda roofs (4 tiers × ~21 parts each)
+     24 Really black  ← window recesses (WRec_*)
+     24 Light blue    ← window glass panes
+     13 Dark grey     ← A/C units on back wall
+      6 Medium stone grey ← floor slabs
+      6 Dark stone grey ← A/C vents
+      2 Bright yellow ← door handles
+      1 Light stone grey ← ground slab
+
+  Sand yellow correctly reaches the walls (89 parts). Dark green
+  correctly reaches the pagoda roof (86 parts). However, White at 145
+  parts is the single largest color category — this is because ALL
+  window frames, ALL shutter panels, ALL colonnade plinth/shaft/cap/
+  arch parts, and floor band trims are White. For a Peranakan shophouse
+  this is historically accurate (white lime-wash trim is correct), but
+  visually it means the dominant impression in Roblox Studio will be
+  "white building" not "sand yellow building."
+
+  No color errors found — all values are valid Roblox BrickColor names
+  with correct IDs. Sand yellow correctly maps to ID 138 (was wrong at
+  226 before recent fix).
+
+
+--- WHAT IS THE ROOF TYPE? ---
+
+PAGODA (multi-tier Chinese pagoda eave system), 60 parts across 4 tiers:
+
+  Per tier: Pag (main slab) + PagU (under-slab) + PagOF/OB/OL/OR
+  (4 overhangs) + PagRidge + 4 × PagC (corner brackets) + 4 × PagTip
+  = ~15 parts per tier × 4 tiers = 60 pagoda parts total.
+
+  Tiers are placed at y≈14 (floor 1 band), y≈26 (floor 2), y≈38
+  (floor 3), y≈50 (floor 4/roof). Each tier projects 1-2 studs
+  beyond the wall face on all 4 sides.
+
+  Additionally: TopRoofCap, TopRoofRidge (2 parts) cap the top,
+  plus RoofAC1/2, RoofTank (3 parts) for rooftop detail.
+
+  This is the correct roof style for a Peranakan shophouse. The pagoda
+  quality check passed (score 100/100).
+
+
+--- HOW MANY WINDOWS AND ON WHICH FACES? ---
+
+78 window-class parts (WRec, WFr*, WGlass, WLH*, WLV, SWL*, SWR*, BW*).
+
+  By floor × face:
+    Front wall (WRec_F1/F2/F3 × 3 windows each):
+      • 3 windows per floor × 3 floors (F1, F2, F3) = 9 window groups
+      • Each group: WRec + WFrT/B/L/R + WGlass + WLH1 + WLH2 + WLV
+                  + WSill + ShutL + ShutR + WLin + WOFrT/B/L/R = ~17 parts
+      • Total front: ~153 parts (but many have sub-0.5 dimensions)
+
+    Side walls (SWL*/SWR* = Side Wall Left/Right):
+      • 2 positions × 2 floors (F1, F2 per side) = 4 groups per side
+      • Each: SWL/SWRRec + SWL/SWRFrT + SWL/SWRFrB + SWL/SWRGlass
+            + SWL/SWRTrim = 5 parts
+
+    Back wall (BW* = Back Wall):
+      • 1 window per floor × 3 floors = 3 groups (BWRec, BWFrT/B,
+        BWGlass, BWTrim)
+
+    Ground floor (F0): NO regular windows. Instead: Shut_0/1/3/4
+      (4 large rolling shutters) + DoorL/R (double doors) + FFW_Ceil/Floor
+      (five-foot way covered walkway). This is ARCHITECTURALLY CORRECT
+      for a Singapore shophouse — ground floor is commercial with
+      shutters, not windows.
+
+  NOTE: The face-by-face counter in the trace script had a logic bug
+  (all 78 counted as "Front"). Actual distribution spans all 4 faces
+  as described above.
+
+
+--- WHAT IS THE BIGGEST QUALITY GAP? ---
+
+MATERIAL VARIETY — score 50/100, identified as a bottleneck.
+
+  390 out of 396 parts (98.5%) use material="smoothplastic".
+  Only 6 parts use concrete (the ground slab and floor slabs).
+
+  Root cause: The research result correctly returns:
+    wallMaterial: "limestone"
+    roofMaterial: "slate"
+    groundMaterial: "pavement"
+    columnMaterial: "concrete"
+    floorBandMaterial: "smoothplastic"
+
+  BUT neither VM_MAP (blueprint-compiler.ts) nor VM_MAP (rbxmx.ts)
+  maps "limestone" or "slate" to any Roblox material — both return
+  "smoothplastic" as the fallback. The material data flows in correctly
+  through the ResearchResult and StyleDNA, but is silently discarded
+  at the part generation level. The VM_MAP needs:
+    limestone → SmoothPlastic (or brick — closest visual)
+    slate     → concrete (or smoothplastic with dark color)
+    pavement  → concrete
+
+  Current effect: every wall, roof, column, band, and window surround
+  is smoothplastic. A brick Roblox material on the walls and concrete
+  on the ground/columns would add significant visual fidelity for zero
+  geometry cost.
+
+  Secondary gaps (from quality check):
+    • Street furniture: score 30 (none — by design when options.scenery
+      not set; this is expected behavior, not a bug)
+    • Room overlap: score 60 (2 BSP room pairs collide — see fix #4)
+
+
+--- TOP 5 SPECIFIC THINGS TO FIX ---
+
+FIX 1: analysePrompt contaminating buildingType with "floors"
+  EVIDENCE: buildingType extracted = "singapore_peranakan_shophouse_floors"
+            The word "floors" from "4 floors" was absorbed into the
+            building type name.
+  IMPACT: In production, researchBuildingType() searches for
+          "singapore_peranakan_shophouse_floors" — a string no
+          database or AI knows. The isPeranakan override saves this
+          in local testing, but any production logs or caching will
+          store the wrong key.
+  FIX: In lib/prompt-intelligence.ts, strip floor count words
+       ("floor", "floors", "storey", "storeys", "story") from the
+       extracted buildingType before returning it.
+
+FIX 2: Material pipeline is broken — VM_MAP drops all specialist materials
+  EVIDENCE: wallMaterial="limestone" → smoothplastic (VM_MAP fallback)
+            roofMaterial="slate" → smoothplastic (VM_MAP fallback)
+            groundMaterial="pavement" → concrete (VM_MAP has "pavement")
+            columnMaterial="concrete" → concrete (correct)
+  IMPACT: 390/396 parts are smoothplastic. Building looks flat/plastic
+          regardless of architectural style.
+  FIX: Add to VM_MAP in blueprint-compiler.ts and rbxmx.ts:
+         limestone: 'brick', render: 'smoothplastic', stucco: 'smoothplastic',
+         tile: 'smoothplastic', terracotta: 'brick', slate: 'concrete'
+       Also ensure StyleDNA.wallMaterial/roofMaterial actually passes
+       through to the mkWall/generateRoof part calls (currently not used).
+
+FIX 3: floorHeight is hardcoded in buildExterior — r.floorHeight ignored
+  EVIDENCE: buildExterior line 120: "const fh = 12" — hardcoded.
+            r.floorHeight is never read in exterior generation.
+            quality-checker measures 55 studs vs expected 48.
+  IMPACT: floorHeight field in ResearchResult is dead weight for
+          exterior geometry. Tall buildings (mosques at fh=14,
+          warehouses at fh=14) all get 12-stud floors instead.
+  FIX: Change buildExterior to:
+         const fh = Math.max(8, Math.min(18, r.floorHeight || 12))
+       This uses the researched value while clamping to safe bounds.
+
+FIX 4: BSP room placer produces overlapping rooms (2 collisions)
+  EVIDENCE: quality-checker reports "2 overlapping room pair(s)"
+            Room layout: Reception @ x=9.5 z=18.5 (13w × 12d)
+                         Office @ x=20.0 z=8.0 (14w × 10d)
+                         Storage @ x=9.5 z=6.5 (10w × 7d)
+  IMPACT: Score docked to 60/100 for Room Overlap check.
+          In 3D, overlapping rooms produce intersecting geometry
+          that looks broken when viewed from above or with walls.
+  FIX: In lib/room-placer.ts, after BSP placement, run a
+       post-process separation pass: for each overlapping pair,
+       translate the smaller room away from the larger until
+       bounding boxes no longer intersect (push along the shortest
+       axis). A simple greedy loop of 10 iterations is sufficient.
+
+FIX 5: Style library floorCount override too conservative
+  EVIDENCE: applyStyleDefaults only overrides floorCount if
+            r.floorCount <= 1. So if the AI returns floorCount=2
+            for a shophouse (common — AI underestimates Asian
+            buildings), the library's floorCount=3 is skipped.
+            Only the forced isPeranakan override (which hard-sets 4)
+            saves this case. Other building types with no forced
+            override (e.g., Gothic, baroque) will be stuck at
+            whatever undercount the AI returns.
+  IMPACT: A "Gothic cathedral 1 floor" would get floorCount=4 from
+          the style library correctly (since 1 <= 1), but a
+          "Gothic cathedral 2 floors" would be stuck at 2 despite
+          the library saying 4. The forced-override safety net only
+          exists for Peranakan/Victorian.
+  FIX: Change applyStyleDefaults to use the style library floor count
+       as a MINIMUM, not a replacement:
+         floorCount: Math.max(r.floorCount, def.floorCount)
+       This ensures the style library acts as a floor (no pun
+       intended) rather than an override-only value.
+
+===================================================================
+END OF DIAGNOSIS
+===================================================================

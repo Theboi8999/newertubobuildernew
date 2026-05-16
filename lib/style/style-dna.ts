@@ -47,8 +47,8 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     colonnadeDepth: 5,
     windowShape: 'rectangular',
     ornamentLevel: 'moderate',
-    wallMaterial: 'smoothplastic',
-    groundMaterial: 'concrete',
+    wallMaterial: 'limestone',
+    groundMaterial: 'pavement',
     forbidden: ['flat_modern_roof', 'glass_curtain_wall'],
   },
   'victorian': {

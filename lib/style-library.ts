@@ -57,7 +57,7 @@ export function applyStyleDefaults(r: ResearchResult): ResearchResult {
   console.log('[style] matched:', match)
   return {
     ...r,
-    floorCount: r.floorCount > 1 ? r.floorCount : def.floorCount,
+    floorCount: Math.max(r.floorCount, def.floorCount),
     floorHeight: r.floorHeight !== 10 ? r.floorHeight : def.floorHeight,
     hasColonnade: r.hasColonnade || def.hasColonnade,
     hasGlassFront: r.hasGlassFront || def.hasGlassFront,

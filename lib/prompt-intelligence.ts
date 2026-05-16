@@ -11,7 +11,8 @@ export function analysePrompt(prompt: string): PromptIntent {
   const numMatch=lower.match(/(\d+)\s*(?:storey|story|floor|level)/); if(numMatch) floorCountHint=Math.min(20,parseInt(numMatch[1]))
   const styleHints=STYLE_WORDS.filter(s=>lower.includes(s))
   const stop=new Set(['a','an','the','with','full','interior','exterior','build','me','make','create','generate','and','or','of','for','in','at','to','from','storey','story','floor'])
-  const buildingType=lower.replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!stop.has(w)).slice(0,5).join('_')
+  const FLOOR_WORDS = new Set(['floors','floor','storey','storeys','story','stories','level','levels','tall','high','rise'])
+  const buildingType=lower.replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!stop.has(w)&&!FLOOR_WORDS.has(w)&&!/^\d+$/.test(w)).slice(0,5).join('_')
   const intent:PromptIntent={buildingType,region,era:'',styleHints,floorCountHint}
   console.log('[intent]',JSON.stringify(intent))
   return intent
