@@ -149,6 +149,7 @@ export async function generateAsset(
           researchResult.hasColonnade = true
           researchResult.architecturalStyle = 'peranakan chinese colonial'
           researchResult.floorCount = 4
+          researchResult.exteriorMaterial = 'smoothplastic'
           console.log('[generator] ✅ peranakan overrides: ec=Sand yellow rc=Dark green colonnade=true floors=', researchResult.floorCount)
         }
         if (isVictorian && !isPeranakan) {
@@ -253,6 +254,7 @@ export async function generateAsset(
               retryResearch.hasColonnade = true
               retryResearch.floorCount = Math.max(4, retryResearch.floorCount)
               retryResearch.architecturalStyle = 'peranakan chinese colonial'
+              retryResearch.exteriorMaterial = 'smoothplastic'
             }
             if (isVictorian && !isPeranakan) {
               retryResearch.exteriorColor = 'Reddish brown'

@@ -55,7 +55,8 @@ const VC_MAP: Record<string, string> = {
 const VM_MAP: Record<string, string> = {
   smoothplastic: 'smoothplastic', plastic: 'smoothplastic',
   wood: 'wood', timber: 'wood', oak: 'wood', pine: 'wood', teak: 'wood', bamboo: 'wood',
-  brick: 'brick', limestone: 'brick', sandstone: 'brick', terracotta: 'brick', clay: 'brick', lime: 'brick',
+  brick: 'brick', sandstone: 'brick', terracotta: 'brick', clay: 'brick',
+  limestone: 'smoothplastic', lime: 'smoothplastic',
   concrete: 'concrete', stone: 'concrete', granite: 'concrete', tile: 'concrete',
   pavement: 'concrete', paving: 'concrete', tarmac: 'concrete', asphalt: 'concrete',
   slate: 'slate', cobblestone: 'cobblestone',
@@ -380,7 +381,8 @@ function getBrickColorId(colorName: string): number {
 const SAFE_MAT: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
   render: 256, stucco: 256, plaster: 256, painted: 256,
-  brick: 1040, limestone: 1040, sandstone: 1040, terracotta: 1040, clay: 1040, lime: 1040,
+  brick: 1040, sandstone: 1040, terracotta: 1040, clay: 1040,
+  limestone: 256, lime: 256,
   wood: 512, timber: 512, woodplanks: 512, oak: 512, pine: 512, teak: 512, bamboo: 512,
   concrete: 816, stone: 816, slate: 800, granite: 832, tile: 816, tiles: 816,
   pavement: 816, paving: 816, tarmac: 816, asphalt: 816,

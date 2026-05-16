@@ -206,12 +206,12 @@ const tw = compiled.totalWidth
 const td = compiled.totalDepth
 // floorCount used by buildExterior — clamped to max(3, min(10, r.floorCount))
 const fcUsed = Math.max(3, Math.min(10, research.floorCount || 4))
-const fhUsed = 12  // buildExterior hardcodes fh=12
+const fhUsed = Math.max(8, Math.min(18, Number(research.floorHeight) || 12))
 
 log('')
 log('Footprint: tw =', tw, ', td =', td)
 log('floorCount going into buildExterior:', research.floorCount, '→ clamped to:', fcUsed)
-log('floorHeight: hardcoded to', fhUsed, '(buildExterior ignores r.floorHeight)')
+log('floorHeight: used from research:', fhUsed, '(clamped 8–18)')
 log('Total exterior parts:', compiled.exterior.length)
 log('Room layout (', compiled.roomLayout.length, 'rooms):')
 compiled.roomLayout.forEach((r, i) => {
@@ -277,7 +277,31 @@ const colParts    = allParts.filter(p => /^col/i.test(p.name))
 log(`  Window/Glass parts: ${windowParts.length}`)
 windowParts.slice(0, 20).forEach(p => log(`    ${p.name}`))
 log(`  Pagoda parts: ${pagodaParts.length}`)
-pagodaParts.slice(0, 10).forEach(p => log(`    ${p.name}`))
+pagodaParts.slice(0, 20).forEach(p => log(`    ${p.name}`))
+// Verify a tier exists for every floor
+const missingTiers: number[] = []
+for (let f = 0; f < fcUsed; f++) {
+  const hasTier = pagodaParts.some(p => p.name === `Pag${f}`)
+  if (!hasTier) missingTiers.push(f)
+}
+if (missingTiers.length === 0) {
+  log(`  ✅ All ${fcUsed} pagoda tiers present (Pag0–Pag${fcUsed - 1})`)
+} else {
+  log(`  ❌ MISSING pagoda tiers for floors: ${missingTiers.join(', ')}`)
+}
+// Verify top tier Y position
+const topTier = pagodaParts.find(p => p.name === `Pag${fcUsed - 1}`)
+const expectedTopY = 2.3 + fcUsed * fhUsed + 0.4 // wallBase + fc*fh + 0.4 (Pag y-offset)
+if (topTier) {
+  const diff = Math.abs(topTier.position.y - expectedTopY)
+  if (diff < 1) {
+    log(`  ✅ Top tier Pag${fcUsed - 1} Y = ${topTier.position.y.toFixed(2)} (expected ~${expectedTopY.toFixed(2)})`)
+  } else {
+    log(`  ❌ Top tier Pag${fcUsed - 1} Y = ${topTier.position.y.toFixed(2)} but expected ~${expectedTopY.toFixed(2)}`)
+  }
+} else {
+  log(`  ❌ Top tier Pag${fcUsed - 1} not found`)
+}
 log(`  Colonnade parts: ${colParts.length}`)
 colParts.slice(0, 10).forEach(p => log(`    ${p.name}`))
 
