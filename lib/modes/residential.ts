@@ -65,24 +65,26 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         const g1x = garLeftEdge + garW / 2
         const g2x = garLeftEdge + garW + garGap + garW / 2
 
+        let gIdx = 0
         for (const gx of [g1x, g2x]) {
           // Dark frame border around door — flush with front wall face
-          p('GarFrame', ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.25, garW + 0.5, garH + 0.4, 0.35)
+          p(`GarFrame_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.25, garW + 0.5, garH + 0.4, 0.35)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
-            p('GarPanel', garageDoorColor, 'SmoothPlastic',
+            p(`GarPanel_${gIdx}`, garageDoorColor, 'SmoothPlastic',
               gx, wallBase + panH * (gp + 0.5), frontZ - 0.15, garW - 0.5, panH - 0.25, 0.22)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
-            p('GarBar', ac, 'SmoothPlastic',
+            p(`GarBar_${gIdx}`, ac, 'SmoothPlastic',
               gx, wallBase + panH * gp, frontZ - 0.20, garW - 0.5, 0.22, 0.16)
           }
           // Vertical centre rail
-          p('GarCRail', ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.20, 0.28, garH, 0.16)
+          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.20, 0.28, garH, 0.16)
           // Narrow window strip at top of door
-          p('GarTopWin', 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ - 0.07, garW - 1.0, 0.6, 0.15, 0.12)
+          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ - 0.07, garW - 1.0, 0.6, 0.15, 0.12)
+          gIdx++
         }
 
         // Shared drive apron (concrete pad in front of both doors)
@@ -136,25 +138,25 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
       // ── UPPER FLOOR: 3 large portrait windows with 4-pane grid ───────────────
       const winCount = 3
       const winSpacing = tw / winCount
-      const winW = tw * 0.24
-      const winH = fh * 0.72
+      const winW = fh * 0.65   // portrait: narrower than tall
+      const winH = fh * 0.76
       const winY = floorBot + fh * 0.5
 
       for (let w = 0; w < winCount; w++) {
         const wx = -tw / 2 + winSpacing * (w + 0.5)
 
-        // Deep shadow recess (1.0 deep)
-        p(`WRec_${f}`,     ac,                   'SmoothPlastic', wx, winY, frontZ - 0.45, winW + 1.0, winH + 1.0, 1.0)
+        // Deep shadow recess
+        p(`Win_${f}_Rec`,   ac,                   'SmoothPlastic', wx, winY, frontZ - 0.45, winW + 1.0, winH + 1.0, 1.0)
         // Glass pane
-        p(`Win_${f}`,      'Institutional white', 'SmoothPlastic', wx, winY, frontZ - 0.07, winW,       winH,       0.18, 0.12)
-        // Outer frame (0.35 thick)
-        p(`WinFrame_${f}`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  winW + 0.6, winH + 0.6, 0.35)
+        p(`Win_${f}`,       'Institutional white', 'SmoothPlastic', wx, winY, frontZ - 0.07, winW,       winH,       0.18, 0.12)
+        // Outer frame
+        p(`Win_${f}_Frame`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  winW + 0.6, winH + 0.6, 0.35)
         // Horizontal mid-bar
-        p(`WinHBar_${f}`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  winW,       0.3,        0.22)
+        p(`Win_${f}_HBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  winW,       0.3,        0.22)
         // Vertical mid-bar
-        p(`WinVBar_${f}`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  0.3,        winH,       0.22)
+        p(`Win_${f}_VBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  0.3,        winH,       0.22)
         // Window sill
-        p(`WinSill_${f}`,  ec,                   em,              wx, winY - winH / 2 - 0.3, frontZ + 0.2, winW + 1.2, 0.4, 0.55)
+        p(`Win_${f}_Sill`,  ec,                   em,              wx, winY - winH / 2 - 0.3, frontZ + 0.2, winW + 1.2, 0.4, 0.55)
       }
     }
   }
