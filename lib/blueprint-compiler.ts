@@ -202,6 +202,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
     const sceneryLevel = (options?.scenery || r.scenery || 'minimal') as SceneryLevel
 
     if (mode === 'residential') {
+      // Residential mode returns early — old passes must not run
       const modeParts = bpToRbx(buildResidential({
         tw, td, fh, fc, wallBase,
         ec, em: 'brick', rc, ac,
@@ -210,7 +211,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
         roofType: (dna.roofType as 'shed' | 'gable' | 'hip' | 'flat') || 'shed',
       }))
       const terrain = generateTerrain(plan, dna, sceneryLevel)
-      console.log('[buildExterior] total parts:', modeParts.length + terrain.length)
+      console.log('[buildExterior] returning residential parts:', modeParts.length + terrain.length)
       return applyGroundMaterial([...modeParts, ...terrain])
     }
     if (mode === 'shophouse') {

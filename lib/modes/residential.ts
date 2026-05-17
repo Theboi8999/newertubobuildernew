@@ -59,23 +59,23 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         const g2x = garLeftEdge + garW + garGap + garW / 2
 
         for (const gx of [g1x, g2x]) {
-          // Dark frame border around door
-          p('GarFrame', ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.05, garW + 0.5, garH + 0.4, 0.35)
+          // Dark frame border around door — flush with front wall face
+          p('GarFrame', ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.25, garW + 0.5, garH + 0.4, 0.35)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
             p('GarPanel', garageDoorColor, 'SmoothPlastic',
-              gx, wallBase + panH * (gp + 0.5), frontZ + 0.15, garW - 0.5, panH - 0.25, 0.22)
+              gx, wallBase + panH * (gp + 0.5), frontZ - 0.15, garW - 0.5, panH - 0.25, 0.22)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
             p('GarBar', ac, 'SmoothPlastic',
-              gx, wallBase + panH * gp, frontZ + 0.18, garW - 0.5, 0.22, 0.16)
+              gx, wallBase + panH * gp, frontZ - 0.20, garW - 0.5, 0.22, 0.16)
           }
           // Vertical centre rail
-          p('GarCRail', ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.18, 0.28, garH, 0.16)
+          p('GarCRail', ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.20, 0.28, garH, 0.16)
           // Narrow window strip at top of door
-          p('GarTopWin', 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.1, garW - 1.0, 0.6, 0.15, 0.12)
+          p('GarTopWin', 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ - 0.07, garW - 1.0, 0.6, 0.15, 0.12)
         }
 
         // Shared drive apron (concrete pad in front of both doors)
