@@ -45,26 +45,28 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
     const slab = p(`FloorSlab_F${f}`, tw - 1, 0.5, td - 1, tw / 2, fy, td / 2, 'Medium stone grey', 'concrete')
     parts.push(slab)
 
-    // Floor bands — proportional height, 1.2 deep proud of wall face
-    const bhHalf = bh / 2
-    parts.push(p(`Band_F${f}_Front`, tw + 0.4, bh, 1.2, tw / 2, fy + bhHalf, -0.6, bandColor, 'smoothplastic'))
-    parts.push(p(`Band_F${f}_Back`,  tw + 0.4, bh, 1.2, tw / 2, fy + bhHalf, td + 0.6, bandColor, 'smoothplastic'))
-    parts.push(p(`Band_F${f}_Left`,  1.2, bh, td + 0.4, -0.6, fy + bhHalf, td / 2, bandColor, 'smoothplastic'))
-    parts.push(p(`Band_F${f}_Right`, 1.2, bh, td + 0.4, tw + 0.6, fy + bhHalf, td / 2, bandColor, 'smoothplastic'))
+    if (dna.ornamentLevel !== 'none') {
+      // Floor bands — proportional height, 1.2 deep proud of wall face
+      const bhHalf = bh / 2
+      parts.push(p(`Band_F${f}_Front`, tw + 0.4, bh, 1.2, tw / 2, fy + bhHalf, -0.6, bandColor, 'smoothplastic'))
+      parts.push(p(`Band_F${f}_Back`,  tw + 0.4, bh, 1.2, tw / 2, fy + bhHalf, td + 0.6, bandColor, 'smoothplastic'))
+      parts.push(p(`Band_F${f}_Left`,  1.2, bh, td + 0.4, -0.6, fy + bhHalf, td / 2, bandColor, 'smoothplastic'))
+      parts.push(p(`Band_F${f}_Right`, 1.2, bh, td + 0.4, tw + 0.6, fy + bhHalf, td / 2, bandColor, 'smoothplastic'))
 
-    // White cap strip on top of each band
-    const bcY = fy + bh + 0.15
-    parts.push(p(`BandCap_F${f}_Front`, tw + 0.4, 0.3, 1.3, tw / 2, bcY, -0.65, 'White', 'smoothplastic'))
-    parts.push(p(`BandCap_F${f}_Back`,  tw + 0.4, 0.3, 1.3, tw / 2, bcY, td + 0.65, 'White', 'smoothplastic'))
-    parts.push(p(`BandCap_F${f}_Left`,  1.3, 0.3, td + 0.4, -0.65, bcY, td / 2, 'White', 'smoothplastic'))
-    parts.push(p(`BandCap_F${f}_Right`, 1.3, 0.3, td + 0.4, tw + 0.65, bcY, td / 2, 'White', 'smoothplastic'))
+      // White cap strip on top of each band
+      const bcY = fy + bh + 0.15
+      parts.push(p(`BandCap_F${f}_Front`, tw + 0.4, 0.3, 1.3, tw / 2, bcY, -0.65, 'White', 'smoothplastic'))
+      parts.push(p(`BandCap_F${f}_Back`,  tw + 0.4, 0.3, 1.3, tw / 2, bcY, td + 0.65, 'White', 'smoothplastic'))
+      parts.push(p(`BandCap_F${f}_Left`,  1.3, 0.3, td + 0.4, -0.65, bcY, td / 2, 'White', 'smoothplastic'))
+      parts.push(p(`BandCap_F${f}_Right`, 1.3, 0.3, td + 0.4, tw + 0.65, bcY, td / 2, 'White', 'smoothplastic'))
 
-    // Layer 2 — rustication bands: horizontal proud strips at 10% above floor junction
-    const rustY = fy + fh * 0.1
-    parts.push(p(`RustF_${f}`, tw + 0.1, 0.6, 0.3, tw / 2, rustY + 0.3, -0.15, rc2, 'smoothplastic'))
-    parts.push(p(`RustB_${f}`, tw + 0.1, 0.6, 0.3, tw / 2, rustY + 0.3, td + 0.15, rc2, 'smoothplastic'))
-    parts.push(p(`RustL_${f}`, 0.3, 0.6, td + 0.1, -0.15, rustY + 0.3, td / 2, rc2, 'smoothplastic'))
-    parts.push(p(`RustR_${f}`, 0.3, 0.6, td + 0.1, tw + 0.15, rustY + 0.3, td / 2, rc2, 'smoothplastic'))
+      // Layer 2 — rustication bands: horizontal proud strips at 10% above floor junction
+      const rustY = fy + fh * 0.1
+      parts.push(p(`RustF_${f}`, tw + 0.1, 0.6, 0.3, tw / 2, rustY + 0.3, -0.15, rc2, 'smoothplastic'))
+      parts.push(p(`RustB_${f}`, tw + 0.1, 0.6, 0.3, tw / 2, rustY + 0.3, td + 0.15, rc2, 'smoothplastic'))
+      parts.push(p(`RustL_${f}`, 0.3, 0.6, td + 0.1, -0.15, rustY + 0.3, td / 2, rc2, 'smoothplastic'))
+      parts.push(p(`RustR_${f}`, 0.3, 0.6, td + 0.1, tw + 0.15, rustY + 0.3, td / 2, rc2, 'smoothplastic'))
+    }
   }
 
   // Plinth base band at ground level — proportional height, always wall color

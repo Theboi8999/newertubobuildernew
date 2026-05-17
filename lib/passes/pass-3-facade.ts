@@ -16,7 +16,7 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
     const isGround = f === 0
 
     // ── Front face windows ────────────────────────────────────────────────────
-    if ((!isGround || !isColonnade) && !(isGround && hasGarageDoor)) {
+    if ((!isGround || !isColonnade) && !(isGround && hasGarageDoor) && !(isResidential && !isGround && dna.facadeGrammar)) {
       const winCount = Math.max(2, Math.floor((tw - 6) / 9))
       const winSpacing = (tw - 4) / (winCount + 1)
       const winW = Math.min(6.5, winSpacing * 0.68)
@@ -86,7 +86,7 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
           parts.push(p(`WArch_F_${f}_${w}_Fill`, winW * 0.7, 0.5, 0.4, wx, winTopY + 0.25, -0.35, 'Bright blue', 'smoothplastic', 0.4))
         }
 
-        if (dna.shutterColor && !isGround) {
+        if (dna.shutterColor && !isGround && dna.family === 'asian') {
           const shutW = winW * 0.42
           parts.push(p(`ShutL_F${f}_${w}`, shutW, winH * 0.95, 0.15, wx - winW / 2 - shutW / 2 - 0.1, winY, -0.55, dna.shutterColor, 'smoothplastic'))
           parts.push(p(`ShutR_F${f}_${w}`, shutW, winH * 0.95, 0.15, wx + winW / 2 + shutW / 2 + 0.1, winY, -0.55, dna.shutterColor, 'smoothplastic'))
@@ -129,6 +129,7 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
 
         switch (el.type) {
           case 'GARAGEDOOR': {
+            console.log('[facade] generating GARAGEDOOR at x:', el.x)
             const doorW = el.width - 0.4
             const doorH = Math.min(el.width * 0.7, floorHeight * 0.75)
             const doorY = wallBase + doorH / 2 + 0.5
@@ -160,6 +161,30 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
             break
           }
         }
+      }
+    }
+
+    // ── Upper-floor grammar windows (residential: one large window per WINDOW token) ──
+    if (!isGround && isResidential && dna.facadeGrammar) {
+      const grammarElements = parseFacadeGrammar(dna.facadeGrammar, tw, floorHeight)
+      const fc = dna.accentColor
+      for (let i = 0; i < grammarElements.length; i++) {
+        const el = grammarElements[i]
+        if (el.type !== 'WINDOW') continue
+        const winW = el.width * 0.85
+        const winH = floorHeight * 0.65
+        const wx = el.x
+        const winY = fy + floorHeight * 0.52
+
+        parts.push(p(`GWRec_F${f}_${i}`, winW + 0.8, winH + 0.8, 1.2, wx, winY, -0.05, 'Really black', 'smoothplastic', 0.4))
+        parts.push(p(`GWOFrT_F${f}_${i}`, winW + 0.8, 0.45, 0.5, wx, winY + winH / 2 + 0.22, -0.25, fc, 'smoothplastic'))
+        parts.push(p(`GWOFrB_F${f}_${i}`, winW + 0.8, 0.45, 0.5, wx, winY - winH / 2 - 0.22, -0.25, fc, 'smoothplastic'))
+        parts.push(p(`GWOFrL_F${f}_${i}`, 0.45, winH + 0.8, 0.5, wx - winW / 2 - 0.42, winY, -0.25, fc, 'smoothplastic'))
+        parts.push(p(`GWOFrR_F${f}_${i}`, 0.45, winH + 0.8, 0.5, wx + winW / 2 + 0.42, winY, -0.25, fc, 'smoothplastic'))
+        parts.push(p(`GWGlass_F${f}_${i}`, winW, winH, 0.1, wx, winY, -0.8, 'Light blue', 'glass', 0.2))
+        parts.push(p(`GWGridH_F${f}_${i}`, winW - 0.1, 0.12, 0.1, wx, winY, -0.79, fc, 'smoothplastic'))
+        parts.push(p(`GWGridV_F${f}_${i}`, 0.12, winH - 0.1, 0.1, wx, winY, -0.79, fc, 'smoothplastic'))
+        parts.push(p(`GWSill_F${f}_${i}`, winW + 0.8, 0.4, 0.8, wx, winY - winH / 2 - 0.2, -0.4, 'White', 'smoothplastic'))
       }
     }
 
@@ -235,6 +260,7 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
 
     // ── Balcony ───────────────────────────────────────────────────────────────
     if (!isGround && dna.hasBalcony && floorCount >= 2) {
+      console.log('[facade] hasBalcony:', dna.hasBalcony)
       const slabY = fy - 0.4
       const railH = 2.6
       const railZ = -1.5
