@@ -172,6 +172,7 @@ export async function generateAsset(
         allParts = options.exteriorOnly
           ? [...compiled.exterior]
           : [...compiled.rooms.flat(), ...compiled.exterior]
+        console.log('[generator] buildingType:', buildingType, 'floorCount:', researchResult.floorCount)
         console.log('[generator] compiled parts count:', allParts.length)
         specItems = researchResult.rooms.map(r => r.name)
 

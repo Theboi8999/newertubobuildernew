@@ -14,7 +14,7 @@ export function generateFacade(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
 
     // ── Front face windows ────────────────────────────────────────────────────
     if (!isGround || !isColonnade) {
-      const winCount = Math.max(2, Math.floor((tw - 6) / 9))
+      const winCount = Math.max(2, Math.floor(tw / (floorHeight * 1.2)))
       const winSpacing = (tw - 4) / (winCount + 1)
       const winW = Math.min(6.5, winSpacing * 0.68)
       const winH = floorHeight * 0.58

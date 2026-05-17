@@ -162,7 +162,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
   try {
     const fh = Math.max(8, Math.min(18, Number(r.floorHeight) || 12))
     const wallBase = 2.3
-    const fc = Math.max(2, Math.min(10, r.floorCount || 4))
+    const fc = Math.max(1, Math.min(10, r.floorCount || 3))
     const th = fc * fh
 
     console.log('[buildExterior] ec:', r.exteriorColor, 'rc:', r.roofColor, 'fc:', fc)

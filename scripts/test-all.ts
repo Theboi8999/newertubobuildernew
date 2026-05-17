@@ -1,5 +1,5 @@
 import { analysePrompt } from '../lib/prompt-intelligence'
-import { buildRbxmx } from '../lib/rbxmx'
+import { buildRbxmx, ME, BRICK_COLOR_IDS } from '../lib/rbxmx'
 import { applyStyleDefaults } from '../lib/style-library'
 import { preGate, postGate } from '../lib/quality-gate'
 import { compileBlueprint, BuildPlan } from '../lib/blueprint-compiler'
@@ -1146,6 +1146,40 @@ test('buildCivic with colonnade has column parts', () => {
   const parts = buildCivic({ tw: 60, td: 40, fh: 12, fc: 3, wallBase: 2.3, ec: 'White', em: 'concrete', rc: 'Dark grey', ac: 'White', hasColonnade: true, colonnadeDepth: 5, roofType: 'dome' })
   const cols = parts.filter(p => p.name.includes('ColShaft'))
   assert(cols.length >= 2, `expected >= 2 civic columns got ${cols.length}`)
+})
+
+// ── MATERIAL + COLOR ENUM TESTS ───────────────────────────────────────────────
+
+console.log('\n═══ MATERIAL + COLOR ENUMS ═══')
+
+test('brick material enum token is 1040', () => {
+  assert(ME['brick'] === 1040, `expected ME['brick']===1040 got ${ME['brick']}`)
+})
+
+test('Reddish brown BrickColor is 192', () => {
+  assert(BRICK_COLOR_IDS['Reddish brown'] === 192, `expected 192 got ${BRICK_COLOR_IDS['Reddish brown']}`)
+})
+
+test('buildResidential garage door panels at correct z range', () => {
+  const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: false, hasGarage: true, roofType: 'shed' })
+  const panels = parts.filter(p => p.name.includes('GarPanel'))
+  assert(panels.length > 0, 'should have GarPanel parts')
+  const bad = panels.filter(p => p.z < -0.5 || p.z > 0.3)
+  assert(bad.length === 0, `GarPanel z out of range [-0.5, 0.3]: ${bad.map(p => p.z).join(', ')}`)
+})
+
+test('buildResidential fc=2 generates upper floor walls and windows', () => {
+  const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: false, hasGarage: false, roofType: 'shed' })
+  const hasUpper = parts.some(p => p.name.includes('WF_U_'))
+  assert(hasUpper, 'fc=2 should generate upper floor walls (WF_U_)')
+  const hasUpperWin = parts.some(p => p.name.includes('RES_Win_1_'))
+  assert(hasUpperWin, 'fc=2 should generate floor-1 windows (RES_Win_1_)')
+})
+
+test('no NaN positions in residential build', () => {
+  const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: true, hasGarage: true, roofType: 'shed' })
+  const nanParts = parts.filter(p => isNaN(p.x) || isNaN(p.y) || isNaN(p.z) || isNaN(p.sx) || isNaN(p.sy) || isNaN(p.sz))
+  assert(nanParts.length === 0, `NaN positions found in: ${nanParts.map(p => p.name).join(', ')}`)
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

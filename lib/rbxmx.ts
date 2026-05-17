@@ -176,7 +176,7 @@ export interface RbxModel {
   children?: RbxModel[]
 }
 
-const BRICK_COLOR_IDS: Record<string, number> = {
+export const BRICK_COLOR_IDS: Record<string, number> = {
   'White': 1,
   'Grey': 2,
   'Light yellow': 5,
@@ -378,7 +378,7 @@ function getBrickColorId(colorName: string): number {
   return 194
 }
 
-const SAFE_MAT: Record<string, number> = {
+export const ME: Record<string, number> = {
   smoothplastic: 256, plastic: 256,
   render: 256, stucco: 256, plaster: 256, painted: 256,
   brick: 1040, sandstone: 1040, terracotta: 1040, clay: 1040,
@@ -386,12 +386,12 @@ const SAFE_MAT: Record<string, number> = {
   wood: 512, timber: 512, woodplanks: 512, oak: 512, pine: 512, teak: 512, bamboo: 512,
   concrete: 816, stone: 816, slate: 816, granite: 832, tile: 816, tiles: 816,
   pavement: 816, paving: 816, tarmac: 816, asphalt: 816,
-  cobblestone: 1392,
+  cobblestone: 1168,
   marble: 784,
   metal: 1344, steel: 1344, copper: 1344, aluminium: 1344, aluminum: 1344, iron: 1344, zinc: 1344, cladding: 1344,
   corrodedmetal: 1952,
-  fabric: 1312, carpet: 1312,
-  neon: 1376,
+  fabric: 1184, carpet: 1184,
+  neon: 1632,
   glass: 1568, glazed: 1568,
   sand: 1088,
   ice: 1536,
@@ -400,7 +400,7 @@ const SAFE_MAT: Record<string, number> = {
 
 function getMat(m: string): number {
   const key = (m || '').toLowerCase().trim().replace(/[\s_-]+/g, '')
-  const result = SAFE_MAT[key]
+  const result = ME[key]
   if (result === undefined) {
     console.log('[rbxmx] unknown/blocked material:', m, '→ smoothplastic')
     return 256

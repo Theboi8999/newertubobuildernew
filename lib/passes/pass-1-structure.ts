@@ -36,7 +36,7 @@ export function generateStructure(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
   const rc2 = rustBandColor(dna.primaryColor)
   const prop = plan.proportions
   const bh = prop?.bandHeight ?? 1.8
-  const pilW0 = prop?.pilasterWidth ?? 2.0
+  const pilW0 = prop?.pilasterWidth ?? 2.2
   const cornH = prop?.corniceHeight ?? 1.2
 
   for (let f = 1; f < plan.floorCount; f++) {

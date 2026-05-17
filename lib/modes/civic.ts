@@ -77,7 +77,7 @@ export function buildCivic(i: CivicInput): BlueprintPart[] {
     const winW = 3.5
     const winH = fh * 0.55
     const winY = floorY + fh * 0.05
-    const winCount = Math.max(2, Math.floor(tw / 10))
+    const winCount = Math.max(2, Math.floor(tw / 9))
     const winSpacing = tw / winCount
 
     for (let w = 0; w < winCount; w++) {
@@ -88,17 +88,35 @@ export function buildCivic(i: CivicInput): BlueprintPart[] {
       p('WinFrame', ac, 'SmoothPlastic', wx, winY, td / 2 + 0.15, winW + 0.4, winH + 0.5, 0.25)
       // Arch head
       p('WinArch', ac, 'SmoothPlastic', wx, winY + winH / 2 + 0.3, td / 2 + 0.15, winW + 0.4, 0.6, 0.25)
+      // Lintel above arch
+      p('WinLintel', 'White', 'SmoothPlastic', wx, winY + winH / 2 + 1.0, td / 2 + 0.18, winW + 1.2, 0.35, 0.4)
       // Sill
       p('WinSill', 'White', 'SmoothPlastic', wx, winY - winH / 2 - 0.1, td / 2 + 0.2, winW + 1.0, 0.4, 0.5)
     }
 
-    // Ground floor entrance
-    const entCx = 0
-    const entW = 5
-    const entH = fh * 0.85
-    p('EntDoor', ac, 'SmoothPlastic', entCx, podiumH + entH / 2, td / 2 + 0.1, entW, entH, 0.3)
-    p('EntDoorFrame', 'White', 'SmoothPlastic', entCx, podiumH + entH / 2, td / 2 + 0.15, entW + 0.6, entH + 0.4, 0.3)
-    p('EntArch', 'White', 'SmoothPlastic', entCx, podiumH + entH + 0.4, td / 2 + 0.15, entW + 0.6, 0.8, 0.3)
+    // Cornice belt at top of each floor
+    p('Cornice', 'White', 'SmoothPlastic', 0, podiumH + (f + 1) * fh - 0.4, td / 2 + 0.08, tw + 0.8, 0.8, 0.5)
+
+    // Grand entrance — ground floor only
+    if (f === 0) {
+      const entCx = 0
+      const entW = 5
+      const entH = fh * 0.85
+      p('EntDoor', ac, 'SmoothPlastic', entCx, podiumH + entH / 2, td / 2 + 0.1, entW, entH, 0.3)
+      p('EntDoorFrame', 'White', 'SmoothPlastic', entCx, podiumH + entH / 2, td / 2 + 0.15, entW + 0.6, entH + 0.4, 0.3)
+      p('EntArch', 'White', 'SmoothPlastic', entCx, podiumH + entH + 0.4, td / 2 + 0.15, entW + 0.6, 0.8, 0.3)
+      // Portico beam above entrance
+      p('EntPortico', 'White', 'SmoothPlastic', entCx, podiumH + entH + 1.6, td / 2 + 0.5, entW + 3.0, 1.0, 2.0)
+      // 2 flanking columns
+      for (const sign of [-1, 1]) {
+        const colX = sign * (entW / 2 + 1.2)
+        p('EntCol', 'White', 'SmoothPlastic', colX, podiumH + entH / 2, td / 2 + 1.2, 1.2, entH, 1.2)
+      }
+      // 3 entrance steps
+      for (let s = 0; s < 3; s++) {
+        p('EntStep', ec, em, entCx, podiumH - 0.3 - s * 0.6, td / 2 + 0.8 + s * 0.9, entW + s * 1.4, 0.6, 1.8)
+      }
+    }
   }
 
   // Roof
@@ -108,8 +126,6 @@ export function buildCivic(i: CivicInput): BlueprintPart[] {
     // Parapet
     p('Parapet', ec, em, 0, roofY + 1.5, 0, tw + 1, 2.5, td + 1)
     p('ParapetCap', ac, 'SmoothPlastic', 0, roofY + 2.8, 0, tw + 2, 0.5, td + 2)
-    // Flagpole
-    p('Flagpole', ac, 'SmoothPlastic', 0, roofY + 2.8 + 6, 0, 0.3, 12, 0.3)
   } else if (roofType === 'dome') {
     // Central dome suggestion
     p('DomeBase', rc, 'SmoothPlastic', 0, roofY + 1, 0, tw * 0.4, 2, tw * 0.4)
@@ -123,6 +139,9 @@ export function buildCivic(i: CivicInput): BlueprintPart[] {
     p('PedimentRight', 'White', 'SmoothPlastic', tw / 4, roofY + 2, td / 2 + 0.1, tw / 2, 4, 0.6)
     p('Roof', rc, 'SmoothPlastic', 0, roofY + 0.4, 0, tw + 1, 0.8, td + 1)
   }
+
+  // Flagpole at centre top (all roof types)
+  p('Flagpole', ac, 'SmoothPlastic', 0, roofY + 3.5 + 6, 0, 0.3, 12, 0.3)
 
   // Corner quoins (all floors)
   const quoinH = 2

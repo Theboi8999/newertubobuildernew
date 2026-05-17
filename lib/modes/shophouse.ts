@@ -17,6 +17,8 @@ export function buildShophouse(i: ShophouseInput): BlueprintPart[] {
   const parts: BlueprintPart[] = []
   const { tw, td, fh, fc, wallBase, ec, em, rc, ac, cc } = i
 
+  console.log('[shophouse] ec:', ec, 'ac:', ac, 'cc:', cc)
+
   let seq = 1
   function p(name: string, color: string, material: string, x: number, y: number, z: number, sx: number, sy: number, sz: number): void {
     parts.push({ name: `SHP_${name}_${seq++}`, color, material, x, y, z, sx, sy, sz })
@@ -30,7 +32,7 @@ export function buildShophouse(i: ShophouseInput): BlueprintPart[] {
 
   // Five-foot way (colonnade) on ground floor front
   const colDepth = 5
-  const colW = 1.2
+  const colW = 1.0
   const colH = fh
   const colCount = Math.max(2, Math.floor(tw / 6))
   const colSpacing = tw / colCount
@@ -39,6 +41,8 @@ export function buildShophouse(i: ShophouseInput): BlueprintPart[] {
     const cx = -tw / 2 + colSpacing * (c + 0.5)
     // Column shaft — named to satisfy _Shaft test and col-prefix test
     p('ColShaft', cc, 'smoothplastic', cx, wallBase + colH / 2, td / 2 + colDepth / 2, colW, colH, colW)
+    // Mid-shaft ring for detail
+    p('ColMid', cc, 'smoothplastic', cx, wallBase + colH * 0.5, td / 2 + colDepth / 2, colW + 0.3, 0.5, colW + 0.3)
     // Column capital
     p('ColCapital', cc, 'smoothplastic', cx, wallBase + colH + 0.3, td / 2 + colDepth / 2, colW + 0.6, 0.6, colW + 0.6)
     // Column base
@@ -61,11 +65,21 @@ export function buildShophouse(i: ShophouseInput): BlueprintPart[] {
     // Floor deck — concrete not smoothplastic
     p('FloorDeck', '#C0B080', 'concrete', 0, wallBase + f * fh, 0, tw, 0.4, td)
 
-    // Decorative band between floors (string course)
+    // Decorative band + frieze between floors (string course, 2.2h)
     if (f < fc - 1) {
       const bandY = wallBase + (f + 1) * fh
-      p('Band', ac, 'smoothplastic', 0, bandY, td / 2 + 0.05, tw, 1.2, 0.4)
-      p('Band', ac, 'smoothplastic', 0, bandY, -td / 2 - 0.05, tw, 1.2, 0.4)
+      // Main band — front and back
+      p('Band', ac, 'smoothplastic', 0, bandY, td / 2 + 0.05, tw, 2.2, 0.4)
+      p('Band', ac, 'smoothplastic', 0, bandY, -td / 2 - 0.05, tw, 2.2, 0.4)
+      // Darker underside shadow strip
+      p('BandSoffit', '#333333', 'smoothplastic', 0, bandY - 1.3, td / 2 + 0.05, tw, 0.4, 0.45)
+      // Frieze row above the band — small repeating blocks
+      const friezeCount = Math.max(4, Math.floor(tw / 3))
+      const friezeSpacing = tw / friezeCount
+      for (let fr = 0; fr < friezeCount; fr++) {
+        const fx = -tw / 2 + friezeSpacing * (fr + 0.5)
+        p('FriezeBlock', ec, em, fx, bandY + 1.5, td / 2 + 0.1, friezeSpacing - 0.3, 0.8, 0.35)
+      }
     }
 
     // Front face windows
@@ -125,7 +139,7 @@ export function buildShophouse(i: ShophouseInput): BlueprintPart[] {
       const doorH = fh * 0.8
       p('Door', ac, 'smoothplastic', tw / 4, wallBase + doorH / 2, td / 2 + 0.1, doorW, doorH, 0.2)
       p('DoorFrame', ac, 'smoothplastic', tw / 4, wallBase + doorH / 2, td / 2 + 0.15, doorW + 0.4, doorH + 0.3, 0.2)
-      p('DoorArch', ec, em, tw / 4, wallBase + doorH + 0.3, td / 2 + 0.12, doorW + 0.6, 0.6, 0.3)
+      p('DoorArch', ec, em, tw / 4, wallBase + doorH + 0.6, td / 2 + 0.12, doorW + 1.0, 1.2, 0.3)
     }
   }
 
@@ -140,6 +154,13 @@ export function buildShophouse(i: ShophouseInput): BlueprintPart[] {
   p('ParapetCentre', ac, 'smoothplastic', 0, parY + 2.5, td / 2 + 0.1, tw * 0.35, 3, 0.6)
   // Date tablet
   p('DateTablet', cc, 'smoothplastic', 0, parY + 3.5, td / 2 + 0.15, tw * 0.2, 1.2, 0.3)
+  // Pilasters every 2.5 studs along parapet front
+  const pilCount = Math.max(2, Math.floor(tw / 2.5))
+  const pilSpacing = tw / pilCount
+  for (let pl = 0; pl <= pilCount; pl++) {
+    const plx = -tw / 2 + pilSpacing * pl
+    p('ParapetPilaster', ac, 'smoothplastic', plx, parY + 1.5, td / 2 + 0.25, 0.55, 3.0, 0.55)
+  }
 
   // Ornamental horizontal mouldings (Peranakan-style coloured bands) — more rows
   for (let band = 1; band < fc; band++) {
