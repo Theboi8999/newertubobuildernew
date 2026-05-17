@@ -146,6 +146,17 @@ function bpToRbx(bp: BlueprintPart[]): RbxPart[] {
   }))
 }
 
+function applyGroundMaterial(allParts: RbxPart[]): RbxPart[] {
+  for (const part of allParts) {
+    const n = part.name.toLowerCase()
+    if (n.includes('ground') || n.includes('terrain') || n.includes('pavement') ||
+        n.includes('kerb') || n.includes('road') || n.includes('driveway') || n.includes('carpark') || n.includes('lawn')) {
+      part.material = 'concrete'
+    }
+  }
+  return allParts
+}
+
 function buildExterior(tw: number, td: number, r: ResearchResult, options?: { furniture?: boolean; scenery?: string; hasStaircases?: boolean }): RbxPart[] {
   try {
     const fh = Math.max(8, Math.min(18, Number(r.floorHeight) || 12))
@@ -188,17 +199,6 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
     const rc = dna.roofColor || r.roofColor || 'Dark grey'
     const ac = dna.accentColor || r.accentColor || 'Really black'
     const sceneryLevel = (options?.scenery || r.scenery || 'minimal') as SceneryLevel
-
-    function applyGroundMaterial(allParts: RbxPart[]): RbxPart[] {
-      for (const part of allParts) {
-        const n = part.name.toLowerCase()
-        if (n.includes('ground') || n.includes('terrain') || n.includes('pavement') ||
-            n.includes('kerb') || n.includes('road') || n.includes('driveway') || n.includes('carpark') || n.includes('lawn')) {
-          part.material = 'concrete'
-        }
-      }
-      return allParts
-    }
 
     if (mode === 'residential') {
       const modeParts = bpToRbx(buildResidential({
