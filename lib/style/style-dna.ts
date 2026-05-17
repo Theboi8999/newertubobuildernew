@@ -1,5 +1,5 @@
 export interface StyleDNA {
-  family: 'asian' | 'european' | 'modern' | 'industrial' | 'fantasy' | 'tropical'
+  family: 'asian' | 'european' | 'modern' | 'industrial' | 'fantasy' | 'tropical' | 'residential'
   era: string
   primaryColor: string
   secondaryColor: string
@@ -451,6 +451,28 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     groundMaterial: 'concrete',
     forbidden: ['pagoda', 'ornate_columns'],
     facadeGrammar: 'BLANK|ARCH|ARCH|ARCH|ARCH|BLANK',
+  },
+  'residential': {
+    family: 'residential',
+    era: 'contemporary',
+    primaryColor: 'Reddish brown',
+    secondaryColor: 'Medium stone grey',
+    roofColor: 'Dark grey',
+    trimColor: 'Really black',
+    accentColor: 'Really black',
+    floorBandColor: 'Light stone grey',
+    roofType: 'shed',
+    columnStyle: 'none',
+    windowShape: 'rectangular',
+    hasBalcony: true,
+    hasColonnade: false,
+    colonnadeDepth: 0,
+    ornamentLevel: 'none',
+    symmetry: 'loose',
+    wallMaterial: 'brick',
+    groundMaterial: 'concrete',
+    forbidden: ['pagoda', 'ornate_columns', 'colonnade'],
+    facadeGrammar: 'GARAGEDOOR|GARAGEDOOR|WINDOW',
   },
 }
 

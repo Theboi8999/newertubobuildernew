@@ -8,6 +8,7 @@ import { checkBuildingQuality } from '../lib/quality-checker'
 import { buildRbxmx, RbxModel } from '../lib/rbxmx'
 import { watermarkRbxmx } from '../lib/output-validator'
 import type { ResearchResult } from '../lib/research-agent'
+import { findGoldenSpec, goldenSpecToResearch } from '../lib/golden-specs'
 
 // ── Output plumbing ────────────────────────────────────────────────────────────
 
@@ -392,4 +393,44 @@ fs.writeFileSync(path.join(outDir, 'trace-output.rbxmx'), xmlFinal, 'utf-8')
 log('')
 log('Wrote scripts/trace-output.txt')
 log('Wrote scripts/trace-output.rbxmx')
+
+// ── TRACE 2: AUSTRALIAN MODERN BRICK HOUSE ────────────────────────────────────
+
+const AUS_PROMPT = 'Australian modern brick house 2 floors'
+const AUS_SEED = 42
+
+header('=== TRACE 2: AUSTRALIAN MODERN BRICK HOUSE ===')
+log('Prompt:', AUS_PROMPT)
+
+const ausSpec = findGoldenSpec('australian_brick_house', AUS_PROMPT)
+log('')
+log('Golden spec match:', ausSpec ? `YES (${ausSpec.id})` : 'NO — golden spec lookup failed')
+
+if (ausSpec) {
+  const s = ausSpec.spec
+  log('ec = Reddish brown?', s.exteriorColor, '→', s.exteriorColor === 'Reddish brown' ? 'PASS' : 'FAIL')
+  log('roofType = shed?', s.roofType, '→', s.roofType === 'shed' ? 'PASS' : 'FAIL')
+  log('hasBalcony = true?', s.hasBalcony, '→', s.hasBalcony === true ? 'PASS' : 'FAIL')
+  log('accentColor = Really black?', s.accentColor, '→', s.accentColor === 'Really black' ? 'PASS' : 'FAIL')
+  log('floorCount = 2?', s.floorCount, '→', s.floorCount === 2 ? 'PASS' : 'FAIL')
+  log('totalWidth = 52?', s.totalWidth, '→', s.totalWidth === 52 ? 'PASS' : 'FAIL')
+
+  const ausResearch = goldenSpecToResearch(ausSpec)
+  const ausCompiled = compileBlueprint(ausResearch, AUS_SEED)
+  log('')
+  log('Part count for Australian brick house:', ausCompiled.exterior.length)
+
+  const hasShedStep = ausCompiled.exterior.some(p => p.name.startsWith('ShedStep'))
+  const hasGarFrame = ausCompiled.exterior.some(p => p.name.startsWith('GarFrame'))
+  const hasBalcSlab = ausCompiled.exterior.some(p => p.name.startsWith('BalcSlab'))
+  log('Has ShedStep (shed roof):', hasShedStep ? 'PASS' : 'FAIL')
+  log('Has GarFrame (garage doors):', hasGarFrame ? 'PASS' : 'FAIL')
+  log('Has BalcSlab (balcony):', hasBalcSlab ? 'PASS' : 'FAIL')
+
+  const ausModel: RbxModel = { name: 'AustralianBrickHouse', parts: ausCompiled.exterior, scripts: [] }
+  const ausXml = buildRbxmx([ausModel])
+  fs.writeFileSync(path.join(__dirname, 'trace-output-aus.rbxmx'), ausXml, 'utf-8')
+  log('Wrote scripts/trace-output-aus.rbxmx')
+}
+
 log('TRACE COMPLETE.')

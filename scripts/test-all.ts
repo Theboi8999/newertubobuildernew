@@ -13,6 +13,11 @@ import { generateRoof } from '../lib/passes/pass-2-roof'
 import { generateTerrain } from '../lib/passes/pass-6-terrain'
 import { generateStaircases } from '../lib/passes/pass-5-staircases'
 import { createDefaultIntent, isIntentComplete, estimateGeneration } from '../lib/brain/build-intent'
+import { findGoldenSpec, goldenSpecToResearch } from '../lib/golden-specs'
+import { calculateProportions, PHI } from '../lib/proportions'
+import { parseFacadeGrammar } from '../lib/facade-grammar'
+import { buildColumn, buildArch, buildBallustrade } from '../lib/components'
+import { detectAgeTier, generateAgeDecals } from '../lib/age-system'
 
 // ── Test runner ──────────────────────────────────────────────────────────────
 
@@ -949,6 +954,146 @@ test('furniture enabled produces desk parts for office room', () => {
   const allParts = r.rooms.flat()
   const hasDesk = allParts.some(p => p.name.includes('Surface') || p.name.includes('Monitor'))
   assert(hasDesk, 'furniture=true should generate detailed desk parts for office room')
+})
+
+// ── GOLDEN SPECS ─────────────────────────────────────────────────────────────
+
+console.log('\n═══ GOLDEN SPECS ═══')
+
+test('findGoldenSpec matches peranakan shophouse', () => {
+  const spec = findGoldenSpec('singapore_peranakan_shophouse', 'peranakan')
+  assert(spec !== null, 'should find a golden spec for peranakan shophouse')
+  assert(spec!.id === 'peranakan_shophouse', `expected peranakan_shophouse, got ${spec!.id}`)
+})
+
+test('goldenSpecToResearch returns confidence 100', () => {
+  const spec = findGoldenSpec('peranakan_shophouse', '')
+  assert(spec !== null, 'should find spec')
+  const result = goldenSpecToResearch(spec!)
+  assert(result.confidence === 100, `expected confidence 100, got ${result.confidence}`)
+})
+
+test('findGoldenSpec matches Australian brick house by prompt', () => {
+  const spec = findGoldenSpec('australian_brick_house', 'Australian modern brick house')
+  assert(spec !== null, 'should find a golden spec')
+  assert(spec!.id === 'australian_brick_house', `expected australian_brick_house, got ${spec!.id}`)
+})
+
+test('findGoldenSpec matches australian house keyword', () => {
+  const spec = findGoldenSpec('australian house', '')
+  assert(spec !== null, 'should match australian house keyword')
+  assert(spec!.id === 'australian_brick_house', `expected australian_brick_house, got ${spec!.id}`)
+})
+
+test('findGoldenSpec matches brick house keyword', () => {
+  const spec = findGoldenSpec('brick house', '')
+  assert(spec !== null, 'should match brick house keyword')
+  assert(spec!.id === 'australian_brick_house', `expected australian_brick_house, got ${spec!.id}`)
+})
+
+test('Australian brick house spec has Reddish brown exterior', () => {
+  const spec = findGoldenSpec('australian_brick_house', '')
+  assert(spec !== null, 'should find spec')
+  assert(spec!.spec.exteriorColor === 'Reddish brown', `expected Reddish brown, got ${spec!.spec.exteriorColor}`)
+})
+
+test('Australian brick house spec has shed roof', () => {
+  const spec = findGoldenSpec('australian_brick_house', '')
+  assert(spec !== null, 'should find spec')
+  assert(spec!.spec.roofType === 'shed', `expected shed roof, got ${spec!.spec.roofType}`)
+})
+
+test('Australian brick house spec has balcony', () => {
+  const spec = findGoldenSpec('australian_brick_house', '')
+  assert(spec !== null, 'should find spec')
+  assert(spec!.spec.hasBalcony === true, `expected hasBalcony true, got ${spec!.spec.hasBalcony}`)
+})
+
+test('Australian brick house compiles with shed roof parts', () => {
+  const spec = findGoldenSpec('australian_brick_house', '')!
+  const r = goldenSpecToResearch(spec)
+  const compiled = compileBlueprint(r, 42)
+  const hasShed = compiled.exterior.some(p => p.name.startsWith('ShedStep') || p.name.startsWith('ShedFascia'))
+  assert(hasShed, `no shed roof parts found. Sample: ${compiled.exterior.slice(0,10).map(p=>p.name).join(',')}`)
+})
+
+test('Australian brick house compiles with garage door parts', () => {
+  const spec = findGoldenSpec('australian_brick_house', '')!
+  const r = goldenSpecToResearch(spec)
+  const compiled = compileBlueprint(r, 42)
+  const hasGarage = compiled.exterior.some(p => p.name.startsWith('GarFrame') || p.name.startsWith('GarPanel'))
+  assert(hasGarage, `no garage door parts found. Sample: ${compiled.exterior.slice(0,15).map(p=>p.name).join(',')}`)
+})
+
+test('Australian brick house compiles with balcony parts', () => {
+  const spec = findGoldenSpec('australian_brick_house', '')!
+  const r = goldenSpecToResearch(spec)
+  const compiled = compileBlueprint(r, 42)
+  const hasBalcony = compiled.exterior.some(p => p.name.startsWith('BalcSlab') || p.name.startsWith('BalcDeck'))
+  assert(hasBalcony, `no balcony parts found. Sample: ${compiled.exterior.slice(0,20).map(p=>p.name).join(',')}`)
+})
+
+// ── PROPORTIONS ──────────────────────────────────────────────────────────────
+
+console.log('\n═══ PROPORTIONS ═══')
+
+test('calculateProportions windowHeight/windowWidth approximates PHI', () => {
+  const prop = calculateProportions(40, 12, 3)
+  const ratio = prop.windowHeight / prop.windowWidth
+  assert(Math.abs(ratio - PHI) < 0.1, `expected ratio ~${PHI.toFixed(3)}, got ${ratio.toFixed(3)}`)
+})
+
+test('calculateProportions narrow building has smaller pilasterWidth', () => {
+  const narrow = calculateProportions(30, 12, 3, 'shophouse')
+  const wide = calculateProportions(80, 12, 3, 'parliament')
+  assert(narrow.pilasterWidth < wide.pilasterWidth, `narrow pilaster ${narrow.pilasterWidth} should be < wide ${wide.pilasterWidth}`)
+})
+
+// ── FACADE GRAMMAR ────────────────────────────────────────────────────────────
+
+console.log('\n═══ FACADE GRAMMAR ═══')
+
+test('parseFacadeGrammar returns correct element count', () => {
+  const elements = parseFacadeGrammar('PILASTER|WINDOW|DOOR|WINDOW|PILASTER', 40, 12)
+  assert(elements.length === 5, `expected 5 elements, got ${elements.length}`)
+})
+
+test('parseFacadeGrammar elements fit within wall width', () => {
+  const elements = parseFacadeGrammar('PILASTER|WINDOW|DOOR|WINDOW|PILASTER', 40, 12)
+  for (const el of elements) {
+    assert(el.x >= 0 && el.x <= 40, `element ${el.type} x=${el.x} outside wall width 40`)
+  }
+})
+
+// ── COMPONENTS ───────────────────────────────────────────────────────────────
+
+console.log('\n═══ COMPONENTS ═══')
+
+test('buildColumn returns 3 parts (base, shaft, capital)', () => {
+  const parts = buildColumn({ name: 'TestCol', x: 0, y: 0, z: 0, height: 10, color: 'White' })
+  assert(parts.length === 3, `expected 3 column parts, got ${parts.length}`)
+  assert(parts.some(p => p.name.includes('Base')), 'should have base part')
+  assert(parts.some(p => p.name.includes('Shaft')), 'should have shaft part')
+  assert(parts.some(p => p.name.includes('Capital')), 'should have capital part')
+})
+
+// ── AGE SYSTEM ────────────────────────────────────────────────────────────────
+
+console.log('\n═══ AGE SYSTEM ═══')
+
+test('detectAgeTier returns correct tiers', () => {
+  assert(detectAgeTier(0) === 'new', 'year 0 should be new')
+  assert(detectAgeTier(20) === 'aged', 'year 20 should be aged')
+  assert(detectAgeTier(70) === 'weathered', 'year 70 should be weathered')
+  assert(detectAgeTier(120) === 'ruined', 'year 120 should be ruined')
+})
+
+test('generateAgeDecals new returns empty, weathered returns decals', () => {
+  const { AGE_PROFILES } = require('../lib/age-system')
+  const newParts = generateAgeDecals('Test', 40, 28, 2.3, 48, AGE_PROFILES.new)
+  assert(newParts.length === 0, `new tier should return no decals, got ${newParts.length}`)
+  const weatheredParts = generateAgeDecals('Test', 40, 28, 2.3, 48, AGE_PROFILES.weathered)
+  assert(weatheredParts.length > 0, 'weathered tier should return decal parts')
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

@@ -244,11 +244,50 @@ function generateHipRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
 }
 
 function generateShedRoof(plan: BuildPlan, dna: StyleDNA): RbxPart[] {
-  const parts: RbxPart[] = []
-  const { tw, td, wallBase, floorCount, floorHeight } = plan
-  const baseY = wallBase + floorCount * floorHeight
+  const { tw, td, th, wallBase, floorCount, floorHeight } = plan
   const rc = dna.roofColor
-  parts.push(p('ShedRoof', tw + 2, 1.0, td + 2, tw / 2, baseY + 0.5, td / 2, rc, 'smoothplastic'))
-  parts.push(p('ShedRoofRise', tw + 2, 2.0, 0.6, tw / 2, baseY + 1.5, td + 1, rc, 'smoothplastic'))
+  const rm = dna.roofMaterial || 'smoothplastic'
+  const topY = wallBase + th
+  const parts: RbxPart[] = []
+
+  // Shed roof slopes from front (high) to back (low), 18% pitch
+  const pitch = td * 0.18
+  const steps = 10
+
+  for (let i = 0; i < steps; i++) {
+    const t = i / steps
+    const stepZ = td * t
+    const stepY = topY - t * pitch
+    const stepH = 0.8
+    const stepD = (td / steps) + 0.05
+    parts.push(p(`ShedStep_${i}`, tw + 1.5, stepH, stepD,
+      tw / 2, stepY, stepZ, rc, rm))
+  }
+
+  // Front fascia — tall vertical face at front edge
+  parts.push(p('ShedFascia', tw + 1.5, 2.2, 0.5,
+    tw / 2, topY + 0.6, -0.25, rc, rm))
+
+  // Front overhang soffit (underside of front overhang)
+  parts.push(p('ShedSoffitF', tw + 1.5, 0.3, 1.5,
+    tw / 2, topY - 0.15, -0.75, 'Dark stone grey', rm))
+
+  // Left fascia (side)
+  parts.push(p('ShedFasciaL', 0.5, 1.8, td + 1.0,
+    -0.25, topY + 0.3, td / 2, rc, rm))
+
+  // Right fascia (side)
+  parts.push(p('ShedFasciaR', 0.5, 1.8, td + 1.0,
+    tw + 0.25, topY + 0.3, td / 2, rc, rm))
+
+  // Upper level setback with flat roof section (visible on 2-storey builds)
+  if (floorCount >= 2) {
+    const upperW = tw * 0.35
+    parts.push(p('ShedUpperSlab', upperW, 0.5, td * 0.4,
+      upperW / 2, topY + 0.25, td * 0.2, rc, rm))
+    parts.push(p('ShedUpperFascia', upperW, 1.2, 0.4,
+      upperW / 2, topY + 0.9, 0, rc, rm))
+  }
+
   return parts
 }
