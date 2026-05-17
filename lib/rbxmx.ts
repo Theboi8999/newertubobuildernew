@@ -435,7 +435,7 @@ function generatePart(part: RbxPart, id: number): string {
   const n = safeName.toLowerCase()
   // Force material token at the XML level — bypasses any upstream material string issues
   const isGround = n.includes('ground') || n.includes('road') || n.includes('pavement') || n.includes('kerb')
-  const isDoor = n.includes('door') || n.includes('bench_s') || n.includes('bench_b')
+  const isDoor = (n.includes('door') && !n.includes('frame') && !n.includes('gar') && !n.includes('drive')) || n.includes('bench_s') || n.includes('bench_b')
   const color = sanitizeColor(part.color || 'Light grey')
   const matStr = part.material || 'smoothplastic'
   const safeMat = isGround ? getMat('concrete') : isDoor ? getMat('wood') : getMat(matStr)
