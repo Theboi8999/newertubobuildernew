@@ -7,7 +7,6 @@ import { generateRoof } from './passes/pass-2-roof'
 import { generateFacade } from './passes/pass-3-facade'
 import { generateTerrain, SceneryLevel } from './passes/pass-6-terrain'
 import { getStyleDNA, StyleDNA } from './style/style-dna'
-import { calculateProportions, BuildingProportions } from './proportions'
 import {
   buildDetailedDesk,
   buildDetailedChair,
@@ -17,6 +16,10 @@ import {
 } from './detail-system'
 import { generateStaircases } from './passes/pass-5-staircases'
 import { detectClimate, CLIMATE_PROFILES, applyClimateToDNA, generateChimneyStacks } from './climate-profiles'
+import { detectMode } from './building-mode'
+import { buildResidential } from './modes/residential'
+import { buildShophouse } from './modes/shophouse'
+import { buildCivic } from './modes/civic'
 
 export interface BuildPlan {
   tw: number
@@ -27,11 +30,23 @@ export interface BuildPlan {
   floorHeight: number
   buildingType: string
   architecturalStyle: string
-  proportions?: BuildingProportions
+  proportions?: Record<string, number>
 }
 
 export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; exterior:RbxPart[]; totalWidth:number; totalDepth:number; roomLayout:Array<{name:string;x:number;z:number;width:number;depth:number;type:string}> }
 export type RoomLayoutItem = CompiledBlueprint['roomLayout'][0]
+
+export interface BlueprintPart {
+  name: string
+  color: string
+  material: string
+  x: number
+  y: number
+  z: number
+  sx: number
+  sy: number
+  sz: number
+}
 
 const VC:Record<string,string>={'white':'White','institutional white':'Institutional white','light grey':'Light grey','light gray':'Light grey','medium stone grey':'Medium stone grey','medium stone gray':'Medium stone grey','dark grey':'Dark grey','dark gray':'Dark grey','light stone grey':'Light stone grey','dark stone grey':'Dark stone grey','really black':'Really black','black':'Really black','bright red':'Bright red','dark red':'Dark red','rust':'Rust','reddish brown':'Reddish brown','bright orange':'Bright orange','dark orange':'Dark orange','bright yellow':'Bright yellow','sand yellow':'Sand yellow','brick yellow':'Brick yellow','bright green':'Bright green','dark green':'Dark green','sand green':'Sand green','medium green':'Medium green','bright blue':'Bright blue','navy blue':'Navy blue','sand blue':'Sand blue','light blue':'Light blue','hot pink':'Hot pink','cashmere':'Cashmere','teal':'Bright bluish green','cyan':'Bright bluish green','brown':'Reddish brown','beige':'Sand yellow','cream':'White','grey':'Light grey','gray':'Light grey','green':'Bright green','blue':'Bright blue','red':'Bright red','yellow':'Bright yellow','orange':'Bright orange','pink':'Hot pink'}
 const VM:Record<string,string>={smoothplastic:'smoothplastic',plastic:'smoothplastic',wood:'wood',timber:'wood',oak:'wood',pine:'wood',teak:'wood',bamboo:'wood',brick:'brick',sandstone:'brick',terracotta:'brick',clay:'brick',limestone:'smoothplastic',lime:'smoothplastic',concrete:'concrete',stone:'concrete',slate:'concrete',granite:'concrete',tile:'concrete',tiles:'concrete',paving:'concrete',pavement:'concrete',tarmac:'concrete',asphalt:'concrete',cobblestone:'concrete',metal:'metal',steel:'metal',copper:'metal',aluminium:'metal',aluminum:'metal',iron:'metal',zinc:'metal',cladding:'metal',fabric:'fabric',carpet:'fabric',marble:'marble',neon:'neon',glass:'smoothplastic',glazed:'smoothplastic',render:'smoothplastic',stucco:'smoothplastic',plaster:'smoothplastic',painted:'smoothplastic',grass:'concrete'}
@@ -118,6 +133,19 @@ function compileRoom(room:ResearchResult['rooms'][0],ox:number,oz:number,style:s
   return pts
 }
 
+function bpToRbx(bp: BlueprintPart[]): RbxPart[] {
+  return bp.map(b => ({
+    name: b.name,
+    size: { x: Math.max(0.1, b.sx), y: Math.max(0.1, b.sy), z: Math.max(0.1, b.sz) },
+    position: { x: b.x, y: b.y, z: b.z },
+    color: vc(b.color),
+    material: vm(b.material),
+    anchored: true,
+    transparency: 0,
+    emissive: false,
+  }))
+}
+
 function buildExterior(tw: number, td: number, r: ResearchResult, options?: { furniture?: boolean; scenery?: string; hasStaircases?: boolean }): RbxPart[] {
   try {
     const fh = Math.max(8, Math.min(18, Number(r.floorHeight) || 12))
@@ -133,7 +161,6 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
       floorHeight: fh,
       buildingType: r.buildingType || '',
       architecturalStyle: r.architecturalStyle || '',
-      proportions: calculateProportions(tw, fh, fc, r.buildingType || ''),
     }
 
     const dna = getStyleDNA(
@@ -153,6 +180,62 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
     applyClimateToDNA(dna, climateProfile)
 
     console.log('[buildExterior] StyleDNA:', dna.family, 'primary:', dna.primaryColor, 'roof:', dna.roofColor)
+
+    const mode = detectMode({ buildingType: r.buildingType, architecturalStyle: r.architecturalStyle }, dna)
+    console.log('[buildExterior] mode:', mode, 'buildingType:', r.buildingType)
+
+    const ec = dna.primaryColor || r.exteriorColor || 'Light grey'
+    const rc = dna.roofColor || r.roofColor || 'Dark grey'
+    const ac = dna.accentColor || r.accentColor || 'Really black'
+    const sceneryLevel = (options?.scenery || r.scenery || 'minimal') as SceneryLevel
+
+    function applyGroundMaterial(allParts: RbxPart[]): RbxPart[] {
+      for (const part of allParts) {
+        const n = part.name.toLowerCase()
+        if (n.includes('ground') || n.includes('terrain') || n.includes('pavement') ||
+            n.includes('kerb') || n.includes('road') || n.includes('driveway') || n.includes('carpark') || n.includes('lawn')) {
+          part.material = 'concrete'
+        }
+      }
+      return allParts
+    }
+
+    if (mode === 'residential') {
+      const modeParts = bpToRbx(buildResidential({
+        tw, td, fh, fc, wallBase,
+        ec, em: 'brick', rc, ac,
+        hasBalcony: !!(dna.hasBalcony || r.hasBalcony),
+        hasGarage: !!(r.buildingType?.includes('house') || r.buildingType?.includes('residential')),
+        roofType: (dna.roofType as 'shed' | 'gable' | 'hip' | 'flat') || 'shed',
+      }))
+      const terrain = generateTerrain(plan, dna, sceneryLevel)
+      console.log('[buildExterior] total parts:', modeParts.length + terrain.length)
+      return applyGroundMaterial([...modeParts, ...terrain])
+    }
+    if (mode === 'shophouse') {
+      const modeParts = bpToRbx(buildShophouse({
+        tw, td, fh, fc, wallBase,
+        ec, em: 'smoothplastic', rc,
+        ac: dna.accentColor || r.accentColor || 'Dark green',
+        cc: 'White',
+      }))
+      const terrain = generateTerrain(plan, dna, sceneryLevel)
+      console.log('[buildExterior] total parts:', modeParts.length + terrain.length)
+      return applyGroundMaterial([...modeParts, ...terrain])
+    }
+    if (mode === 'civic') {
+      const modeParts = bpToRbx(buildCivic({
+        tw, td, fh, fc, wallBase,
+        ec, em: 'concrete', rc,
+        ac: dna.accentColor || r.accentColor || 'White',
+        hasColonnade: !!(r.hasColonnade || dna.hasColonnade),
+        colonnadeDepth: (dna as any).colonnadeDepth || 4,
+        roofType: 'flat',
+      }))
+      const terrain = generateTerrain(plan, dna, sceneryLevel)
+      console.log('[buildExterior] total parts:', modeParts.length + terrain.length)
+      return applyGroundMaterial([...modeParts, ...terrain])
+    }
 
     const structure = generateStructure(plan, dna)
     const roof = generateRoof(plan, dna)

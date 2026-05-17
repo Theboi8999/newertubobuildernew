@@ -123,104 +123,47 @@ export async function generateAsset(
       try {
         await onProgress?.('🔬 Researching building type...', 50)
 
-        // ── Golden spec: bypass AI research for well-known building types ──────
-        let _goldenMatch: GoldenSpec | null = null
-        try {
-          _goldenMatch = findGoldenSpec(buildingType, prompt)
-          if (_goldenMatch) {
-            researchResult = goldenSpecToResearch(_goldenMatch)
-            console.log('[generator] ✅ golden spec matched:', _goldenMatch.id, '— AI research skipped')
-            researchResult = applyStyleDefaults(researchResult)
-          }
-        } catch (e) { console.error('[generateAsset] golden spec error:', e) }
+        const goldenSpec = findGoldenSpec(buildingType, prompt)
 
-        if (!_goldenMatch) {
+        if (goldenSpec) {
+          // Golden spec is FINAL — skip all research and overrides
+          console.log('[generator] golden spec matched:', goldenSpec.id)
+          researchResult = goldenSpecToResearch(goldenSpec)
+          if (intent.floorCountHint && intent.floorCountHint > 0) {
+            researchResult.floorCount = intent.floorCountHint
+          }
+        } else {
+          // Unknown building type — full research pipeline
           let teachingContext = ''
           try {
             const { getTeachingContext } = await import('./self-teaching-agent')
             teachingContext = await getTeachingContext(buildingType)
-          } catch (e) {
-            console.error('[generateAsset] teaching context error:', e)
-          }
+          } catch(e) {}
 
           researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
           researchResult = applyStyleDefaults(researchResult)
-          console.log('[generator] after applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle, 'colonnade:', researchResult.hasColonnade)
-        }
 
-        // Forced style overrides — applyStyleDefaults may not have matched
-        const btLower = researchResult.buildingType.toLowerCase()
-        const promptLower = prompt.toLowerCase()
-        isPeranakan = btLower.includes('peranakan') || btLower.includes('shophouse') ||
-          btLower.includes('singapore') || promptLower.includes('peranakan') ||
-          promptLower.includes('shophouse') || promptLower.includes('singapore')
-        isVictorian = btLower.includes('victorian') || btLower.includes('police') || promptLower.includes('victorian') || promptLower.includes('police station')
-        isModernGlass = (btLower.includes('office') || btLower.includes('corporate') || promptLower.includes('glass office')) && !isPeranakan && !isVictorian
-
-        if (isPeranakan) {
-          researchResult.exteriorColor = 'Sand yellow'
-          researchResult.roofColor = 'Dark green'
-          researchResult.hasColonnade = true
-          researchResult.architecturalStyle = 'peranakan chinese colonial'
-          researchResult.floorCount = 4
-          researchResult.exteriorMaterial = 'smoothplastic'
-          console.log('[generator] ✅ peranakan overrides: ec=Sand yellow rc=Dark green colonnade=true floors=', researchResult.floorCount)
-        }
-        if (isVictorian && !isPeranakan) {
-          if (researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Reddish brown'
-          researchResult.exteriorMaterial = 'brick'
-          if (researchResult.floorCount < 2) researchResult.floorCount = 2
-          researchResult.architecturalStyle = 'victorian brick classical'
-          console.log('[generator] ✅ victorian overrides applied')
-        }
-        if (isModernGlass) {
-          researchResult.hasGlassFront = true
-          if (!researchResult.exteriorColor || researchResult.exteriorColor === 'Light grey') researchResult.exteriorColor = 'Light grey'
-        }
-
-        // Reference image style extraction
-        if (options.referenceImages && options.referenceImages.length > 0) {
-          try {
-            const { extractBuildingStyle } = await import('./vision-analyzer')
-            for (const img of options.referenceImages) {
-              const extracted = await extractBuildingStyle(img.base64, img.mimeType)
-              if (extracted) {
-                console.log('[generator] extracted style from reference:', JSON.stringify(extracted))
-                if (extracted.dominantWallColor) researchResult.exteriorColor = extracted.dominantWallColor
-                if (extracted.dominantRoofColor) researchResult.roofColor = extracted.dominantRoofColor
-                if (extracted.hasArches) researchResult.hasColonnade = true
-                if (extracted.estimatedFloors > 1) researchResult.floorCount = extracted.estimatedFloors
-                if (extracted.styleDescription) researchResult.architecturalStyle = extracted.styleDescription
-                console.log('[generator] applied reference overrides - ec:', researchResult.exteriorColor, 'floors:', researchResult.floorCount)
-                break
-              }
-            }
-          } catch (e) {
-            console.error('[generator] reference style extraction error:', e)
+          if (intent.floorCountHint && intent.floorCountHint > 0) {
+            researchResult.floorCount = intent.floorCountHint
+          }
+          if (options.floorCountOverride && options.floorCountOverride > 0) {
+            researchResult.floorCount = options.floorCountOverride
+          }
+          if (options.buildingStyle) {
+            const sm = matchStyleLibrary('', options.buildingStyle)
+            if (sm) researchResult = { ...researchResult, ...sm }
           }
         }
 
-        if (intent.floorCountHint && intent.floorCountHint > 1) {
-          researchResult = { ...researchResult, floorCount: intent.floorCountHint }
-          console.log('[generator] floor hint applied:', intent.floorCountHint)
-        }
-        if (options.floorCountOverride && options.floorCountOverride > 0) {
-          researchResult = { ...researchResult, floorCount: options.floorCountOverride }
-        }
         if (options.scenery) researchResult.scenery = options.scenery
         if (options.mode) researchResult.mode = options.mode
         if (options.hasStaircases !== undefined) researchResult.hasStaircases = options.hasStaircases
-        if (options.buildingStyle) {
-          const sm = matchStyleLibrary('', options.buildingStyle)
-          if (sm) researchResult = { ...researchResult, ...sm }
-        }
 
         const gate = preGate(researchResult)
-        if (!gate.passed) {
+        if (!gate.passed && !goldenSpec) {
           console.log('[generator] pre-gate failed, retrying research')
           researchResult = await researchBuildingType(buildingType, { forceRefresh: true })
           researchResult = applyStyleDefaults(researchResult)
-          console.log('[generator] after retry applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle)
         }
 
         console.log('[generateAsset] research confidence:', researchResult.confidence)

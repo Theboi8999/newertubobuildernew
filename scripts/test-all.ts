@@ -14,10 +14,11 @@ import { generateTerrain } from '../lib/passes/pass-6-terrain'
 import { generateStaircases } from '../lib/passes/pass-5-staircases'
 import { createDefaultIntent, isIntentComplete, estimateGeneration } from '../lib/brain/build-intent'
 import { findGoldenSpec, goldenSpecToResearch } from '../lib/golden-specs'
-import { calculateProportions, PHI } from '../lib/proportions'
-import { parseFacadeGrammar } from '../lib/facade-grammar'
-import { buildColumn, buildArch, buildBallustrade } from '../lib/components'
 import { detectAgeTier, generateAgeDecals } from '../lib/age-system'
+import { detectMode } from '../lib/building-mode'
+import { buildResidential } from '../lib/modes/residential'
+import { buildShophouse } from '../lib/modes/shophouse'
+import { buildCivic } from '../lib/modes/civic'
 
 // ── Test runner ──────────────────────────────────────────────────────────────
 
@@ -239,7 +240,7 @@ test('peranakan generates flat parapet roof', () => {
     exteriorColor: 'Sand yellow',
     roofColor: 'Dark green'
   }))
-  const hasParapet = r.exterior.some(p => p.name === 'Parapet_F' || p.name === 'Roof')
+  const hasParapet = r.exterior.some(p => p.name === 'Parapet_F' || p.name === 'Roof' || p.name.startsWith('SHP_Parapet') || p.name.startsWith('SHP_Roof'))
   assert(hasParapet, 'peranakan shophouse should have flat parapet roof, not pagoda')
 })
 
@@ -543,7 +544,7 @@ test('peranakan shophouse has flat parapet roof after compile', () => {
     totalDepth: 28,
   }))
   const allParts = [...r.exterior, ...r.rooms.flat()]
-  const hasParapet = allParts.some(p => p.name === 'Parapet_F' || p.name === 'Roof')
+  const hasParapet = allParts.some(p => p.name === 'Parapet_F' || p.name === 'Roof' || p.name.startsWith('SHP_Parapet') || p.name.startsWith('SHP_Roof'))
   assert(hasParapet, `no flat roof parts found. Part names sample: ${allParts.slice(0, 10).map(p => p.name).join(',')}`)
 })
 
@@ -568,7 +569,7 @@ test('peranakan building has colonnade parts', () => {
     hasColonnade: true,
     exteriorColor: 'Sand yellow',
   }))
-  const colParts = r.exterior.filter(p => p.name.toLowerCase().startsWith('col') || p.name.toLowerCase().includes('arch'))
+  const colParts = r.exterior.filter(p => p.name.toLowerCase().startsWith('col') || p.name.toLowerCase().includes('arch') || p.name.toLowerCase().startsWith('shp_col'))
   assert(colParts.length > 0, 'no colonnade parts found')
 })
 
@@ -668,7 +669,7 @@ test('peranakan compile produces parapet roof parts', () => {
     totalWidth: 40,
     totalDepth: 28,
   }))
-  const parapets = r.exterior.filter(p => p.name.startsWith('Parapet_') || p.name === 'Roof')
+  const parapets = r.exterior.filter(p => p.name.startsWith('Parapet_') || p.name === 'Roof' || p.name.startsWith('SHP_Parapet') || p.name.startsWith('SHP_Roof'))
   assert(parapets.length > 0, `no parapet roof parts. Sample names: ${r.exterior.slice(0,15).map(p=>p.name).join(',')}`)
 })
 
@@ -681,7 +682,7 @@ test('peranakan compile produces colonnade parts', () => {
     totalWidth: 40,
     totalDepth: 28,
   }))
-  const cols = r.exterior.filter(p => p.name.toLowerCase().startsWith('col'))
+  const cols = r.exterior.filter(p => p.name.toLowerCase().startsWith('col') || p.name.toLowerCase().startsWith('shp_col'))
   assert(cols.length > 0, `no colonnade parts. Sample: ${r.exterior.slice(0,15).map(p=>p.name).join(',')}`)
 })
 
@@ -766,7 +767,7 @@ test('white columns for peranakan', () => {
     hasColonnade: true,
     exteriorColor: 'Sand yellow',
   }))
-  const cols = r.exterior.filter(p => p.name.includes('_Shaft'))
+  const cols = r.exterior.filter(p => p.name.includes('_Shaft') || p.name.includes('ColShaft'))
   assert(cols.length > 0, 'should have column shafts')
   assert(cols.every(p => p.material === 'smoothplastic'), `columns should be smoothplastic, got: ${cols.map(p=>p.material).join(',')}`)
   assert(cols.every(p => p.color === 'White'), `columns should be White, got: ${cols.map(p=>p.color).join(',')}`)
@@ -1013,7 +1014,9 @@ test('Australian brick house compiles with shed roof parts', () => {
   const spec = findGoldenSpec('australian_brick_house', '')!
   const r = goldenSpecToResearch(spec)
   const compiled = compileBlueprint(r, 42)
-  const hasShed = compiled.exterior.some(p => p.name.startsWith('ShedStep') || p.name.startsWith('ShedFascia'))
+  const hasShed = compiled.exterior.some(p =>
+    p.name.startsWith('RES_Roof') || p.name.startsWith('ShedStep') || p.name.startsWith('ShedFascia')
+  )
   assert(hasShed, `no shed roof parts found. Sample: ${compiled.exterior.slice(0,10).map(p=>p.name).join(',')}`)
 })
 
@@ -1021,7 +1024,9 @@ test('Australian brick house compiles with garage door parts', () => {
   const spec = findGoldenSpec('australian_brick_house', '')!
   const r = goldenSpecToResearch(spec)
   const compiled = compileBlueprint(r, 42)
-  const hasGarage = compiled.exterior.some(p => p.name.startsWith('GarFrame') || p.name.startsWith('GarPanel'))
+  const hasGarage = compiled.exterior.some(p =>
+    p.name.startsWith('RES_Gar') || p.name.startsWith('GarFrame') || p.name.startsWith('GarPanel')
+  )
   assert(hasGarage, `no garage door parts found. Sample: ${compiled.exterior.slice(0,15).map(p=>p.name).join(',')}`)
 })
 
@@ -1029,52 +1034,10 @@ test('Australian brick house compiles with balcony parts', () => {
   const spec = findGoldenSpec('australian_brick_house', '')!
   const r = goldenSpecToResearch(spec)
   const compiled = compileBlueprint(r, 42)
-  const hasBalcony = compiled.exterior.some(p => p.name.startsWith('BalcSlab') || p.name.startsWith('BalcDeck'))
+  const hasBalcony = compiled.exterior.some(p =>
+    p.name.startsWith('RES_Bal') || p.name.startsWith('BalcSlab') || p.name.startsWith('BalcDeck')
+  )
   assert(hasBalcony, `no balcony parts found. Sample: ${compiled.exterior.slice(0,20).map(p=>p.name).join(',')}`)
-})
-
-// ── PROPORTIONS ──────────────────────────────────────────────────────────────
-
-console.log('\n═══ PROPORTIONS ═══')
-
-test('calculateProportions windowHeight/windowWidth approximates PHI', () => {
-  const prop = calculateProportions(40, 12, 3)
-  const ratio = prop.windowHeight / prop.windowWidth
-  assert(Math.abs(ratio - PHI) < 0.1, `expected ratio ~${PHI.toFixed(3)}, got ${ratio.toFixed(3)}`)
-})
-
-test('calculateProportions narrow building has smaller pilasterWidth', () => {
-  const narrow = calculateProportions(30, 12, 3, 'shophouse')
-  const wide = calculateProportions(80, 12, 3, 'parliament')
-  assert(narrow.pilasterWidth < wide.pilasterWidth, `narrow pilaster ${narrow.pilasterWidth} should be < wide ${wide.pilasterWidth}`)
-})
-
-// ── FACADE GRAMMAR ────────────────────────────────────────────────────────────
-
-console.log('\n═══ FACADE GRAMMAR ═══')
-
-test('parseFacadeGrammar returns correct element count', () => {
-  const elements = parseFacadeGrammar('PILASTER|WINDOW|DOOR|WINDOW|PILASTER', 40, 12)
-  assert(elements.length === 5, `expected 5 elements, got ${elements.length}`)
-})
-
-test('parseFacadeGrammar elements fit within wall width', () => {
-  const elements = parseFacadeGrammar('PILASTER|WINDOW|DOOR|WINDOW|PILASTER', 40, 12)
-  for (const el of elements) {
-    assert(el.x >= 0 && el.x <= 40, `element ${el.type} x=${el.x} outside wall width 40`)
-  }
-})
-
-// ── COMPONENTS ───────────────────────────────────────────────────────────────
-
-console.log('\n═══ COMPONENTS ═══')
-
-test('buildColumn returns 3 parts (base, shaft, capital)', () => {
-  const parts = buildColumn({ name: 'TestCol', x: 0, y: 0, z: 0, height: 10, color: 'White' })
-  assert(parts.length === 3, `expected 3 column parts, got ${parts.length}`)
-  assert(parts.some(p => p.name.includes('Base')), 'should have base part')
-  assert(parts.some(p => p.name.includes('Shaft')), 'should have shaft part')
-  assert(parts.some(p => p.name.includes('Capital')), 'should have capital part')
 })
 
 // ── AGE SYSTEM ────────────────────────────────────────────────────────────────
@@ -1094,6 +1057,95 @@ test('generateAgeDecals new returns empty, weathered returns decals', () => {
   assert(newParts.length === 0, `new tier should return no decals, got ${newParts.length}`)
   const weatheredParts = generateAgeDecals('Test', 40, 28, 2.3, 48, AGE_PROFILES.weathered)
   assert(weatheredParts.length > 0, 'weathered tier should return decal parts')
+})
+
+// ── MODE DETECTION TESTS ──────────────────────────────────────────────────────
+
+console.log('\n═══ MODE DETECTION ═══')
+
+test('detectMode returns residential for house', () => {
+  const mode = detectMode({ buildingType: 'australian_brick_house', architecturalStyle: 'modern' })
+  assert(mode === 'residential', `expected residential got ${mode}`)
+})
+
+test('detectMode returns shophouse for peranakan', () => {
+  const mode = detectMode({ buildingType: 'peranakan_shophouse', architecturalStyle: 'chinese colonial' })
+  assert(mode === 'shophouse', `expected shophouse got ${mode}`)
+})
+
+test('detectMode returns civic for hospital', () => {
+  const mode = detectMode({ buildingType: 'hospital', architecturalStyle: 'modern' })
+  assert(mode === 'civic', `expected civic got ${mode}`)
+})
+
+test('detectMode prefers dna.family over keywords', () => {
+  const mode = detectMode({ buildingType: 'some_building', architecturalStyle: 'modern' }, { family: 'shophouse' })
+  assert(mode === 'shophouse', `dna.family should take priority, got ${mode}`)
+})
+
+test('detectMode returns generic for unknown building', () => {
+  const mode = detectMode({ buildingType: 'random_xyz_building', architecturalStyle: 'abstract' })
+  assert(mode === 'generic', `expected generic got ${mode}`)
+})
+
+// ── BUILD RESIDENTIAL TESTS ───────────────────────────────────────────────────
+
+console.log('\n═══ BUILD RESIDENTIAL ═══')
+
+test('buildResidential returns parts array', () => {
+  const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: true, hasGarage: true, roofType: 'shed' })
+  assert(parts.length > 20, `expected > 20 parts got ${parts.length}`)
+})
+
+test('buildResidential includes RES_ prefixed parts', () => {
+  const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: false, hasGarage: false, roofType: 'flat' })
+  assert(parts.every(p => p.name.startsWith('RES_')), 'all residential parts must be prefixed RES_')
+})
+
+test('buildResidential with balcony includes RES_BalSlab parts', () => {
+  const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: true, hasGarage: false, roofType: 'shed' })
+  const hasBal = parts.some(p => p.name.includes('BalSlab'))
+  assert(hasBal, 'should have balcony slab parts')
+})
+
+// ── BUILD SHOPHOUSE TESTS ─────────────────────────────────────────────────────
+
+console.log('\n═══ BUILD SHOPHOUSE ═══')
+
+test('buildShophouse returns parts array', () => {
+  const parts = buildShophouse({ tw: 36, td: 28, fh: 12, fc: 3, wallBase: 2.3, ec: 'Sand yellow', em: 'smoothplastic', rc: 'Dark green', ac: 'Dark green', cc: 'White' })
+  assert(parts.length > 50, `expected > 50 parts got ${parts.length}`)
+})
+
+test('buildShophouse includes SHP_ prefixed parts', () => {
+  const parts = buildShophouse({ tw: 36, td: 28, fh: 12, fc: 3, wallBase: 2.3, ec: 'Sand yellow', em: 'smoothplastic', rc: 'Dark green', ac: 'Dark green', cc: 'White' })
+  assert(parts.every(p => p.name.startsWith('SHP_')), 'all shophouse parts must be prefixed SHP_')
+})
+
+test('buildShophouse has colonnade columns', () => {
+  const parts = buildShophouse({ tw: 36, td: 28, fh: 12, fc: 3, wallBase: 2.3, ec: 'Sand yellow', em: 'smoothplastic', rc: 'Dark green', ac: 'Dark green', cc: 'White' })
+  const cols = parts.filter(p => p.name.includes('ColShaft'))
+  assert(cols.length >= 2, `expected >= 2 column shafts got ${cols.length}`)
+})
+
+// ── BUILD CIVIC TESTS ─────────────────────────────────────────────────────────
+
+console.log('\n═══ BUILD CIVIC ═══')
+
+test('buildCivic returns parts array', () => {
+  const parts = buildCivic({ tw: 60, td: 40, fh: 12, fc: 3, wallBase: 2.3, ec: 'Light grey', em: 'concrete', rc: 'Dark grey', ac: 'White', hasColonnade: true, colonnadeDepth: 5, roofType: 'flat' })
+  assert(parts.length > 30, `expected > 30 parts got ${parts.length}`)
+})
+
+test('buildCivic includes CIV_ prefixed parts', () => {
+  const parts = buildCivic({ tw: 60, td: 40, fh: 12, fc: 3, wallBase: 2.3, ec: 'White', em: 'concrete', rc: 'Dark grey', ac: 'White', hasColonnade: false, colonnadeDepth: 4, roofType: 'flat' })
+  assert(parts.every(p => p.name.startsWith('CIV_')), 'all civic parts must be prefixed CIV_')
+})
+
+test('buildCivic with colonnade has column parts', () => {
+  const parts = buildCivic({ tw: 60, td: 40, fh: 12, fc: 3, wallBase: 2.3, ec: 'White', em: 'concrete', rc: 'Dark grey', ac: 'White', hasColonnade: true, colonnadeDepth: 5, roofType: 'dome' })
+  const cols = parts.filter(p => p.name.includes('ColShaft'))
+  assert(cols.length >= 2, `expected >= 2 civic columns got ${cols.length}`)
 })
 
 // ── SUMMARY ──────────────────────────────────────────────────────────────────

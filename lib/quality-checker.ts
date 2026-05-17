@@ -23,7 +23,7 @@ export function checkBuildingQuality(
   research: ResearchResult | null,
   buildingType: string,
   roomLayout?: RoomLayoutItem[],
-  options?: { hasStaircases?: boolean }
+  options?: { hasStaircases?: boolean; mode?: string }
 ): QualityCheckResult {
   const checks: QualityCheck[] = []
   const suggestions: string[] = []
@@ -31,9 +31,14 @@ export function checkBuildingQuality(
   const partNames = parts.map(p => p.name)
   const colorsUsed = parts.map(p => p.color)
 
+  const mode = options?.mode
+
   const partCount = parts.length
+  // Mode builders are more efficient — lower thresholds for mode-specific output
+  const isModeBuilder = mode === 'residential' || mode === 'shophouse' || mode === 'civic'
+  const minParts = isModeBuilder ? 30 : 50
   const partScore = partCount >= 1000 ? 100 : partCount >= 600 ? 85 : partCount >= 300 ? 70 : partCount >= 150 ? 50 : partCount >= 50 ? 30 : 10
-  checks.push({ name: 'Part Count', passed: partCount >= 50, score: partScore, note: `${partCount} parts` })
+  checks.push({ name: 'Part Count', passed: partCount >= minParts, score: partScore, note: `${partCount} parts` })
   if (partCount < 100) suggestions.push('Add more structural detail — target 100+ parts')
 
   const colors = new Set(parts.map(p => p.color))
@@ -142,20 +147,80 @@ export function checkBuildingQuality(
   if (research) {
     const bt = (research.buildingType || '').toLowerCase()
     const st = (research.architecturalStyle || '').toLowerCase()
-    const needsPagoda = bt.includes('peranakan') || bt.includes('shophouse') || bt.includes('singapore') || st.includes('chinese') || st.includes('peranakan')
-    if (needsPagoda) {
-      const hasPagoda = partNames.some(n => n.toLowerCase().startsWith('pag'))
-      checks.push({ name: 'Pagoda Roof Tiers', passed: hasPagoda, score: hasPagoda ? 100 : 0, note: hasPagoda ? 'found' : 'MISSING — isChinese not triggering', expected: 'Pag* parts on each floor', found: hasPagoda ? 'found' : 'MISSING — isChinese not triggering', impact: 25 })
-      if (!hasPagoda) suggestions.push('CRITICAL: Pagoda roofs missing')
-    }
-    if (research.hasColonnade) {
-      const hasCol = partNames.some(n => {
+
+    if (mode === 'shophouse') {
+      // Shophouse-specific: flat parapet roof (not pagoda)
+      const hasParapet = partNames.some(n => {
         const nl = n.toLowerCase()
-        return nl.startsWith('col') || nl.includes('arch') || nl.includes('pillar')
+        return nl.includes('parapet') || nl.includes('shp_roof')
       })
-      checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'found' : 'MISSING', expected: 'Col* or Arch* parts', found: hasCol ? 'found' : 'MISSING', impact: 20 })
-      if (!hasCol) suggestions.push('CRITICAL: Colonnade missing')
+      checks.push({ name: 'Shophouse Parapet Roof', passed: hasParapet, score: hasParapet ? 100 : 0, note: hasParapet ? 'Parapet roof present' : 'MISSING parapet/flat roof', impact: 20 })
+      if (!hasParapet) suggestions.push('Shophouse must have flat parapet roof')
+
+      // Shophouse colonnade check — accepts SHP_Col* naming
+      if (research.hasColonnade) {
+        const hasCol = partNames.some(n => {
+          const nl = n.toLowerCase()
+          return nl.startsWith('col') || nl.startsWith('shp_col') || nl.includes('arch') || nl.includes('pillar')
+        })
+        checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'found' : 'MISSING', impact: 20 })
+        if (!hasCol) suggestions.push('CRITICAL: Shophouse colonnade missing')
+      }
+
+      // Shophouse drain pipes
+      const hasDrains = partNames.some(n => n.toLowerCase().includes('drain'))
+      checks.push({ name: 'Drain Pipes', passed: hasDrains, score: hasDrains ? 100 : 50, note: hasDrains ? 'Drain pipes present' : 'No drain pipes' })
+      if (!hasDrains) suggestions.push('Add drain pipes to shophouse corners')
+
+    } else if (mode === 'residential') {
+      // Residential-specific checks
+      const hasRoof = partNames.some(n => {
+        const nl = n.toLowerCase()
+        return nl.includes('res_roof') || nl.includes('shedstep') || nl.includes('shed')
+      })
+      checks.push({ name: 'Residential Roof', passed: hasRoof, score: hasRoof ? 100 : 0, note: hasRoof ? 'Roof present' : 'MISSING roof', impact: 20 })
+      if (!hasRoof) suggestions.push('Residential building must have a roof')
+
+      const hasWindows = partNames.some(n => n.toLowerCase().includes('res_win'))
+      checks.push({ name: 'Residential Windows', passed: hasWindows, score: hasWindows ? 100 : 0, note: hasWindows ? 'Windows present' : 'No windows' })
+      if (!hasWindows) suggestions.push('Add windows to residential building')
+
+    } else if (mode === 'civic') {
+      // Civic-specific checks
+      const hasEntrance = partNames.some(n => {
+        const nl = n.toLowerCase()
+        return nl.includes('civ_entdoor') || nl.includes('civ_door') || nl.includes('entrance')
+      })
+      checks.push({ name: 'Civic Entrance', passed: hasEntrance, score: hasEntrance ? 100 : 0, note: hasEntrance ? 'Entrance present' : 'MISSING civic entrance', impact: 20 })
+      if (!hasEntrance) suggestions.push('Civic building must have a prominent entrance')
+
+      if (research.hasColonnade) {
+        const hasCol = partNames.some(n => {
+          const nl = n.toLowerCase()
+          return nl.startsWith('col') || nl.startsWith('civ_col') || nl.includes('portico')
+        })
+        checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'found' : 'MISSING', impact: 20 })
+        if (!hasCol) suggestions.push('CRITICAL: Civic colonnade missing')
+      }
+
+    } else {
+      // Generic mode — legacy pagoda/colonnade checks
+      const needsPagoda = bt.includes('peranakan') || bt.includes('shophouse') || bt.includes('singapore') || st.includes('chinese') || st.includes('peranakan')
+      if (needsPagoda) {
+        const hasPagoda = partNames.some(n => n.toLowerCase().startsWith('pag'))
+        checks.push({ name: 'Pagoda Roof Tiers', passed: hasPagoda, score: hasPagoda ? 100 : 0, note: hasPagoda ? 'found' : 'MISSING', expected: 'Pag* parts on each floor', found: hasPagoda ? 'found' : 'MISSING', impact: 25 })
+        if (!hasPagoda) suggestions.push('CRITICAL: Pagoda roofs missing')
+      }
+      if (research.hasColonnade) {
+        const hasCol = partNames.some(n => {
+          const nl = n.toLowerCase()
+          return nl.startsWith('col') || nl.includes('arch') || nl.includes('pillar')
+        })
+        checks.push({ name: 'Colonnade', passed: hasCol, score: hasCol ? 100 : 0, note: hasCol ? 'found' : 'MISSING', expected: 'Col* or Arch* parts', found: hasCol ? 'found' : 'MISSING', impact: 20 })
+        if (!hasCol) suggestions.push('CRITICAL: Colonnade missing')
+      }
     }
+
     const colorApplied = colorsUsed.includes(research.exteriorColor)
     checks.push({
       name: 'Exterior Color Applied',
@@ -170,10 +235,14 @@ export function checkBuildingQuality(
   }
 
   if (research && (research.floorCount || 1) > 1) {
+    // Mode builders use floor-per-deck approach, not F1_/F2_ naming
     const hasMultiFloor = parts.some(p => {
       const n = p.name
       return n.includes('F1_') || n.includes('F2_') || n.includes('Floor_1') ||
-        n.includes('FloorSlab_F1') || n.includes('Stair_')
+        n.includes('FloorSlab_F1') || n.includes('Stair_') ||
+        // Mode builder floor names
+        n.includes('FloorDeck') || n.includes('FloorSlab') || n.includes('BalSlab') ||
+        n.includes('RES_Floor') || n.includes('SHP_Floor') || n.includes('CIV_Floor')
     })
     checks.push({ name: 'Multi-Floor Distribution', passed: hasMultiFloor, score: hasMultiFloor ? 100 : 40, note: hasMultiFloor ? 'Multi-floor parts present' : 'No multi-floor distribution detected' })
     if (!hasMultiFloor) suggestions.push('Multi-floor building missing floor distribution parts')

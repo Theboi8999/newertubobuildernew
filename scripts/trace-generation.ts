@@ -420,12 +420,12 @@ if (ausSpec) {
   log('')
   log('Part count for Australian brick house:', ausCompiled.exterior.length)
 
-  const hasShedStep = ausCompiled.exterior.some(p => p.name.startsWith('ShedStep'))
-  const hasGarFrame = ausCompiled.exterior.some(p => p.name.startsWith('GarFrame'))
-  const hasBalcSlab = ausCompiled.exterior.some(p => p.name.startsWith('BalcSlab'))
-  log('Has ShedStep (shed roof):', hasShedStep ? 'PASS' : 'FAIL')
-  log('Has GarFrame (garage doors):', hasGarFrame ? 'PASS' : 'FAIL')
-  log('Has BalcSlab (balcony):', hasBalcSlab ? 'PASS' : 'FAIL')
+  const hasShedStep = ausCompiled.exterior.some(p => p.name.startsWith('RES_Roof') || p.name.startsWith('ShedStep') || p.name.startsWith('ShedFascia'))
+  const hasGarFrame = ausCompiled.exterior.some(p => p.name.startsWith('RES_Gar') || p.name.startsWith('GarFrame') || p.name.startsWith('GarPanel'))
+  const hasBalcSlab = ausCompiled.exterior.some(p => p.name.startsWith('RES_Bal') || p.name.startsWith('BalcSlab') || p.name.startsWith('BalcDeck'))
+  log('Has shed roof (RES_Roof/ShedStep):', hasShedStep ? 'PASS' : 'FAIL')
+  log('Has garage (RES_Gar/GarFrame):', hasGarFrame ? 'PASS' : 'FAIL')
+  log('Has balcony (RES_Bal/BalcSlab):', hasBalcSlab ? 'PASS' : 'FAIL')
 
   const ausModel: RbxModel = { name: 'AustralianBrickHouse', parts: ausCompiled.exterior, scripts: [] }
   const ausXml = buildRbxmx([ausModel])
