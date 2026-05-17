@@ -2,7 +2,7 @@ import { createAdminClient } from './supabase'
 import { groqJSON, groqGenerate } from './groq'
 
 export interface RoomFurniture { name:string; size:{x:number;y:number;z:number}; color:string; material:string; quantity?:number; placement?:'north_wall'|'south_wall'|'east_wall'|'west_wall'|'center'|'row' }
-export interface ResearchRoom { name:string; width:number; depth:number; height:number; wallColor:string; floorColor:string; floorMaterial:string; furniture:RoomFurniture[] }
+export interface ResearchRoom { name:string; width:number; depth:number; height:number; wallColor:string; floorColor:string; floorMaterial:string; furniture:RoomFurniture[]; floor?:number }
 export interface ResearchResult { buildingType:string; floorCount:number; floorHeight:number; architecturalStyle:string; hasGlassFront:boolean; hasColonnade:boolean; exteriorMaterial:string; rooms:ResearchRoom[]; totalWidth:number; totalDepth:number; exteriorColor:string; roofColor:string; culturalNotes:string; confidence:number; wallMaterial?:string; roofMaterial?:string; groundMaterial?:string; columnMaterial?:string; floorBandMaterial?:string; accentColor?:string; columnColor?:string; windowCount?:number; windowStyle?:string; colonnadeStyle?:string; shutterColor?:string; floorBandColor?:string; hasPagodaRoof?:boolean; hasBalcony?:boolean; roofType?:string; scenery?:string; mode?:string; furniture?:string; hasStaircases?:boolean }
 
 function sint(v:unknown,min:number,max:number,def:number):number { const n=parseInt(String(v??def),10); return isNaN(n)?def:Math.max(min,Math.min(max,n)) }

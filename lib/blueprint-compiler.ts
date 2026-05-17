@@ -6,7 +6,8 @@ import { generateStructure } from './passes/pass-1-structure'
 import { generateRoof } from './passes/pass-2-roof'
 import { generateFacade } from './passes/pass-3-facade'
 import { generateTerrain, SceneryLevel } from './passes/pass-6-terrain'
-import { getStyleDNA } from './style/style-dna'
+import { getStyleDNA, StyleDNA } from './style/style-dna'
+import { calculateProportions, BuildingProportions } from './proportions'
 import {
   buildDetailedDesk,
   buildDetailedChair,
@@ -15,6 +16,7 @@ import {
   buildWallDetails
 } from './detail-system'
 import { generateStaircases } from './passes/pass-5-staircases'
+import { detectClimate, CLIMATE_PROFILES, applyClimateToDNA, generateChimneyStacks } from './climate-profiles'
 
 export interface BuildPlan {
   tw: number
@@ -25,6 +27,7 @@ export interface BuildPlan {
   floorHeight: number
   buildingType: string
   architecturalStyle: string
+  proportions?: BuildingProportions
 }
 
 export interface CompiledBlueprint { buildingType:string; rooms:RbxPart[][]; exterior:RbxPart[]; totalWidth:number; totalDepth:number; roomLayout:Array<{name:string;x:number;z:number;width:number;depth:number;type:string}> }
@@ -119,7 +122,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
   try {
     const fh = Math.max(8, Math.min(18, Number(r.floorHeight) || 12))
     const wallBase = 2.3
-    const fc = Math.max(3, Math.min(10, r.floorCount || 4))
+    const fc = Math.max(2, Math.min(10, r.floorCount || 4))
     const th = fc * fh
 
     console.log('[buildExterior] ec:', r.exteriorColor, 'rc:', r.roofColor, 'fc:', fc)
@@ -130,6 +133,7 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
       floorHeight: fh,
       buildingType: r.buildingType || '',
       architecturalStyle: r.architecturalStyle || '',
+      proportions: calculateProportions(tw, fh, fc, r.buildingType || ''),
     }
 
     const dna = getStyleDNA(
@@ -139,6 +143,14 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
     )
 
     if (r.hasColonnade) dna.hasColonnade = true
+    if (r.hasBalcony) dna.hasBalcony = true
+    if (r.roofType && ['flat', 'gable', 'hip', 'pagoda', 'shed', 'mansard'].includes(r.roofType)) {
+      dna.roofType = r.roofType as StyleDNA['roofType']
+    }
+
+    const climate = detectClimate(r.architecturalStyle || '', r.buildingType || '')
+    const climateProfile = CLIMATE_PROFILES[climate]
+    applyClimateToDNA(dna, climateProfile)
 
     console.log('[buildExterior] StyleDNA:', dna.family, 'primary:', dna.primaryColor, 'roof:', dna.roofColor)
 
@@ -150,6 +162,10 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
     const staircases = generateStaircases(plan, options?.hasStaircases === true)
 
     const all = [...structure, ...roof, ...facade, ...terrain, ...staircases]
+
+    if (climateProfile.hasChimney && (dna.roofType === 'gable' || dna.roofType === 'hip')) {
+      all.push(...generateChimneyStacks(plan, dna))
+    }
 
     for (const part of all) {
       const n = part.name.toLowerCase()
@@ -254,7 +270,8 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
   for (let i = 0; i < r.rooms.length; i++) {
     const room = r.rooms[i]
     const placed = placedRooms[i]
-    const floorIndex = floorAssignments.get(room.name) ?? (i % floorCount)
+    const explicitFloor = typeof room.floor === 'number' ? Math.max(0, Math.min(floorCount - 1, room.floor - 1)) : undefined
+    const floorIndex = explicitFloor ?? floorAssignments.get(room.name) ?? (i % floorCount)
     const yOffset = floorIndex * floorHeight
     if (placed) {
       rooms.push(compileRoom(room, placed.x, placed.z, style, options, yOffset))

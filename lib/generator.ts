@@ -15,6 +15,7 @@ import { analysePrompt } from './prompt-intelligence'
 import { preGate, postGate } from './quality-gate'
 import type { QualityTarget } from './vision-analyzer'
 import { checkBuildingQuality, QualityCheck, QualityCheckResult } from './quality-checker'
+import { findGoldenSpec, goldenSpecToResearch, GoldenSpec } from './golden-specs'
 
 export interface GenerateOptions {
   style?: string
@@ -122,17 +123,30 @@ export async function generateAsset(
       try {
         await onProgress?.('🔬 Researching building type...', 50)
 
-        let teachingContext = ''
+        // ── Golden spec: bypass AI research for well-known building types ──────
+        let _goldenMatch: GoldenSpec | null = null
         try {
-          const { getTeachingContext } = await import('./self-teaching-agent')
-          teachingContext = await getTeachingContext(buildingType)
-        } catch (e) {
-          console.error('[generateAsset] teaching context error:', e)
-        }
+          _goldenMatch = findGoldenSpec(buildingType, prompt)
+          if (_goldenMatch) {
+            researchResult = goldenSpecToResearch(_goldenMatch)
+            console.log('[generator] ✅ golden spec matched:', _goldenMatch.id, '— AI research skipped')
+            researchResult = applyStyleDefaults(researchResult)
+          }
+        } catch (e) { console.error('[generateAsset] golden spec error:', e) }
 
-        researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
-        researchResult = applyStyleDefaults(researchResult)
-        console.log('[generator] after applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle, 'colonnade:', researchResult.hasColonnade)
+        if (!_goldenMatch) {
+          let teachingContext = ''
+          try {
+            const { getTeachingContext } = await import('./self-teaching-agent')
+            teachingContext = await getTeachingContext(buildingType)
+          } catch (e) {
+            console.error('[generateAsset] teaching context error:', e)
+          }
+
+          researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
+          researchResult = applyStyleDefaults(researchResult)
+          console.log('[generator] after applyStyleDefaults: ec:', researchResult.exteriorColor, 'style:', researchResult.architecturalStyle, 'colonnade:', researchResult.hasColonnade)
+        }
 
         // Forced style overrides — applyStyleDefaults may not have matched
         const btLower = researchResult.buildingType.toLowerCase()
