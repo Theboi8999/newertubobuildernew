@@ -20,6 +20,8 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
   const { tw, td, fh, fc, wallBase, ec, em, rc, ac, hasBalcony, hasGarage, roofType } = i
 
   console.log('[residential] tw:', tw, 'td:', td, 'fh:', fh, 'fc:', fc, 'roofType:', roofType)
+  console.log('[TRACE] buildResidential called with fc:', fc, 'tw:', tw)
+  console.log('[TRACE] hasGarage:', hasGarage, 'hasBalcony:', hasBalcony)
 
   let seq = 1
   function p(name: string, color: string, material: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, transparency = 0): void {

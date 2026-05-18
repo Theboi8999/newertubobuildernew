@@ -160,6 +160,7 @@ function applyGroundMaterial(allParts: RbxPart[]): RbxPart[] {
 
 function buildExterior(tw: number, td: number, r: ResearchResult, options?: { furniture?: boolean; scenery?: string; hasStaircases?: boolean }): RbxPart[] {
   try {
+    console.log('[TRACE] buildExterior called')
     const fh = Math.max(8, Math.min(18, Number(r.floorHeight) || 12))
     const wallBase = 2.3
     const fc = Math.max(1, Math.min(10, r.floorCount || 3))
@@ -195,11 +196,13 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
 
     const mode = detectMode({ buildingType: r.buildingType, architecturalStyle: r.architecturalStyle }, dna)
     console.log('[buildExterior] mode:', mode, 'buildingType:', r.buildingType)
+    console.log('[TRACE] mode:', mode)
 
     const ec = dna.primaryColor || r.exteriorColor || 'Light grey'
     const rc = dna.roofColor || r.roofColor || 'Dark grey'
     const ac = dna.accentColor || r.accentColor || 'Really black'
     const sceneryLevel = (options?.scenery || r.scenery || 'minimal') as SceneryLevel
+    console.log('[TRACE] ec:', ec, 'em: brick', 'fc:', fc)
 
     if (mode === 'residential') {
       // Residential mode returns early — old passes must not run

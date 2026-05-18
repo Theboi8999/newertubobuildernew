@@ -99,6 +99,7 @@ export async function generateAsset(
     const intent = analysePrompt(prompt)
     const buildingType = intent.buildingType
     console.log('[generateAsset] analysePrompt result:', JSON.stringify(intent))
+    console.log('[TRACE] buildingType:', buildingType)
 
     // Vision analysis temporarily disabled — causes 400 errors
     // if (options.referenceImages && options.referenceImages.length > 0) {
@@ -124,6 +125,7 @@ export async function generateAsset(
         await onProgress?.('🔬 Researching building type...', 50)
 
         const goldenSpec = findGoldenSpec(buildingType, prompt)
+        console.log('[TRACE] goldenSpec found:', !!goldenSpec)
 
         if (goldenSpec) {
           // Golden spec is FINAL — skip all research and overrides
@@ -159,6 +161,10 @@ export async function generateAsset(
         if (options.mode) researchResult.mode = options.mode
         if (options.hasStaircases !== undefined) researchResult.hasStaircases = options.hasStaircases
 
+        console.log('[TRACE] researchResult.floorCount:', researchResult.floorCount)
+        console.log('[TRACE] researchResult.exteriorColor:', researchResult.exteriorColor)
+        console.log('[TRACE] researchResult.exteriorMaterial:', (researchResult as any).exteriorMaterial)
+        console.log('[TRACE] researchResult.architecturalStyle:', researchResult.architecturalStyle)
         const gate = preGate(researchResult)
         if (!gate.passed && !goldenSpec) {
           console.log('[generator] pre-gate failed, retrying research')

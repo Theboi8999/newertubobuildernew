@@ -31,11 +31,13 @@ export function detectMode(
   }
 
   const haystack = `${r.buildingType || ''} ${r.architecturalStyle || ''}`.toLowerCase()
+  console.log('[TRACE] detectMode searchStr:', haystack)
 
+  let result: BuildingMode = 'generic'
   for (const mode of ['shophouse','civic','religious','industrial','residential'] as BuildingMode[]) {
     const keywords = MODE_KEYWORDS[mode]
-    if (keywords.some(kw => haystack.includes(kw))) return mode
+    if (keywords.some(kw => haystack.includes(kw))) { result = mode; break }
   }
-
-  return 'generic'
+  console.log('[TRACE] detectMode result:', result)
+  return result
 }
