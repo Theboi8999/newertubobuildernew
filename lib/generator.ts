@@ -9,6 +9,7 @@ import { savePromptHistory, getUserPreferences } from './prompt-memory'
 import { researchTopic } from './research'
 import { buildRbxmx, RbxModel, RbxPart } from './rbxmx'
 import { researchBuildingType, ResearchResult } from './research-agent'
+import { claudeResearchBuilding } from './claude-research-agent'
 import { compileBlueprint } from './blueprint-compiler'
 import { applyStyleDefaults, matchStyleLibrary } from './style-library'
 import { analysePrompt } from './prompt-intelligence'
@@ -135,25 +136,42 @@ export async function generateAsset(
             researchResult.floorCount = intent.floorCountHint
           }
         } else {
-          // Unknown building type — full research pipeline
-          let teachingContext = ''
+          // Unknown building type — use Claude as primary research brain
+          console.log('[generator] no golden spec — using Claude research')
           try {
-            const { getTeachingContext } = await import('./self-teaching-agent')
-            teachingContext = await getTeachingContext(buildingType)
-          } catch(e) {}
+            researchResult = await claudeResearchBuilding(
+              prompt,
+              buildingType,
+              undefined  // referenceImages are base64 objects, not URLs
+            )
 
-          researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
-          researchResult = applyStyleDefaults(researchResult)
+            // Apply user overrides on top of Claude result
+            if (intent.floorCountHint && intent.floorCountHint > 0) {
+              researchResult.floorCount = intent.floorCountHint
+            }
+            if (options.floorCountOverride && options.floorCountOverride > 0) {
+              researchResult.floorCount = options.floorCountOverride
+            }
+            if (options.buildingStyle) {
+              const sm = matchStyleLibrary('', options.buildingStyle)
+              if (sm) researchResult = { ...researchResult, ...sm }
+            }
 
-          if (intent.floorCountHint && intent.floorCountHint > 0) {
-            researchResult.floorCount = intent.floorCountHint
-          }
-          if (options.floorCountOverride && options.floorCountOverride > 0) {
-            researchResult.floorCount = options.floorCountOverride
-          }
-          if (options.buildingStyle) {
-            const sm = matchStyleLibrary('', options.buildingStyle)
-            if (sm) researchResult = { ...researchResult, ...sm }
+          } catch (e) {
+            console.error('[generator] Claude research failed, falling back to Groq:', e)
+            let teachingContext = ''
+            try {
+              const { getTeachingContext } = await import('./self-teaching-agent')
+              teachingContext = await getTeachingContext(buildingType)
+            } catch(e2) {}
+            researchResult = await researchBuildingType(buildingType, { forceRefresh: false, teachingContext })
+            researchResult = applyStyleDefaults(researchResult)
+            if (intent.floorCountHint && intent.floorCountHint > 0) {
+              researchResult.floorCount = intent.floorCountHint
+            }
+            if (options.floorCountOverride && options.floorCountOverride > 0) {
+              researchResult.floorCount = options.floorCountOverride
+            }
           }
         }
 

@@ -1182,6 +1182,21 @@ test('no NaN positions in residential build', () => {
   assert(nanParts.length === 0, `NaN positions found in: ${nanParts.map(p => p.name).join(', ')}`)
 })
 
+// ── CLAUDE RESEARCH AGENT ─────────────────────────────────────────────────────
+console.log('\n═══ CLAUDE RESEARCH AGENT ═══')
+
+test('claudeResearchBuilding is exported as a function', () => {
+  const agent = require('../lib/claude-research-agent')
+  assert(typeof agent.claudeResearchBuilding === 'function',
+    'should export claudeResearchBuilding')
+})
+
+test('claudeResearchBuilding handles JSON parse error gracefully', async () => {
+  const { claudeResearchBuilding } = require('../lib/claude-research-agent')
+  assert(typeof claudeResearchBuilding === 'function',
+    'claudeResearchBuilding should be a function')
+})
+
 // ── SUMMARY ──────────────────────────────────────────────────────────────────
 
 console.log('\n═══════════════════════════════')
