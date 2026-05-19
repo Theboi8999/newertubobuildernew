@@ -3,7 +3,7 @@ export type BuildingMode = 'residential' | 'shophouse' | 'civic' | 'religious' |
 const MODE_KEYWORDS: Record<BuildingMode, string[]> = {
   residential: ['house','home','villa','bungalow','cottage','townhouse','duplex','residential','dwelling','manor','cabin','chalet','australian','suburban'],
   shophouse: ['shophouse','peranakan','chinese colonial','five foot way','singaporean shop','heritage shop','colonial shop'],
-  civic: ['hospital','police','fire station','courthouse','parliament','school','library','museum','city hall','town hall','government','university','college','station','prison','jail','embassy','consulate','barracks','military'],
+  civic: ['hospital','clinic','surgery','police','fire station','fire','courthouse','court','parliament','school','library','museum','city hall','town hall','government','university','college','station','precinct','prison','jail','embassy','consulate','barracks','garrison','military'],
   religious: ['church','mosque','temple','cathedral','chapel','synagogue','monastery','shrine','pagoda','masjid','basilica'],
   industrial: ['warehouse','factory','depot','hangar','workshop','plant','facility','industrial','storage','distribution'],
   generic: []

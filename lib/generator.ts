@@ -145,6 +145,15 @@ export async function generateAsset(
               undefined  // referenceImages are base64 objects, not URLs
             )
 
+            console.log('[brain] research result:', JSON.stringify({
+              exteriorColor: researchResult.exteriorColor,
+              exteriorMaterial: researchResult.exteriorMaterial,
+              roofColor: researchResult.roofColor,
+              roofType: researchResult.roofType,
+              floorCount: researchResult.floorCount,
+              architecturalStyle: researchResult.architecturalStyle
+            }))
+
             // Apply user overrides on top of Claude result
             if (intent.floorCountHint && intent.floorCountHint > 0) {
               researchResult.floorCount = intent.floorCountHint
