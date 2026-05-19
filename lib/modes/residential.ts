@@ -35,9 +35,6 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
   // front wall face at z=0; building extends into negative z (centre = -td/2, back = -td)
   const frontZ = 0
 
-  // ── Foundation ───────────────────────────────────────────────────────────────
-  p('Foundation', ec, 'brick', 0, wallBase / 2, -td / 2, tw, wallBase, td)
-
   // ── Walls + windows per floor ─────────────────────────────────────────────────
   for (let f = 0; f < fc; f++) {
     const floorBot = wallBase + f * fh
@@ -89,11 +86,6 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
           p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.5, garW - 1.0, 0.6, 0.15, 0.12)
           gIdx++
         }
-
-        // Shared drive apron (concrete pad in front of both doors)
-        const garTotalW = garW * 2 + garGap
-        const garCentreX = (g1x + g2x) / 2
-        p('GarDrive', 'Light stone grey', 'Concrete', garCentreX, wallBase - 0.1, frontZ + 2.5, garTotalW + 1, 0.3, 5)
 
         // ONE small window to the right of garage doors
         const rightEdge = tw / 2 - 0.5
@@ -255,12 +247,6 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     p('Roof',    rc, 'SmoothPlastic', 0, roofBase + 0.3, -td / 2, tw + 0.5, 0.6,  td + 0.5)
     p('Parapet', ec, em,              0, roofBase + 1.2, -td / 2, tw + 0.5, 2.0,  td + 0.5)
   }
-
-  // ── Foundation render layer (thin SmoothPlastic skin over brick foundation) ──
-  p('FoundRender', ec, 'SmoothPlastic', 0, wallBase / 2, frontZ + 0.02, tw, wallBase, 0.1)
-
-  // ── Plinth band at base ───────────────────────────────────────────────────────
-  p('Plinth', ac, em, 0, wallBase, -td / 2, tw + 0.4, 0.6, td + 0.4)
 
   return parts
 }
