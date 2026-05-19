@@ -70,13 +70,13 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
 
         let gIdx = 0
         for (const gx of [g1x, g2x]) {
-          // Dark frame border around door — flush with front wall face
-          p(`GarFrame_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.5, garW + 0.5, garH + 0.4, 0.35)
+          // Dark frame border around door
+          p(`GarFrame_${gIdx}`, 'Really black', 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.1, garW + 0.4, garH + 0.3, 0.4)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
             p(`GarPanel_${gIdx}`, garageDoorColor, 'SmoothPlastic',
-              gx, wallBase + panH * (gp + 0.5), frontZ + 0.5, garW - 0.5, panH - 0.25, 0.22)
+              gx, wallBase + panH * (gp + 0.5), frontZ + 0.15, garW - 0.5, panH - 0.25, 0.25)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
