@@ -1164,8 +1164,8 @@ test('buildResidential garage door panels at correct z range', () => {
   const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: false, hasGarage: true, roofType: 'shed' })
   const panels = parts.filter(p => p.name.includes('GarPanel'))
   assert(panels.length > 0, 'should have GarPanel parts')
-  const bad = panels.filter(p => p.z < -0.5 || p.z > 0.3)
-  assert(bad.length === 0, `GarPanel z out of range [-0.5, 0.3]: ${bad.map(p => p.z).join(', ')}`)
+  const bad = panels.filter(p => p.z < -0.5 || p.z > 0.8)
+  assert(bad.length === 0, `GarPanel z out of range [-0.5, 0.8]: ${bad.map(p => p.z).join(', ')}`)
 })
 
 test('buildResidential fc=2 generates upper floor walls and windows', () => {

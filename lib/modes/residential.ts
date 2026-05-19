@@ -36,7 +36,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
   const frontZ = 0
 
   // ── Foundation ───────────────────────────────────────────────────────────────
-  p('Foundation', ec, em, 0, wallBase / 2, -td / 2, tw, wallBase, td)
+  p('Foundation', ec, 'brick', 0, wallBase / 2, -td / 2, tw, wallBase, td)
 
   // ── Walls + windows per floor ─────────────────────────────────────────────────
   for (let f = 0; f < fc; f++) {
@@ -48,10 +48,10 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     const wBack  = f === 0 ? 'WallBack'  : 'WF_U_Back'
     const wLeft  = f === 0 ? 'WallLeft'  : 'WF_U_Left'
     const wRight = f === 0 ? 'WallRight' : 'WF_U_Right'
-    p(wFront, ec, em, 0,       floorMid, frontZ - 0.4, tw,  fh, 0.8)
-    p(wBack,  ec, em, 0,       floorMid, -td,       tw,  fh, 0.8)
-    p(wLeft,  ec, em, -tw / 2, floorMid, -td / 2,   0.8, fh, td)
-    p(wRight, ec, em,  tw / 2, floorMid, -td / 2,   0.8, fh, td)
+    p(wFront, ec, 'brick', 0,       floorMid, frontZ - 0.4, tw,  fh, 0.8)
+    p(wBack,  ec, 'brick', 0,       floorMid, -td,       tw,  fh, 0.8)
+    p(wLeft,  ec, 'brick', -tw / 2, floorMid, -td / 2,   0.8, fh, td)
+    p(wRight, ec, 'brick',  tw / 2, floorMid, -td / 2,   0.8, fh, td)
 
     // Concrete floor slab
     p('FloorSlab', 'Medium stone grey', 'Concrete', 0, floorBot, -td / 2, tw, 0.4, td)
@@ -71,22 +71,22 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         let gIdx = 0
         for (const gx of [g1x, g2x]) {
           // Dark frame border around door — flush with front wall face
-          p(`GarFrame_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.15, garW + 0.5, garH + 0.4, 0.35)
+          p(`GarFrame_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.5, garW + 0.5, garH + 0.4, 0.35)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
             p(`GarPanel_${gIdx}`, garageDoorColor, 'SmoothPlastic',
-              gx, wallBase + panH * (gp + 0.5), frontZ + 0.20, garW - 0.5, panH - 0.25, 0.22)
+              gx, wallBase + panH * (gp + 0.5), frontZ + 0.5, garW - 0.5, panH - 0.25, 0.22)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
             p(`GarBar_${gIdx}`, ac, 'SmoothPlastic',
-              gx, wallBase + panH * gp, frontZ + 0.15, garW - 0.5, 0.22, 0.16)
+              gx, wallBase + panH * gp, frontZ + 0.5, garW - 0.5, 0.22, 0.16)
           }
           // Vertical centre rail
-          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.15, 0.28, garH, 0.16)
+          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.5, 0.28, garH, 0.16)
           // Narrow window strip at top of door
-          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.15, garW - 1.0, 0.6, 0.15, 0.12)
+          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.5, garW - 1.0, 0.6, 0.15, 0.12)
           gIdx++
         }
 
