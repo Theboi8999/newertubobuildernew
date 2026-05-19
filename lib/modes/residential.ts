@@ -47,7 +47,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     const wBack  = f === 0 ? 'WallBack'  : 'WF_U_Back'
     const wLeft  = f === 0 ? 'WallLeft'  : 'WF_U_Left'
     const wRight = f === 0 ? 'WallRight' : 'WF_U_Right'
-    p(wFront, ec, em, 0,       floorMid, frontZ,    tw,  fh, 0.8)
+    p(wFront, ec, em, 0,       floorMid, frontZ - 0.4, tw,  fh, 0.8)
     p(wBack,  ec, em, 0,       floorMid, -td,       tw,  fh, 0.8)
     p(wLeft,  ec, em, -tw / 2, floorMid, -td / 2,   0.8, fh, td)
     p(wRight, ec, em,  tw / 2, floorMid, -td / 2,   0.8, fh, td)
@@ -70,22 +70,22 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         let gIdx = 0
         for (const gx of [g1x, g2x]) {
           // Dark frame border around door — flush with front wall face
-          p(`GarFrame_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.25, garW + 0.5, garH + 0.4, 0.35)
+          p(`GarFrame_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.08, garW + 0.5, garH + 0.4, 0.35)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
             p(`GarPanel_${gIdx}`, garageDoorColor, 'SmoothPlastic',
-              gx, wallBase + panH * (gp + 0.5), frontZ - 0.15, garW - 0.5, panH - 0.25, 0.22)
+              gx, wallBase + panH * (gp + 0.5), frontZ + 0.13, garW - 0.5, panH - 0.25, 0.22)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
             p(`GarBar_${gIdx}`, ac, 'SmoothPlastic',
-              gx, wallBase + panH * gp, frontZ - 0.20, garW - 0.5, 0.22, 0.16)
+              gx, wallBase + panH * gp, frontZ + 0.15, garW - 0.5, 0.22, 0.16)
           }
           // Vertical centre rail
-          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ - 0.20, 0.28, garH, 0.16)
+          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.15, 0.28, garH, 0.16)
           // Narrow window strip at top of door
-          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ - 0.07, garW - 1.0, 0.6, 0.15, 0.12)
+          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.15, garW - 1.0, 0.6, 0.15, 0.12)
           gIdx++
         }
 
@@ -147,16 +147,16 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
       for (let w = 0; w < winCount; w++) {
         const wx = -tw / 2 + winSpacing * (w + 0.5)
 
-        // Deep shadow recess
-        p(`Win_${f}_Rec`,   ac,                   'SmoothPlastic', wx, winY, frontZ - 0.45, winW + 1.0, winH + 1.0, 1.0)
-        // Glass pane
-        p(`Win_${f}`,       'Institutional white', 'SmoothPlastic', wx, winY, frontZ - 0.07, winW,       winH,       0.18, 0.12)
-        // Outer frame
-        p(`Win_${f}_Frame`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  winW + 0.6, winH + 0.6, 0.35)
+        // Dark backing at wall face (creates border visible around frame)
+        p(`Win_${f}_Rec`,   ac,                   'SmoothPlastic', wx, winY, frontZ + 0.04, winW + 1.0, winH + 1.0, 1.0)
+        // Glass pane (in front of frame so transparent area shows)
+        p(`Win_${f}`,       'Institutional white', 'SmoothPlastic', wx, winY, frontZ + 0.12, winW,       winH,       0.18, 0.12)
+        // Outer frame (behind glass, border visible at edges)
+        p(`Win_${f}_Frame`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.08, winW + 0.6, winH + 0.6, 0.35)
         // Horizontal mid-bar
-        p(`Win_${f}_HBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  winW,       0.3,        0.22)
+        p(`Win_${f}_HBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.15, winW,       0.3,        0.22)
         // Vertical mid-bar
-        p(`Win_${f}_VBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.0,  0.3,        winH,       0.22)
+        p(`Win_${f}_VBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.15, 0.3,        winH,       0.22)
         // Window sill
         p(`Win_${f}_Sill`,  ec,                   em,              wx, winY - winH / 2 - 0.3, frontZ + 0.2, winW + 1.2, 0.4, 0.55)
       }
