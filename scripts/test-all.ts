@@ -1102,10 +1102,10 @@ test('buildResidential includes RES_ prefixed parts', () => {
   assert(parts.every(p => p.name.startsWith('RES_')), 'all residential parts must be prefixed RES_')
 })
 
-test('buildResidential with balcony includes RES_BalSlab parts', () => {
+test('buildResidential with balcony includes RES_BalConc parts', () => {
   const parts = buildResidential({ tw: 52, td: 32, fh: 12, fc: 2, wallBase: 2.3, ec: 'Reddish brown', em: 'brick', rc: 'Dark grey', ac: 'Really black', hasBalcony: true, hasGarage: false, roofType: 'shed' })
-  const hasBal = parts.some(p => p.name.includes('BalSlab'))
-  assert(hasBal, 'should have balcony slab parts')
+  const hasBal = parts.some(p => p.name.includes('BalConc'))
+  assert(hasBal, 'should have balcony concrete slab parts')
 })
 
 // ── BUILD SHOPHOUSE TESTS ─────────────────────────────────────────────────────

@@ -64,6 +64,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
 
         const g1x = garLeftEdge + garW / 2
         const g2x = garLeftEdge + garW + garGap + garW / 2
+        console.log('garage doors at x:', g1x, g2x)
 
         let gIdx = 0
         for (const gx of [g1x, g2x]) {
@@ -141,7 +142,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         const wx = -tw / 2 + winSpacing * (w + 0.5)
 
         // Thin dark backing behind glass (shadow box)
-        p(`Win_${f}_Rec`,   'Really black',        'SmoothPlastic', wx, winY, frontZ + 0.04, winW + 1.0, winH + 1.0, 0.3)
+        p(`Win_${f}_Rec`,   ec,                    'SmoothPlastic', wx, winY, frontZ + 0.04, winW + 1.0, winH + 1.0, 0.35)
         // Glass pane proud of wall face
         p(`Win_${f}`,       'Institutional white', 'SmoothPlastic', wx, winY, frontZ + 0.20, winW - 0.3, winH - 0.3, 0.15, 0.15)
         // Outer frame (between recess and glass)
@@ -156,44 +157,46 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     }
   }
 
-  // ── BALCONY (timber, runs between ground and upper floor) ────────────────────
+  // ── BALCONY (extends in NEGATIVE z, in front of building face) ──────────────
   if (hasBalcony) {
-    const balW   = tw * 0.72
-    const balD   = 4.5
-    const balY   = wallBase + fh
-    const postSp = 2.5
-    const postCount = Math.floor(balW / postSp) + 1
-    const actualW = (postCount - 1) * postSp
+    const balW = tw * 0.70
+    const balD = 4.0
+    const balY = wallBase + fh
 
-    // Concrete base slab — extends in NEGATIVE z (in front of building)
-    p('BalConc', 'Medium stone grey', 'Concrete', 0, balY + 0.1, frontZ - balD / 2, actualW, 0.3, balD)
-    // 3 timber deck planks extending in NEGATIVE z direction
-    const plankD = balD / 3
-    for (let pl = 0; pl < 3; pl++) {
-      const plZ = frontZ - plankD * (pl + 0.5)
-      p('BalSlab', timberColor, timberMat, 0, balY + 0.4, plZ, actualW, 0.8, plankD - 0.1)
-    }
+    // Single concrete slab extending forward (negative z)
+    p('BalConc', 'Light stone grey', 'Concrete',
+      0, balY + 0.25, frontZ - balD / 2, balW, 0.5, balD)
 
-    // Posts at outer edge (most negative z)
+    // Timber deck on top
+    p('BalDeck', timberColor, timberMat,
+      0, balY + 0.6, frontZ - balD / 2, balW - 0.2, 0.2, balD - 0.2)
+
+    // Posts along front edge (most negative z)
+    const postSpacing = 2.5
+    const postCount = Math.floor(balW / postSpacing) + 1
     for (let pp = 0; pp < postCount; pp++) {
-      const px = -actualW / 2 + postSp * pp
-      p('BalPost', timberColor, timberMat, px, balY + 2.1, frontZ - balD + 0.3, 0.25, 3.2, 0.25)
+      const px = -balW / 2 + pp * (balW / (postCount - 1))
+      p('BalPost', timberColor, timberMat,
+        px, balY + 2.1, frontZ - balD + 0.15, 0.25, 3.2, 0.25)
     }
 
-    // Panel infill between posts
+    // Glass infill panels between posts
     for (let pp = 0; pp < postCount - 1; pp++) {
-      const px1 = -actualW / 2 + postSp * pp
-      const pxMid = px1 + postSp / 2
-      const panW = postSp - 0.5
-      p('BalPanel', 'Institutional white', 'SmoothPlastic', pxMid, balY + 1.8, frontZ - balD / 2, panW, 2.6, 0.2, 0.4)
+      const px = -balW / 2 + pp * (balW / (postCount - 1)) + (balW / (postCount - 1)) / 2
+      const panW = balW / (postCount - 1) - 0.4
+      p('BalPanel', 'Institutional white', 'SmoothPlastic',
+        px, balY + 1.8, frontZ - balD + 0.15, panW, 2.6, 0.15, 0.4)
     }
 
-    // Top rail
-    p('BalRail',     timberColor, timberMat, 0, balY + 3.8,  frontZ - balD / 2, actualW, 0.32, 0.38)
-    // Bottom rail
-    p('BalRailBot',  timberColor, timberMat, 0, balY + 0.90, frontZ - balD / 2, actualW, 0.28, 0.32)
-    // Toe board
-    p('BalToeBoard', timberColor, timberMat, 0, balY + 0.65, frontZ - balD / 2, actualW, 0.45, 0.25)
+    // Top handrail (front edge)
+    p('BalRail', timberColor, timberMat,
+      0, balY + 3.7, frontZ - balD + 0.15, balW + 0.2, 0.2, 0.2)
+
+    // Side rails
+    p('BalRailL', timberColor, timberMat,
+      -balW / 2, balY + 3.7, frontZ - balD / 2, 0.2, 0.2, balD)
+    p('BalRailR', timberColor, timberMat,
+       balW / 2, balY + 3.7, frontZ - balD / 2, 0.2, 0.2, balD)
   }
 
   // ── SHED ROOF (mono-pitch — 14 steps, slopes front-HIGH to back-LOW) ─────────
