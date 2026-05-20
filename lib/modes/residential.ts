@@ -67,23 +67,23 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
 
         let gIdx = 0
         for (const gx of [g1x, g2x]) {
-          // Dark frame border around door
-          p(`GarFrame_${gIdx}`, 'Really black', 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.1, garW + 0.4, garH + 0.3, 0.4)
+          // Dark frame border around door (behind panels)
+          p(`GarFrame_${gIdx}`, 'Really black', 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.05, garW + 0.4, garH + 0.3, 0.4)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
             p(`GarPanel_${gIdx}`, garageDoorColor, 'SmoothPlastic',
-              gx, wallBase + panH * (gp + 0.5), frontZ + 0.15, garW - 0.5, panH - 0.25, 0.25)
+              gx, wallBase + panH * (gp + 0.5), frontZ + 0.18, garW - 0.5, panH - 0.25, 0.25)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
             p(`GarBar_${gIdx}`, ac, 'SmoothPlastic',
-              gx, wallBase + panH * gp, frontZ + 0.5, garW - 0.5, 0.22, 0.16)
+              gx, wallBase + panH * gp, frontZ + 0.22, garW - 0.5, 0.22, 0.16)
           }
           // Vertical centre rail
-          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.5, 0.28, garH, 0.16)
+          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.22, 0.28, garH, 0.16)
           // Narrow window strip at top of door
-          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.5, garW - 1.0, 0.6, 0.15, 0.12)
+          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.20, garW - 1.0, 0.6, 0.15, 0.12)
           gIdx++
         }
 
@@ -140,12 +140,12 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
       for (let w = 0; w < winCount; w++) {
         const wx = -tw / 2 + winSpacing * (w + 0.5)
 
-        // Dark recess cut into wall face
-        p(`Win_${f}_Rec`,   'Really black',        'SmoothPlastic', wx, winY, frontZ - 0.1,  winW + 1.0, winH + 1.0, 1.0)
+        // Thin dark backing behind glass (shadow box)
+        p(`Win_${f}_Rec`,   'Really black',        'SmoothPlastic', wx, winY, frontZ + 0.04, winW + 1.0, winH + 1.0, 0.3)
         // Glass pane proud of wall face
         p(`Win_${f}`,       'Institutional white', 'SmoothPlastic', wx, winY, frontZ + 0.20, winW - 0.3, winH - 0.3, 0.15, 0.15)
-        // Outer frame (behind glass, border visible at edges)
-        p(`Win_${f}_Frame`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.08, winW + 0.6, winH + 0.6, 0.35)
+        // Outer frame (between recess and glass)
+        p(`Win_${f}_Frame`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.12, winW + 0.6, winH + 0.6, 0.35)
         // Horizontal mid-bar
         p(`Win_${f}_HBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.15, winW,       0.3,        0.22)
         // Vertical mid-bar
@@ -165,35 +165,35 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     const postCount = Math.floor(balW / postSp) + 1
     const actualW = (postCount - 1) * postSp
 
-    // Concrete base slab — inside the wall, front edge flush with front face
+    // Concrete base slab — extends in NEGATIVE z (in front of building)
     p('BalConc', 'Medium stone grey', 'Concrete', 0, balY + 0.1, frontZ - balD / 2, actualW, 0.3, balD)
-    // 3 timber deck planks extending outward
+    // 3 timber deck planks extending in NEGATIVE z direction
     const plankD = balD / 3
     for (let pl = 0; pl < 3; pl++) {
-      const plZ = frontZ + plankD * (pl + 0.5)
+      const plZ = frontZ - plankD * (pl + 0.5)
       p('BalSlab', timberColor, timberMat, 0, balY + 0.4, plZ, actualW, 0.8, plankD - 0.1)
     }
 
-    // Posts every 2.5 studs
+    // Posts at outer edge (most negative z)
     for (let pp = 0; pp < postCount; pp++) {
       const px = -actualW / 2 + postSp * pp
-      p('BalPost', timberColor, timberMat, px, balY + 2.1, frontZ + balD - 0.3, 0.25, 3.2, 0.25)
+      p('BalPost', timberColor, timberMat, px, balY + 2.1, frontZ - balD + 0.3, 0.25, 3.2, 0.25)
     }
 
-    // Panel infill between posts (glass panels, slightly transparent)
+    // Panel infill between posts
     for (let pp = 0; pp < postCount - 1; pp++) {
       const px1 = -actualW / 2 + postSp * pp
       const pxMid = px1 + postSp / 2
       const panW = postSp - 0.5
-      p('BalPanel', 'Institutional white', 'SmoothPlastic', pxMid, balY + 1.8, frontZ + balD - 0.3, panW, 2.6, 0.2, 0.4)
+      p('BalPanel', 'Institutional white', 'SmoothPlastic', pxMid, balY + 1.8, frontZ - balD / 2, panW, 2.6, 0.2, 0.4)
     }
 
     // Top rail
-    p('BalRail',     timberColor, timberMat, 0, balY + 3.8,  frontZ + balD - 0.25, actualW, 0.32, 0.38)
+    p('BalRail',     timberColor, timberMat, 0, balY + 3.8,  frontZ - balD / 2, actualW, 0.32, 0.38)
     // Bottom rail
-    p('BalRailBot',  timberColor, timberMat, 0, balY + 0.90, frontZ + balD - 0.25, actualW, 0.28, 0.32)
+    p('BalRailBot',  timberColor, timberMat, 0, balY + 0.90, frontZ - balD / 2, actualW, 0.28, 0.32)
     // Toe board
-    p('BalToeBoard', timberColor, timberMat, 0, balY + 0.65, frontZ + balD - 0.3,  actualW, 0.45, 0.25)
+    p('BalToeBoard', timberColor, timberMat, 0, balY + 0.65, frontZ - balD / 2, actualW, 0.45, 0.25)
   }
 
   // ── SHED ROOF (mono-pitch — 14 steps, slopes front-HIGH to back-LOW) ─────────
@@ -223,9 +223,11 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     p('RoofFasciaL', ac, 'SmoothPlastic', -roofW / 2, roofBase + frontRise / 2, -td / 2, 0.6, frontRise + 0.5, td + 2.0)
     p('RoofFasciaR', ac, 'SmoothPlastic',  roofW / 2, roofBase + frontRise / 2, -td / 2, 0.6, frontRise + 0.5, td + 2.0)
 
-    // Corner caps at the 4 top corners
-    p('RoofCapFL', ac, 'SmoothPlastic', -roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5, 1.4, 2.2, 1.4)
-    p('RoofCapFR', ac, 'SmoothPlastic',  roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5, 1.4, 2.2, 1.4)
+    // Corner caps — front and back
+    p('RoofCapFL', ac, 'SmoothPlastic', -roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5,      1.4, 2.2, 1.4)
+    p('RoofCapFR', ac, 'SmoothPlastic',  roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5,      1.4, 2.2, 1.4)
+    p('RoofCapBL', ac, 'SmoothPlastic', -roofW / 2, roofBase + backDrop  + 0.5, frontZ - td - 0.5, 1.4, 2.2, 1.4)
+    p('RoofCapBR', ac, 'SmoothPlastic',  roofW / 2, roofBase + backDrop  + 0.5, frontZ - td - 0.5, 1.4, 2.2, 1.4)
 
     // Soffit under front overhang
     p('RoofSoffit', 'Light grey', 'SmoothPlastic', 0, roofBase + 0.15, frontZ + 0.8, roofW, 0.3, 1.5)
