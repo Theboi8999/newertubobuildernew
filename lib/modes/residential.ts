@@ -165,11 +165,11 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
 
     // Single concrete slab extending forward (negative z)
     p('BalConc', 'Light stone grey', 'concrete',
-      0, balY + 0.25, frontZ + balD / 2, balW, 0.5, balD)
+      0, balY + 0.25, frontZ + balD / 2, balW, 0.4, balD)
 
     // Timber deck on top
     p('BalDeck', timberColor, timberMat,
-      0, balY + 0.6, frontZ + balD / 2, balW - 0.2, 0.2, balD - 0.2)
+      0, balY + 0.6, frontZ + balD / 2, balW - 0.2, 0.15, balD - 0.2)
 
     // Posts along front edge (most negative z)
     const postSpacing = 2.5
