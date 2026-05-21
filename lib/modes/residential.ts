@@ -165,11 +165,11 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
 
     // Single concrete slab extending forward (negative z)
     p('BalConc', 'Light stone grey', 'concrete',
-      0, balY + 0.25, frontZ - balD / 2, balW, 0.5, balD)
+      0, balY + 0.25, frontZ + balD / 2, balW, 0.5, balD)
 
     // Timber deck on top
     p('BalDeck', timberColor, timberMat,
-      0, balY + 0.6, frontZ - balD / 2, balW - 0.2, 0.2, balD - 0.2)
+      0, balY + 0.6, frontZ + balD / 2, balW - 0.2, 0.2, balD - 0.2)
 
     // Posts along front edge (most negative z)
     const postSpacing = 2.5
@@ -177,7 +177,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     for (let pp = 0; pp < postCount; pp++) {
       const px = -balW / 2 + pp * (balW / (postCount - 1))
       p('BalPost', timberColor, timberMat,
-        px, balY + 2.1, frontZ - balD + 0.15, 0.25, 3.2, 0.25)
+        px, balY + 2.1, frontZ + balD - 0.15, 0.25, 3.2, 0.25)
     }
 
     // Glass infill panels between posts
@@ -185,18 +185,18 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
       const px = -balW / 2 + pp * (balW / (postCount - 1)) + (balW / (postCount - 1)) / 2
       const panW = balW / (postCount - 1) - 0.4
       p('BalPanel', 'Institutional white', 'smoothplastic',
-        px, balY + 1.8, frontZ - balD + 0.15, panW, 2.6, 0.15, 0.4)
+        px, balY + 1.8, frontZ + balD - 0.15, panW, 2.6, 0.15, 0.4)
     }
 
     // Top handrail (front edge)
     p('BalRail', timberColor, timberMat,
-      0, balY + 3.7, frontZ - balD + 0.15, balW + 0.2, 0.2, 0.2)
+      0, balY + 3.7, frontZ + balD - 0.15, balW + 0.2, 0.2, 0.2)
 
     // Side rails
     p('BalRailL', timberColor, timberMat,
-      -balW / 2, balY + 3.7, frontZ - balD / 2, 0.2, 0.2, balD)
+      -balW / 2, balY + 3.7, frontZ + balD / 2, 0.2, 0.2, balD)
     p('BalRailR', timberColor, timberMat,
-       balW / 2, balY + 3.7, frontZ - balD / 2, 0.2, 0.2, balD)
+       balW / 2, balY + 3.7, frontZ + balD / 2, 0.2, 0.2, balD)
   }
 
   // ── SHED ROOF (mono-pitch — 14 steps, slopes front-HIGH to back-LOW) ─────────
