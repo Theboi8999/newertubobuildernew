@@ -30,7 +30,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
   }
 
   const timberColor = 'Sand yellow'
-  const timberMat = 'Wood'
+  const timberMat = 'wood'
   const garageDoorColor = 'Medium stone grey'
   // front wall face at z=0; building extends into negative z (centre = -td/2, back = -td)
   const frontZ = 0
@@ -51,7 +51,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     p(wRight, ec, 'brick',  tw / 2, floorMid, -td / 2,   0.8, fh, td)
 
     // Concrete floor slab
-    p('FloorSlab', 'Medium stone grey', 'Concrete', 0, floorBot, -td / 2, tw, 0.4, td)
+    p('FloorSlab', 'Medium stone grey', 'concrete', 0, floorBot, -td / 2, tw, 0.4, td)
 
     if (f === 0) {
       // ── GROUND FLOOR ─────────────────────────────────────────────────────────
@@ -69,22 +69,22 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         let gIdx = 0
         for (const gx of [g1x, g2x]) {
           // Dark frame border around door (behind panels)
-          p(`GarFrame_${gIdx}`, 'Really black', 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.05, garW + 0.4, garH + 0.3, 0.4)
+          p(`GarFrame_${gIdx}`, 'Really black', 'smoothplastic', gx, wallBase + garH / 2, frontZ + 0.05, garW + 0.4, garH + 0.3, 0.4)
           // 3 horizontal panels per door
           const panH = garH / 3
           for (let gp = 0; gp < 3; gp++) {
-            p(`GarPanel_${gIdx}`, garageDoorColor, 'SmoothPlastic',
+            p(`GarPanel_${gIdx}`, garageDoorColor, 'smoothplastic',
               gx, wallBase + panH * (gp + 0.5), frontZ + 0.18, garW - 0.5, panH - 0.25, 0.25)
           }
           // 2 horizontal shadow lines between panels
           for (let gp = 1; gp < 3; gp++) {
-            p(`GarBar_${gIdx}`, ac, 'SmoothPlastic',
+            p(`GarBar_${gIdx}`, ac, 'smoothplastic',
               gx, wallBase + panH * gp, frontZ + 0.22, garW - 0.5, 0.22, 0.16)
           }
           // Vertical centre rail
-          p(`GarCRail_${gIdx}`, ac, 'SmoothPlastic', gx, wallBase + garH / 2, frontZ + 0.22, 0.28, garH, 0.16)
+          p(`GarCRail_${gIdx}`, ac, 'smoothplastic', gx, wallBase + garH / 2, frontZ + 0.22, 0.28, garH, 0.16)
           // Narrow window strip at top of door
-          p(`GarTopWin_${gIdx}`, 'Institutional white', 'SmoothPlastic', gx, wallBase + garH + 0.3, frontZ + 0.20, garW - 1.0, 0.6, 0.15, 0.12)
+          p(`GarTopWin_${gIdx}`, 'Institutional white', 'smoothplastic', gx, wallBase + garH + 0.3, frontZ + 0.20, garW - 1.0, 0.6, 0.15, 0.12)
           gIdx++
         }
 
@@ -98,22 +98,22 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
           const swX = g2RightEdge + rightSpace / 2
           const swY = wallBase + fh * 0.42
           // Black recess
-          p('WRec',     ac,                   'SmoothPlastic', swX, swY, frontZ + 0.02, swW + 1.0, swH + 0.6, 0.25)
+          p('WRec',     ac,                   'smoothplastic', swX, swY, frontZ + 0.02, swW + 1.0, swH + 0.6, 0.25)
           // Glass
-          p('Win',      'Institutional white', 'SmoothPlastic', swX, swY, frontZ + 0.08, swW,       swH,       0.15, 0.12)
+          p('Win',      'Institutional white', 'smoothplastic', swX, swY, frontZ + 0.08, swW,       swH,       0.15, 0.12)
           // Frame
-          p('WinFrame', ac,                   'SmoothPlastic', swX, swY, frontZ + 0.12, swW + 0.4, swH + 0.4, 0.18)
+          p('WinFrame', ac,                   'smoothplastic', swX, swY, frontZ + 0.12, swW + 0.4, swH + 0.4, 0.18)
           // H-bar + V-bar
-          p('WinHBar',  ac, 'SmoothPlastic', swX, swY, frontZ + 0.15, swW, 0.22, 0.14)
-          p('WinVBar',  ac, 'SmoothPlastic', swX, swY, frontZ + 0.15, 0.22, swH, 0.14)
+          p('WinHBar',  ac, 'smoothplastic', swX, swY, frontZ + 0.15, swW, 0.22, 0.14)
+          p('WinVBar',  ac, 'smoothplastic', swX, swY, frontZ + 0.15, 0.22, swH, 0.14)
         }
 
         // Front door (right of small window zone, within building)
         const doorX = g2x + garW / 2 + 1 + 1.5
         if (doorX + 1.5 < tw / 2 - 0.5) {
           const doorH = fh * 0.72
-          p('Door',      'Reddish brown', 'Wood',          doorX, wallBase + doorH / 2, frontZ + 0.08, 2.5,       doorH,       0.15)
-          p('DoorFrame', ac,              'SmoothPlastic', doorX, wallBase + doorH / 2, frontZ + 0.12, 3.0, doorH + 0.4, 0.18)
+          p('Door',      'Reddish brown', 'wood',          doorX, wallBase + doorH / 2, frontZ + 0.08, 2.5,       doorH,       0.15)
+          p('DoorFrame', ac,              'smoothplastic', doorX, wallBase + doorH / 2, frontZ + 0.12, 3.0, doorH + 0.4, 0.18)
         }
 
       } else {
@@ -125,8 +125,8 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         const winY = wallBase + fh * 0.5
         for (let w = 0; w < winCount; w++) {
           const wx = -tw / 2 + winSpacing * (w + 0.5)
-          p('Win',      'Institutional white', 'SmoothPlastic', wx, winY, frontZ + 0.08, winW,       winH,       0.15, 0.12)
-          p('WinFrame', ac,                   'SmoothPlastic', wx, winY, frontZ + 0.12, winW + 0.4, winH + 0.4, 0.18)
+          p('Win',      'Institutional white', 'smoothplastic', wx, winY, frontZ + 0.08, winW,       winH,       0.15, 0.12)
+          p('WinFrame', ac,                   'smoothplastic', wx, winY, frontZ + 0.12, winW + 0.4, winH + 0.4, 0.18)
         }
       }
 
@@ -142,15 +142,15 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
         const wx = -tw / 2 + winSpacing * (w + 0.5)
 
         // Thin dark backing behind glass (shadow box)
-        p(`Win_${f}_Rec`,   ec,                    'SmoothPlastic', wx, winY, frontZ + 0.04, winW + 1.0, winH + 1.0, 0.35)
+        p(`Win_${f}_Rec`,   ec,                    'smoothplastic', wx, winY, frontZ + 0.04, winW + 1.0, winH + 1.0, 0.35)
         // Glass pane proud of wall face
-        p(`Win_${f}`,       'Institutional white', 'SmoothPlastic', wx, winY, frontZ + 0.20, winW - 0.3, winH - 0.3, 0.15, 0.15)
+        p(`Win_${f}`,       'Institutional white', 'smoothplastic', wx, winY, frontZ + 0.20, winW - 0.3, winH - 0.3, 0.15, 0.15)
         // Outer frame (between recess and glass)
-        p(`Win_${f}_Frame`, ac,                   'SmoothPlastic', wx, winY, frontZ + 0.12, winW + 0.6, winH + 0.6, 0.35)
+        p(`Win_${f}_Frame`, ac,                   'smoothplastic', wx, winY, frontZ + 0.12, winW + 0.6, winH + 0.6, 0.35)
         // Horizontal mid-bar
-        p(`Win_${f}_HBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.15, winW,       0.3,        0.22)
+        p(`Win_${f}_HBar`,  ac,                   'smoothplastic', wx, winY, frontZ + 0.15, winW,       0.3,        0.22)
         // Vertical mid-bar
-        p(`Win_${f}_VBar`,  ac,                   'SmoothPlastic', wx, winY, frontZ + 0.15, 0.3,        winH,       0.22)
+        p(`Win_${f}_VBar`,  ac,                   'smoothplastic', wx, winY, frontZ + 0.15, 0.3,        winH,       0.22)
         // Window sill
         p(`Win_${f}_Sill`,  ec,                   em,              wx, winY - winH / 2 - 0.3, frontZ + 0.2, winW + 1.2, 0.4, 0.55)
       }
@@ -164,7 +164,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     const balY = wallBase + fh
 
     // Single concrete slab extending forward (negative z)
-    p('BalConc', 'Light stone grey', 'Concrete',
+    p('BalConc', 'Light stone grey', 'concrete',
       0, balY + 0.25, frontZ - balD / 2, balW, 0.5, balD)
 
     // Timber deck on top
@@ -184,7 +184,7 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
     for (let pp = 0; pp < postCount - 1; pp++) {
       const px = -balW / 2 + pp * (balW / (postCount - 1)) + (balW / (postCount - 1)) / 2
       const panW = balW / (postCount - 1) - 0.4
-      p('BalPanel', 'Institutional white', 'SmoothPlastic',
+      p('BalPanel', 'Institutional white', 'smoothplastic',
         px, balY + 1.8, frontZ - balD + 0.15, panW, 2.6, 0.15, 0.4)
     }
 
@@ -214,42 +214,42 @@ export function buildResidential(i: ResidentialInput): BlueprintPart[] {
       const slabZ = frontZ + 0.5 - (td + 2.0) * frac
       // +0.25 overlap to remove gaps between steps
       const slabD = (td + 2.0) / steps + 0.18 + 0.25
-      p('Roof', rc, 'SmoothPlastic', 0, slabY, slabZ, roofW, 0.9, slabD)
+      p('Roof', rc, 'smoothplastic', 0, slabY, slabZ, roofW, 0.9, slabD)
     }
 
     // Tall vertical fascia at front edge (2.5h)
-    p('RoofFascia', ac, 'SmoothPlastic', 0, roofBase + frontRise / 2 + 0.5, frontZ + 0.9, roofW + 0.4, 2.8, 0.6)
+    p('RoofFascia', ac, 'smoothplastic', 0, roofBase + frontRise / 2 + 0.5, frontZ + 0.9, roofW + 0.4, 2.8, 0.6)
     // Gutter strip at front eave
-    p('RoofGutter', 'Dark grey', 'SmoothPlastic', 0, roofBase - 0.2, frontZ + 0.3, roofW + 0.2, 0.4, 0.6)
+    p('RoofGutter', 'Dark grey', 'smoothplastic', 0, roofBase - 0.2, frontZ + 0.3, roofW + 0.2, 0.4, 0.6)
 
     // Left and right fascia ends — centred on building depth
-    p('RoofFasciaL', ac, 'SmoothPlastic', -roofW / 2, roofBase + frontRise / 2, -td / 2, 0.6, frontRise + 0.5, td + 2.0)
-    p('RoofFasciaR', ac, 'SmoothPlastic',  roofW / 2, roofBase + frontRise / 2, -td / 2, 0.6, frontRise + 0.5, td + 2.0)
+    p('RoofFasciaL', ac, 'smoothplastic', -roofW / 2, roofBase + frontRise / 2, -td / 2, 0.6, frontRise + 0.5, td + 2.0)
+    p('RoofFasciaR', ac, 'smoothplastic',  roofW / 2, roofBase + frontRise / 2, -td / 2, 0.6, frontRise + 0.5, td + 2.0)
 
     // Corner caps — front and back
-    p('RoofCapFL', ac, 'SmoothPlastic', -roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5,      1.4, 2.2, 1.4)
-    p('RoofCapFR', ac, 'SmoothPlastic',  roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5,      1.4, 2.2, 1.4)
-    p('RoofCapBL', ac, 'SmoothPlastic', -roofW / 2, roofBase + backDrop  + 0.5, frontZ - td - 0.5, 1.4, 2.2, 1.4)
-    p('RoofCapBR', ac, 'SmoothPlastic',  roofW / 2, roofBase + backDrop  + 0.5, frontZ - td - 0.5, 1.4, 2.2, 1.4)
+    p('RoofCapFL', ac, 'smoothplastic', -roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5,      1.4, 2.2, 1.4)
+    p('RoofCapFR', ac, 'smoothplastic',  roofW / 2, roofBase + frontRise + 0.5, frontZ + 0.5,      1.4, 2.2, 1.4)
+    p('RoofCapBL', ac, 'smoothplastic', -roofW / 2, roofBase + backDrop  + 0.5, frontZ - td - 0.5, 1.4, 2.2, 1.4)
+    p('RoofCapBR', ac, 'smoothplastic',  roofW / 2, roofBase + backDrop  + 0.5, frontZ - td - 0.5, 1.4, 2.2, 1.4)
 
     // Soffit under front overhang
-    p('RoofSoffit', 'Light grey', 'SmoothPlastic', 0, roofBase + 0.15, frontZ + 0.8, roofW, 0.3, 1.5)
+    p('RoofSoffit', 'Light grey', 'smoothplastic', 0, roofBase + 0.15, frontZ + 0.8, roofW, 0.3, 1.5)
 
   } else if (roofType === 'gable') {
     const ridge = 4
     for (let side = 0; side < 2; side++) {
       const sign = side === 0 ? 1 : -1
       // centre each half on its quarter of the building depth, offset from building centre
-      p('Roof', rc, 'SmoothPlastic', 0, roofBase + ridge / 2, -td / 2 + sign * (td / 4 + 0.5), tw + 1.5, ridge, td / 2 + 1.5)
+      p('Roof', rc, 'smoothplastic', 0, roofBase + ridge / 2, -td / 2 + sign * (td / 4 + 0.5), tw + 1.5, ridge, td / 2 + 1.5)
     }
-    p('RoofRidge', ac, 'SmoothPlastic', 0, roofBase + ridge, -td / 2, tw + 1.5, 0.5, 0.8)
+    p('RoofRidge', ac, 'smoothplastic', 0, roofBase + ridge, -td / 2, tw + 1.5, 0.5, 0.8)
 
   } else if (roofType === 'hip') {
-    p('Roof', rc, 'SmoothPlastic', 0, roofBase + 2, -td / 2, tw + 1.5, 4, td + 1.5)
+    p('Roof', rc, 'smoothplastic', 0, roofBase + 2, -td / 2, tw + 1.5, 4, td + 1.5)
 
   } else {
     // Flat
-    p('Roof',    rc, 'SmoothPlastic', 0, roofBase + 0.3, -td / 2, tw + 0.5, 0.6,  td + 0.5)
+    p('Roof',    rc, 'smoothplastic', 0, roofBase + 0.3, -td / 2, tw + 0.5, 0.6,  td + 0.5)
     p('Parapet', ec, em,              0, roofBase + 1.2, -td / 2, tw + 0.5, 2.0,  td + 0.5)
   }
 
