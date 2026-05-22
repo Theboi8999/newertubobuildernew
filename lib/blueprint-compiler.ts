@@ -310,6 +310,18 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
 
   console.log('[blueprint] footprint:', tw, 'x', td)
 
+  // Early-exit for ottoman: skip interior generation entirely
+  const tempDna = getStyleDNA(
+    rEffective.architecturalStyle || '', rEffective.buildingType || '',
+    { exteriorColor: rEffective.exteriorColor, roofColor: rEffective.roofColor }
+  )
+  const earlyMode = detectMode({ buildingType: rEffective.buildingType, architecturalStyle: rEffective.architecturalStyle }, tempDna)
+  if (earlyMode === 'ottoman') {
+    const exterior = buildExterior(tw, td, rEffective, options)
+    console.log('[blueprint] ottoman mode - skipping interior, ext:', exterior.length)
+    return { buildingType: r.buildingType, rooms: [], exterior, totalWidth: tw, totalDepth: td, roomLayout: [] }
+  }
+
   const roomSpecs = r.rooms.map(room => ({
     name: room.name,
     width: Math.max(8, Number(room.width) || 12),
