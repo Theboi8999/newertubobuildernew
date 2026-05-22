@@ -424,6 +424,34 @@ export const GOLDEN_SPECS: GoldenSpec[] = [
       ],
     },
   },
+  {
+    id: 'ottoman_house',
+    keywords: ['ottoman', 'ottoman house', 'balkan house', 'turkish house', 'konak', 'traditional balkan', 'ottoman residential', 'balkan'],
+    spec: {
+      buildingType: 'ottoman_house',
+      architecturalStyle: 'ottoman balkan traditional stone plaster residential',
+      floorCount: 2,
+      floorHeight: 8.73,
+      totalWidth: 30,
+      totalDepth: 30,
+      exteriorColor: 'Institutional white',
+      roofColor: 'Dark red',
+      accentColor: 'Reddish brown',
+      exteriorMaterial: 'concrete',
+      roofType: 'flat',
+      hasColonnade: false,
+      hasGlassFront: false,
+      hasPagodaRoof: false,
+      hasBalcony: false,
+      windowStyle: 'rectangular',
+      culturalNotes: 'Ottoman Balkan two-storey stone base plaster house with wooden bay window overhangs, coloured shutters and tiled roof',
+      confidence: 100,
+      rooms: [
+        room('Ground Floor', 26, 24, 8, 'Light grey', 'Medium stone grey', 'concrete'),
+        room('First Floor', 26, 24, 8, 'Institutional white', 'Reddish brown', 'woodplanks'),
+      ],
+    },
+  },
 ]
 
 function kwMatch(search: string, kw: string): boolean {
@@ -434,6 +462,13 @@ export function findGoldenSpec(buildingType: string, prompt?: string): GoldenSpe
   const search = ((buildingType || '') + ' ' + (prompt || ''))
     .toLowerCase()
     .replace(/_/g, ' ')
+
+  // Explicit Ottoman / Balkan house matching
+  if (search.includes('ottoman') || search.includes('balkan') ||
+      search.includes('konak') || (search.includes('turkish') && search.includes('house'))) {
+    const spec = GOLDEN_SPECS.find(s => s.id === 'ottoman_house')
+    if (spec) return spec
+  }
 
   // Explicit Australian house matching
   const isAussieHouse =

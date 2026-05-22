@@ -113,6 +113,9 @@ export interface RbxPart {
   partType?: 'Part' | 'WedgePart' | 'CornerWedgePart'
   textureId?: string
   surfaceAppearance?: string
+  r00?: number; r01?: number; r02?: number
+  r10?: number; r11?: number; r12?: number
+  r20?: number; r21?: number; r22?: number
 }
 
 const PBR_TEXTURES: Record<string, {color:string;normal:string;roughness:string;metalness:string}> = {
@@ -383,10 +386,10 @@ export const ME: Record<string, number> = {
   render: 256, stucco: 256, plaster: 256, painted: 256,
   brick: 1040, sandstone: 1040, terracotta: 1040, clay: 1040,
   limestone: 256, lime: 256,
-  wood: 512, timber: 512, woodplanks: 512, oak: 512, pine: 512, teak: 512, bamboo: 512,
-  concrete: 816, stone: 816, slate: 816, granite: 832, tile: 816, tiles: 816,
+  wood: 512, timber: 512, woodplanks: 528, oak: 512, pine: 512, teak: 512, bamboo: 512,
+  concrete: 816, stone: 816, slate: 800, granite: 832, tile: 816, tiles: 816,
   pavement: 816, paving: 816, tarmac: 816, asphalt: 816,
-  cobblestone: 1168,
+  pebble: 848, cobblestone: 1168,
   marble: 784,
   metal: 1344, steel: 1344, copper: 1344, aluminium: 1344, aluminum: 1344, iron: 1344, zinc: 1344, cladding: 1344,
   corrodedmetal: 1952,
@@ -450,6 +453,9 @@ function generatePart(part: RbxPart, id: number): string {
   const px = safeNum(Number(part.position.x) || 0, 0)
   const py = safeNum(Number(part.position.y) || sy / 2, sy / 2)
   const pz = safeNum(Number(part.position.z) || 0, 0)
+  const r00 = part.r00 ?? 1; const r01 = part.r01 ?? 0; const r02 = part.r02 ?? 0
+  const r10 = part.r10 ?? 0; const r11 = part.r11 ?? 1; const r12 = part.r12 ?? 0
+  const r20 = part.r20 ?? 0; const r21 = part.r21 ?? 0; const r22 = part.r22 ?? 1
 
   return `
   <Item class="${itemClass}" referent="RBX${id}">
@@ -460,9 +466,9 @@ function generatePart(part: RbxPart, id: number): string {
       </Vector3>
       <CoordinateFrame name="CFrame">
         <X>${px}</X><Y>${py}</Y><Z>${pz}</Z>
-        <R00>1</R00><R01>0</R01><R02>0</R02>
-        <R10>0</R10><R11>1</R11><R12>0</R12>
-        <R20>0</R20><R21>0</R21><R22>1</R22>
+        <R00>${r00}</R00><R01>${r01}</R01><R02>${r02}</R02>
+        <R10>${r10}</R10><R11>${r11}</R11><R12>${r12}</R12>
+        <R20>${r20}</R20><R21>${r21}</R21><R22>${r22}</R22>
       </CoordinateFrame>
       <int name="BrickColor">${getBrickColorId(color)}</int>${(() => { const rgb = COLOR3_VALUES[color]; return rgb ? `\n      <Color3 name="Color"><R>${rgb[0]}</R><G>${rgb[1]}</G><B>${rgb[2]}</B></Color3>` : '' })()}
       <token name="Material">${safeMat}</token>

@@ -20,6 +20,7 @@ import { detectMode } from './building-mode'
 import { buildResidential } from './modes/residential'
 import { buildShophouse } from './modes/shophouse'
 import { buildCivic } from './modes/civic'
+import { buildOttomanHouse } from './modes/ottoman-house'
 
 export interface BuildPlan {
   tw: number
@@ -227,6 +228,9 @@ function buildExterior(tw: number, td: number, r: ResearchResult, options?: { fu
       const terrain = generateTerrain(plan, dna, sceneryLevel)
       console.log('[buildExterior] total parts:', modeParts.length + terrain.length)
       return applyGroundMaterial([...modeParts, ...terrain])
+    }
+    if (mode === 'ottoman') {
+      return buildOttomanHouse(wallBase)
     }
     if (mode === 'civic') {
       const modeParts = bpToRbx(buildCivic({

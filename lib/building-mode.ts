@@ -1,4 +1,4 @@
-export type BuildingMode = 'residential' | 'shophouse' | 'civic' | 'religious' | 'industrial' | 'generic'
+export type BuildingMode = 'residential' | 'shophouse' | 'civic' | 'religious' | 'industrial' | 'ottoman' | 'generic'
 
 const MODE_KEYWORDS: Record<BuildingMode, string[]> = {
   residential: ['house','home','villa','bungalow','cottage','townhouse','duplex','residential','dwelling','manor','cabin','chalet','australian','suburban'],
@@ -6,6 +6,7 @@ const MODE_KEYWORDS: Record<BuildingMode, string[]> = {
   civic: ['hospital','clinic','surgery','police','fire station','fire','courthouse','court','parliament','school','library','museum','city hall','town hall','government','university','college','station','precinct','prison','jail','embassy','consulate','barracks','garrison','military'],
   religious: ['church','mosque','temple','cathedral','chapel','synagogue','monastery','shrine','pagoda','masjid','basilica'],
   industrial: ['warehouse','factory','depot','hangar','workshop','plant','facility','industrial','storage','distribution'],
+  ottoman: ['ottoman','balkan','turkish house','ottoman house','konak','traditional balkan','ottoman residential','stone base plaster house','balkan house'],
   generic: []
 }
 
@@ -17,6 +18,8 @@ const FAMILY_TO_MODE: Record<string, BuildingMode> = {
   government: 'civic',
   religious: 'religious',
   industrial: 'industrial',
+  ottoman: 'ottoman',
+  balkan: 'ottoman',
   commercial: 'generic',
   generic: 'generic'
 }
@@ -34,7 +37,7 @@ export function detectMode(
   console.log('[TRACE] detectMode searchStr:', haystack)
 
   let result: BuildingMode = 'generic'
-  for (const mode of ['shophouse','civic','religious','industrial','residential'] as BuildingMode[]) {
+  for (const mode of ['shophouse','civic','religious','industrial','ottoman','residential'] as BuildingMode[]) {
     const keywords = MODE_KEYWORDS[mode]
     if (keywords.some(kw => haystack.includes(kw))) { result = mode; break }
   }

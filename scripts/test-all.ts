@@ -1182,6 +1182,40 @@ test('no NaN positions in residential build', () => {
   assert(nanParts.length === 0, `NaN positions found in: ${nanParts.map(p => p.name).join(', ')}`)
 })
 
+// ── OTTOMAN HOUSE ─────────────────────────────────────────────────────────────
+console.log('\n═══ OTTOMAN HOUSE ═══')
+
+test('buildOttomanHouse returns 185 parts', () => {
+  const { buildOttomanHouse } = require('../lib/modes/ottoman-house')
+  const parts = buildOttomanHouse(2.3)
+  assert(parts.length === 185, `expected 185 parts got ${parts.length}`)
+})
+
+test('buildOttomanHouse has glass windows', () => {
+  const { buildOttomanHouse } = require('../lib/modes/ottoman-house')
+  const parts = buildOttomanHouse(2.3)
+  assert(parts.filter((p: any) => p.material === 'glass').length >= 20,
+    'should have 20+ glass parts')
+})
+
+test('buildOttomanHouse no NaN positions', () => {
+  const { buildOttomanHouse } = require('../lib/modes/ottoman-house')
+  const parts = buildOttomanHouse(2.3)
+  for (const p of parts) {
+    assert(!isNaN(p.position.x) && !isNaN(p.position.y) && !isNaN(p.position.z),
+      `${p.name} has NaN`)
+  }
+})
+
+test('detectMode ottoman', () => {
+  const { detectMode } = require('../lib/building-mode')
+  const mode = detectMode(
+    { buildingType: 'ottoman_house', architecturalStyle: 'ottoman balkan' },
+    { family: 'ottoman' }
+  )
+  assert(mode === 'ottoman', `expected ottoman got ${mode}`)
+})
+
 // ── CLAUDE RESEARCH AGENT ─────────────────────────────────────────────────────
 console.log('\n═══ CLAUDE RESEARCH AGENT ═══')
 
