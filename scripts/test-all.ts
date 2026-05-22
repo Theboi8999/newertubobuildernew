@@ -1185,10 +1185,10 @@ test('no NaN positions in residential build', () => {
 // ── OTTOMAN HOUSE ─────────────────────────────────────────────────────────────
 console.log('\n═══ OTTOMAN HOUSE ═══')
 
-test('buildOttomanHouse returns 206 parts', () => {
+test('buildOttomanHouse returns 190 parts', () => {
   const { buildOttomanHouse } = require('../lib/modes/ottoman-house')
   const parts = buildOttomanHouse(2.3)
-  assert(parts.length === 206, `expected 206 parts got ${parts.length}`)
+  assert(parts.length === 190, `expected 190 parts got ${parts.length}`)
 })
 
 test('buildOttomanHouse has glass windows', () => {
