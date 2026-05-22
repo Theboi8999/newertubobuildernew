@@ -194,17 +194,7 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_200_Part', position:{x:-8.180985,y:wallBase+19.511902,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
   ]
 
-  // Stone base — added before normalization so wallBase is applied directly
   parts.push({ name:'StoneBase', position:{x:0, y:wallBase+4.35, z:0}, size:{x:26, y:8.71, z:25.6}, color:'Medium stone grey', material:'pebble', anchored:true })
-
-  // Normalize world coords to building-relative: remove baked-in world origin and base Y
-  const CX = -484.37, CZ = -72.97, BASE_Y = 2.8101
-  for (const part of parts) {
-    part.position.x -= CX
-    part.position.z -= CZ
-    part.position.y -= BASE_Y
-    part.position.y += wallBase
-  }
 
   return parts
 }
