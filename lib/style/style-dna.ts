@@ -1,5 +1,5 @@
 export interface StyleDNA {
-  family: 'asian' | 'european' | 'modern' | 'industrial' | 'fantasy' | 'tropical' | 'residential'
+  family: 'asian' | 'european' | 'modern' | 'industrial' | 'fantasy' | 'tropical' | 'residential' | 'ottoman'
   era: string
   primaryColor: string
   secondaryColor: string
@@ -451,6 +451,23 @@ export const STYLE_DNA_LIBRARY: Record<string, Partial<StyleDNA>> = {
     groundMaterial: 'concrete',
     forbidden: ['pagoda', 'ornate_columns'],
     facadeGrammar: 'BLANK|ARCH|ARCH|ARCH|ARCH|BLANK',
+  },
+  'ottoman': {
+    family: 'ottoman',
+    era: 'traditional',
+    primaryColor: 'Institutional white',
+    secondaryColor: 'Medium stone grey',
+    accentColor: 'Reddish brown',
+    roofColor: 'Dark red',
+    wallMaterial: 'concrete',
+    roofType: 'flat',
+    ornamentLevel: 'none',
+    symmetry: 'strict',
+    hasColonnade: false,
+    hasBalcony: false,
+    columnStyle: 'none',
+    windowShape: 'rectangular',
+    colonnadeDepth: 0,
   },
   'residential': {
     family: 'residential',

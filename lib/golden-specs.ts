@@ -429,7 +429,7 @@ export const GOLDEN_SPECS: GoldenSpec[] = [
     keywords: ['ottoman', 'ottoman house', 'balkan house', 'turkish house', 'konak', 'traditional balkan', 'ottoman residential', 'balkan'],
     spec: {
       buildingType: 'ottoman_house',
-      architecturalStyle: 'ottoman balkan traditional stone plaster residential',
+      architecturalStyle: 'ottoman balkan traditional stone plaster',
       floorCount: 2,
       floorHeight: 8.73,
       totalWidth: 30,
