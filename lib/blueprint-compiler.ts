@@ -316,6 +316,7 @@ export function compileBlueprint(r:ResearchResult, seed?: number, options?: { fu
     { exteriorColor: rEffective.exteriorColor, roofColor: rEffective.roofColor }
   )
   const earlyMode = detectMode({ buildingType: rEffective.buildingType, architecturalStyle: rEffective.architecturalStyle }, tempDna)
+  console.log('[compiler] mode detected:', earlyMode)
   if (earlyMode === 'ottoman') {
     const exterior = buildExterior(tw, td, rEffective, options)
     console.log('[blueprint] ottoman mode - skipping interior, ext:', exterior.length)

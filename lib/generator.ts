@@ -132,6 +132,8 @@ export async function generateAsset(
           // Golden spec is FINAL — skip all research and overrides
           console.log('[generator] golden spec matched:', goldenSpec.id)
           researchResult = goldenSpecToResearch(goldenSpec)
+          console.log('[generator] golden spec matched:', goldenSpec?.buildingType)
+          console.log('[generator] will compile with bt:', researchResult?.buildingType)
           if (intent.floorCountHint && intent.floorCountHint > 0) {
             researchResult.floorCount = intent.floorCountHint
           }
