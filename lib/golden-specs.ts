@@ -2,6 +2,8 @@ import { ResearchResult, ResearchRoom } from './research-agent'
 
 export interface GoldenSpec {
   id: string
+  buildingType?: string
+  architecturalStyle?: string
   keywords: string[]
   spec: ResearchResult
 }
@@ -458,6 +460,10 @@ function kwMatch(search: string, kw: string): boolean {
   return kw.toLowerCase().split(/\s+/).every(w => search.includes(w))
 }
 
+function withTopLevel(gs: GoldenSpec): GoldenSpec {
+  return { ...gs, buildingType: gs.spec.buildingType, architecturalStyle: gs.spec.architecturalStyle }
+}
+
 export function findGoldenSpec(buildingType: string, prompt?: string): GoldenSpec | null {
   const search = ((buildingType || '') + ' ' + (prompt || ''))
     .toLowerCase()
@@ -467,7 +473,7 @@ export function findGoldenSpec(buildingType: string, prompt?: string): GoldenSpe
   if (search.includes('ottoman') || search.includes('balkan') ||
       search.includes('konak') || (search.includes('turkish') && search.includes('house'))) {
     const spec = GOLDEN_SPECS.find(s => s.id === 'ottoman_house')
-    if (spec) return spec
+    if (spec) return withTopLevel(spec)
   }
 
   // Explicit Australian house matching
@@ -477,7 +483,7 @@ export function findGoldenSpec(buildingType: string, prompt?: string): GoldenSpe
     search.includes('brick house')
   if (isAussieHouse) {
     const spec = GOLDEN_SPECS.find(s => s.id === 'australian_brick_house')
-    if (spec) return spec
+    if (spec) return withTopLevel(spec)
   }
 
   let bestSpec: GoldenSpec | null = null
@@ -492,7 +498,7 @@ export function findGoldenSpec(buildingType: string, prompt?: string): GoldenSpe
       bestSpec = spec
     }
   }
-  return bestScore > 0 ? bestSpec : null
+  return bestScore > 0 ? withTopLevel(bestSpec!) : null
 }
 
 export function goldenSpecToResearch(spec: GoldenSpec): ResearchResult {
