@@ -96,6 +96,7 @@ export async function generateAsset(
     let isPeranakan = false
     let isVictorian = false
     let isModernGlass = false
+    let isGoldenSpec = false
 
     const intent = analysePrompt(prompt)
     const buildingType = intent.buildingType
@@ -129,6 +130,7 @@ export async function generateAsset(
         console.log('[TRACE] goldenSpec found:', !!goldenSpec)
 
         if (goldenSpec) {
+          isGoldenSpec = true
           // Golden spec is FINAL — skip all research and overrides
           console.log('[generator] golden spec matched:', goldenSpec.id)
           researchResult = goldenSpecToResearch(goldenSpec)
@@ -195,7 +197,7 @@ export async function generateAsset(
         console.log('[TRACE] researchResult.exteriorMaterial:', (researchResult as any).exteriorMaterial)
         console.log('[TRACE] researchResult.architecturalStyle:', researchResult.architecturalStyle)
         const gate = preGate(researchResult)
-        if (!gate.passed && !goldenSpec) {
+        if (!gate.passed && !isGoldenSpec) {
           console.log('[generator] pre-gate failed, retrying research')
           researchResult = await researchBuildingType(buildingType, { forceRefresh: true })
           researchResult = applyStyleDefaults(researchResult)
@@ -234,7 +236,7 @@ export async function generateAsset(
         qualityCheckResult = checkBuildingQuality(allParts, researchResult, buildingType || 'building', compiled?.roomLayout, { hasStaircases: options.hasStaircases })
         console.log('[generator] quality check:', qualityCheckResult.percentage + '%', 'suggestions:', qualityCheckResult.suggestions)
 
-        if (qualityCheckResult.percentage < 70 && !options.isRetry && !goldenSpec && buildingType && researchResult) {
+        if (qualityCheckResult.percentage < 70 && !options.isRetry && !isGoldenSpec && buildingType && researchResult) {
           console.log('[generator] quality', qualityCheckResult.percentage + '% — attempting auto-improvement')
           const issues = qualityCheckResult.suggestions.join(', ')
           const teachingContext = `Previous attempt scored ${qualityCheckResult.percentage}%. Critical issues: ${issues}. Fix these specifically.`
