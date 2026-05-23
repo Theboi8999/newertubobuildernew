@@ -387,7 +387,7 @@ export const ME: Record<string, number> = {
   brick: 1040, sandstone: 1040, terracotta: 1040, clay: 1040,
   limestone: 256, lime: 256,
   wood: 512, timber: 512, woodplanks: 528, oak: 512, pine: 512, teak: 512, bamboo: 512,
-  concrete: 816, stone: 816, slate: 800, granite: 832, tile: 816, tiles: 816,
+  concrete: 816, stone: 816, slate: 800, granite: 880, tile: 816, tiles: 816,
   pavement: 816, paving: 816, tarmac: 816, asphalt: 816,
   pebble: 848, cobblestone: 1168,
   marble: 784,
