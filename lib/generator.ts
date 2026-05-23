@@ -234,7 +234,7 @@ export async function generateAsset(
         qualityCheckResult = checkBuildingQuality(allParts, researchResult, buildingType || 'building', compiled?.roomLayout, { hasStaircases: options.hasStaircases })
         console.log('[generator] quality check:', qualityCheckResult.percentage + '%', 'suggestions:', qualityCheckResult.suggestions)
 
-        if (qualityCheckResult.percentage < 70 && !options.isRetry && buildingType && researchResult) {
+        if (qualityCheckResult.percentage < 70 && !options.isRetry && !goldenSpec && buildingType && researchResult) {
           console.log('[generator] quality', qualityCheckResult.percentage + '% — attempting auto-improvement')
           const issues = qualityCheckResult.suggestions.join(', ')
           const teachingContext = `Previous attempt scored ${qualityCheckResult.percentage}%. Critical issues: ${issues}. Fix these specifically.`
