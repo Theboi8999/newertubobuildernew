@@ -2,7 +2,7 @@ import type { RbxPart } from '../rbxmx'
 
 export function buildOttomanHouse(wallBase: number): RbxPart[] {
   const parts: RbxPart[] = [
-    { name:'OTT_000_Part', position:{x:-14.337754,y:wallBase+10.312962,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
+    { name:'OTT_000_Part', position:{x:-14.337754,y:wallBase+10.312962,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
     { name:'OTT_002_Part', position:{x:0.001083,y:wallBase+10.304894,z:0.013702}, size:{x:30.180006,y:8.729999,z:28.940014}, color:'Light grey', material:'concrete', anchored:true },
     { name:'OTT_005_Part', position:{x:-8.180985,y:wallBase+11.056522,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
     { name:'OTT_006_Part', position:{x:-10.771622,y:wallBase+11.101524,z:15.21347}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
@@ -25,11 +25,6 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_023_Part', position:{x:1.376388,y:wallBase+11.101524,z:15.242462}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
     { name:'OTT_024_Part', position:{x:1.406753,y:wallBase+12.911518,z:15.26297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
     { name:'OTT_025_Part', position:{x:1.406753,y:wallBase+9.337179,z:15.26297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'RoofEave', position:{x:0,y:wallBase+23.2,z:0}, size:{x:33,y:0.6,z:33}, color:'Dark red', material:'pebble', anchored:true },
-    { name:'RoofMid1', position:{x:0,y:wallBase+23.8,z:0}, size:{x:31,y:0.6,z:31}, color:'Dark red', material:'pebble', anchored:true },
-    { name:'RoofMid2', position:{x:0,y:wallBase+24.4,z:0}, size:{x:28.5,y:0.6,z:28.5}, color:'Dark red', material:'pebble', anchored:true },
-    { name:'RoofMid3', position:{x:0,y:wallBase+25.0,z:0}, size:{x:26,y:0.6,z:26}, color:'Dark red', material:'pebble', anchored:true },
-    { name:'RoofTop',  position:{x:0,y:wallBase+25.6,z:0}, size:{x:23,y:0.6,z:23}, color:'Dark red', material:'pebble', anchored:true },
     { name:'OTT_030_Part', position:{x:-14.532852,y:wallBase+11.101524,z:10.309296}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
     { name:'OTT_031_Part', position:{x:-14.553238,y:wallBase+12.911518,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
     { name:'OTT_032_Part', position:{x:-14.553238,y:wallBase+9.337179,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
@@ -37,7 +32,7 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_034_Part', position:{x:-14.515579,y:wallBase+12.911518,z:8.552399}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
     { name:'OTT_035_Part', position:{x:-14.515579,y:wallBase+9.337179,z:8.552399}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
     { name:'OTT_036_Part', position:{x:-14.391526,y:wallBase+11.056522,z:9.437164}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true },
-    { name:'OTT_037_Part', position:{x:14.337082,y:wallBase+10.312962,z:-14.976166}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
+    { name:'OTT_037_Part', position:{x:14.337082,y:wallBase+10.312962,z:-14.976166}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
     { name:'OTT_042_Part', position:{x:-14.455765,y:wallBase+11.056522,z:-10.076935}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true },
     { name:'OTT_043_Part', position:{x:-14.567948,y:wallBase+11.101524,z:-12.667511}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
     { name:'OTT_044_Part', position:{x:-14.590622,y:wallBase+12.911518,z:-12.639374}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
@@ -46,7 +41,7 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_047_Part', position:{x:-14.60643,y:wallBase+12.911518,z:-7.474884}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
     { name:'OTT_048_Part', position:{x:-14.60643,y:wallBase+9.337179,z:-7.474884}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
     { name:'OTT_052_Part', position:{x:0.020828,y:wallBase+6.072951,z:-0.011078}, size:{x:30.290011,y:0.25,z:28.980003}, color:'Medium stone grey', material:'concrete', anchored:true },
-    { name:'OTT_053_Part', position:{x:14.337143,y:wallBase+10.312962,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
+    { name:'OTT_053_Part', position:{x:14.337143,y:wallBase+10.312962,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
     { name:'OTT_055_Part', position:{x:-14.455765,y:wallBase+11.056522,z:0.144806}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true },
     { name:'OTT_056_Part', position:{x:-14.567948,y:wallBase+11.101524,z:-2.445892}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
     { name:'OTT_057_Part', position:{x:-14.590653,y:wallBase+12.911518,z:-2.417694}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
@@ -68,7 +63,7 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_075_Part', position:{x:1.549728,y:wallBase+11.101524,z:-15.20462}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
     { name:'OTT_076_Part', position:{x:1.520004,y:wallBase+12.911518,z:-15.225128}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
     { name:'OTT_077_Part', position:{x:1.520004,y:wallBase+9.337179,z:-15.225128}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_079_Part', position:{x:-14.318985,y:wallBase+10.312962,z:-14.976227}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
+    { name:'OTT_079_Part', position:{x:-14.318985,y:wallBase+10.312962,z:-14.976227}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
     { name:'OTT_080_Part', position:{x:9.320663,y:wallBase+11.056524,z:-15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
     { name:'OTT_081_Part', position:{x:11.911361,y:wallBase+11.101524,z:-15.213409}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
     { name:'OTT_082_Part', position:{x:11.883102,y:wallBase+12.911518,z:-15.235992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
@@ -97,12 +92,12 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_109_Part', position:{x:14.568649,y:wallBase+12.911518,z:10.391876}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
     { name:'OTT_110_Part', position:{x:14.568649,y:wallBase+9.337179,z:10.391876}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
     { name:'OTT_111_Part', position:{x:14.444626,y:wallBase+11.056522,z:9.507172}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_113_Part', position:{x:-14.318985,y:wallBase+18.777658,z:-14.976227}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_114_Part', position:{x:14.337082,y:wallBase+18.777658,z:-14.976166}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_115_Part', position:{x:14.337143,y:wallBase+18.777658,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
+    { name:'OTT_113_Part', position:{x:-14.318985,y:wallBase+18.777658,z:-14.976227}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
+    { name:'OTT_114_Part', position:{x:14.337082,y:wallBase+18.777658,z:-14.976166}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
+    { name:'OTT_115_Part', position:{x:14.337143,y:wallBase+18.777658,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
     { name:'OTT_116_Part', position:{x:0.020828,y:wallBase+14.537647,z:-0.011078}, size:{x:30.290011,y:0.25,z:28.980003}, color:'Medium stone grey', material:'concrete', anchored:true },
     { name:'OTT_117_Part', position:{x:0.001083,y:wallBase+18.76959,z:0.013702}, size:{x:30.180006,y:8.729999,z:28.940014}, color:'Light grey', material:'concrete', anchored:true },
-    { name:'OTT_118_Part', position:{x:-14.337754,y:wallBase+18.777658,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
+    { name:'OTT_118_Part', position:{x:-14.337754,y:wallBase+18.777658,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
     { name:'OTT_119_Part', position:{x:-14.532852,y:wallBase+19.566219,z:10.309296}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
     { name:'OTT_120_Part', position:{x:-14.553238,y:wallBase+21.376217,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
     { name:'OTT_121_Part', position:{x:-14.553238,y:wallBase+17.801878,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
@@ -187,8 +182,18 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_200_Part', position:{x:-8.180985,y:wallBase+19.511902,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
   ]
 
-  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+4.35, z:0}, size:{x:26, y:8.71, z:25.6}, color:'Medium stone grey', material:'pebble', anchored:true })
+  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+4.35, z:0}, size:{x:26, y:8.71, z:25.6}, color:'Medium stone grey', material:'granite', anchored:true })
   parts.push({ name:'Door', position:{x:0, y:wallBase+3.0, z:-12.8}, size:{x:3.5, y:5.5, z:0.15}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'RoofDeck', position:{x:0, y:wallBase+25.2, z:0}, size:{x:30, y:0.5, z:30}, color:'Dark red', material:'pebble', anchored:true })
+  parts.push({ name:'RoofEaveF', position:{x:0, y:wallBase+24.8, z:16.2}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
+  parts.push({ name:'RoofEaveB', position:{x:0, y:wallBase+24.8, z:-16.2}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
+  parts.push({ name:'RoofEaveL', position:{x:-16.2, y:wallBase+24.8, z:0}, size:{x:2.5, y:0.4, z:30}, color:'Dark red', material:'pebble', anchored:true })
+  parts.push({ name:'RoofEaveR', position:{x:16.2, y:wallBase+24.8, z:0}, size:{x:2.5, y:0.4, z:30}, color:'Dark red', material:'pebble', anchored:true })
+  parts.push({ name:'RoofRidge', position:{x:0, y:wallBase+25.7, z:0}, size:{x:20, y:0.5, z:20}, color:'Dark red', material:'pebble', anchored:true })
+  parts.push({ name:'FasciaF', position:{x:0, y:wallBase+24.5, z:16.4}, size:{x:33, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaB', position:{x:0, y:wallBase+24.5, z:-16.4}, size:{x:33, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaL', position:{x:-16.4, y:wallBase+24.5, z:0}, size:{x:0.4, y:1.0, z:33}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaR', position:{x:16.4, y:wallBase+24.5, z:0}, size:{x:0.4, y:1.0, z:33}, color:'Reddish brown', material:'woodplanks', anchored:true })
 
   return parts
 }
