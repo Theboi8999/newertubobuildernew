@@ -182,18 +182,18 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_200_Part', position:{x:-8.180985,y:wallBase+19.511902,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
   ]
 
-  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+3.935, z:0}, size:{x:26, y:4.0, z:25.6}, color:'Medium stone grey', material:'granite', anchored:true })
-  parts.push({ name:'Door', position:{x:0, y:wallBase+2.0, z:-12.8}, size:{x:3.0, y:3.5, z:0.15}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+2.0, z:0}, size:{x:26, y:4.0, z:25.6}, color:'Medium stone grey', material:'granite', anchored:true })
+  parts.push({ name:'Door', position:{x:0, y:wallBase+2.0, z:15.2}, size:{x:3.0, y:3.5, z:0.15}, color:'Reddish brown', material:'woodplanks', anchored:true })
   parts.push({ name:'RoofDeck', position:{x:0, y:wallBase+23.4, z:0}, size:{x:30, y:0.5, z:30}, color:'Dark red', material:'pebble', anchored:true })
   parts.push({ name:'RoofEaveF', position:{x:0, y:wallBase+23.0, z:16.2}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
   parts.push({ name:'RoofEaveB', position:{x:0, y:wallBase+23.0, z:-16.2}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
   parts.push({ name:'RoofEaveL', position:{x:-16.2, y:wallBase+23.0, z:0}, size:{x:2.5, y:0.4, z:30}, color:'Dark red', material:'pebble', anchored:true })
   parts.push({ name:'RoofEaveR', position:{x:16.2, y:wallBase+23.0, z:0}, size:{x:2.5, y:0.4, z:30}, color:'Dark red', material:'pebble', anchored:true })
   parts.push({ name:'RoofRidge', position:{x:0, y:wallBase+23.9, z:0}, size:{x:20, y:0.5, z:20}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'FasciaF', position:{x:0, y:wallBase+23.1, z:16.4}, size:{x:33, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'FasciaB', position:{x:0, y:wallBase+23.1, z:-16.4}, size:{x:33, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'FasciaL', position:{x:-16.4, y:wallBase+23.1, z:0}, size:{x:0.4, y:1.0, z:33}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'FasciaR', position:{x:16.4, y:wallBase+23.1, z:0}, size:{x:0.4, y:1.0, z:33}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaF', position:{x:0, y:wallBase+23.1, z:16.4}, size:{x:30, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaB', position:{x:0, y:wallBase+23.1, z:-16.4}, size:{x:30, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaL', position:{x:-16.4, y:wallBase+23.1, z:0}, size:{x:0.4, y:1.0, z:30}, color:'Reddish brown', material:'woodplanks', anchored:true })
+  parts.push({ name:'FasciaR', position:{x:16.4, y:wallBase+23.1, z:0}, size:{x:0.4, y:1.0, z:30}, color:'Reddish brown', material:'woodplanks', anchored:true })
 
   return parts
 }
