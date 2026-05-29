@@ -182,7 +182,7 @@ export function buildOttomanHouse(wallBase: number): RbxPart[] {
     { name:'OTT_200_Part', position:{x:-8.180985,y:wallBase+19.511902,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
   ]
 
-  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+2.715, z:0}, size:{x:26, y:5.43, z:25.6}, color:'Medium stone grey', material:'granite', anchored:true })
+  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+2.96995, z:0}, size:{x:26, y:5.9399, z:25.6}, color:'Medium stone grey', material:'granite', anchored:true })
   parts.push({ name:'Door', position:{x:0, y:wallBase+3.0, z:15.2}, size:{x:3.0, y:5.5, z:0.15}, color:'Reddish brown', material:'woodplanks', anchored:true })
   parts.push({ name:'RoofDeck', position:{x:0, y:wallBase+23.4, z:0}, size:{x:30, y:0.5, z:30}, color:'Dark red', material:'pebble', anchored:true })
   parts.push({ name:'RoofEaveF', position:{x:0, y:wallBase+23.0, z:14.7}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
