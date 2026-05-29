@@ -207,7 +207,7 @@ export const BRICK_COLOR_IDS: Record<string, number> = {
   'Tr. Lg blue': 42,
   'Tr. Blue': 43,
   'Tr. Yellow': 44,
-  'Light blue': 45,
+  'Light blue': 23,
   'Tr. Flu. Reddish orange': 47,
   'Tr. Green': 48,
   'Tr. Flu. Green': 49,
