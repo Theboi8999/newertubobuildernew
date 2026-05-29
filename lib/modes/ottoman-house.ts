@@ -1,203 +1,194 @@
-import type { RbxPart } from '../rbxmx'
+import { RbxPart } from '../rbxmx'
 
-export function buildOttomanHouse(wallBase: number): RbxPart[] {
-  const parts: RbxPart[] = [
-    { name:'OTT_000_Part', position:{x:-14.337754,y:wallBase+10.312962,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_002_Part', position:{x:0.001083,y:wallBase+10.304894,z:0.013702}, size:{x:30.180006,y:8.729999,z:28.940014}, color:'Light grey', material:'concrete', anchored:true },
-    { name:'OTT_005_Part', position:{x:-8.180985,y:wallBase+11.056522,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
-    { name:'OTT_006_Part', position:{x:-10.771622,y:wallBase+11.101524,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_007_Part', position:{x:-10.743393,y:wallBase+12.911518,z:15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_008_Part', position:{x:-10.743393,y:wallBase+9.337179,z:15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_009_Part', position:{x:11.841598,y:wallBase+11.101524,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_010_Part', position:{x:11.873703,y:wallBase+12.911518,z:15.35174}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_011_Part', position:{x:11.873703,y:wallBase+9.337179,z:15.35174}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_012_Part', position:{x:9.271713,y:wallBase+11.056522,z:15.10141}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
-    { name:'OTT_013_Part', position:{x:-5.610947,y:wallBase+11.101524,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_014_Part', position:{x:-5.579056,y:wallBase+12.911518,z:15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_015_Part', position:{x:-5.579056,y:wallBase+9.337179,z:15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_016_Part', position:{x:-0.41005,y:wallBase+11.101524,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_017_Part', position:{x:-0.380173,y:wallBase+12.911518,z:15.325067}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_018_Part', position:{x:-0.380173,y:wallBase+9.337179,z:15.325067}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_019_Part', position:{x:0.504501,y:wallBase+11.056522,z:15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
-    { name:'OTT_020_Part', position:{x:6.680954,y:wallBase+11.101524,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_021_Part', position:{x:6.709213,y:wallBase+12.911518,z:15.336115}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_022_Part', position:{x:6.709213,y:wallBase+9.337179,z:15.336115}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_023_Part', position:{x:1.376388,y:wallBase+11.101524,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_024_Part', position:{x:1.406753,y:wallBase+12.911518,z:15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_025_Part', position:{x:1.406753,y:wallBase+9.337179,z:15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_030_Part', position:{x:-14.55,y:wallBase+11.101524,z:10.309296}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_031_Part', position:{x:-14.653238,y:wallBase+12.911518,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_032_Part', position:{x:-14.653238,y:wallBase+9.337179,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_033_Part', position:{x:-14.55,y:wallBase+11.101524,z:8.522797}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_034_Part', position:{x:-14.615579,y:wallBase+12.911518,z:8.552399}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_035_Part', position:{x:-14.615579,y:wallBase+9.337179,z:8.552399}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_036_Part', position:{x:-14.391526,y:wallBase+11.056522,z:9.437164}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5 },
-    { name:'OTT_037_Part', position:{x:14.337082,y:wallBase+10.312962,z:-14.976166}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_042_Part', position:{x:-14.455765,y:wallBase+11.056522,z:-10.076935}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5 },
-    { name:'OTT_043_Part', position:{x:-14.55,y:wallBase+11.101524,z:-12.667511}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_044_Part', position:{x:-14.690622,y:wallBase+12.911518,z:-12.639374}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_045_Part', position:{x:-14.690622,y:wallBase+9.337179,z:-12.639374}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_046_Part', position:{x:-14.55,y:wallBase+11.101524,z:-7.506989}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_047_Part', position:{x:-14.70643,y:wallBase+12.911518,z:-7.474884}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_048_Part', position:{x:-14.70643,y:wallBase+9.337179,z:-7.474884}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_052_Part', position:{x:0.020828,y:wallBase+6.072951,z:-0.011078}, size:{x:30.290011,y:0.25,z:28.980003}, color:'Medium stone grey', material:'concrete', anchored:true },
-    { name:'OTT_053_Part', position:{x:14.337143,y:wallBase+10.312962,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_055_Part', position:{x:-14.455765,y:wallBase+11.056522,z:0.144806}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5 },
-    { name:'OTT_056_Part', position:{x:-14.55,y:wallBase+11.101524,z:-2.445892}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_057_Part', position:{x:-14.690653,y:wallBase+12.911518,z:-2.417694}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_058_Part', position:{x:-14.690653,y:wallBase+9.337179,z:-2.417694}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_059_Part', position:{x:-14.55,y:wallBase+11.101524,z:2.714569}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_060_Part', position:{x:-14.70643,y:wallBase+12.911518,z:2.746674}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_061_Part', position:{x:-14.70643,y:wallBase+9.337179,z:2.746674}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_064_Part', position:{x:14.55,y:wallBase+11.101524,z:-0.586212}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_065_Part', position:{x:14.70643,y:wallBase+12.911518,z:-0.616547}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_066_Part', position:{x:14.70643,y:wallBase+9.337179,z:-0.616547}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_067_Part', position:{x:14.55,y:wallBase+11.101524,z:1.200165}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_068_Part', position:{x:14.668588,y:wallBase+12.911518,z:1.170258}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_069_Part', position:{x:14.668588,y:wallBase+9.337179,z:1.170258}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_070_Part', position:{x:14.444626,y:wallBase+11.056522,z:0.285614}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_071_Part', position:{x:-0.236649,y:wallBase+11.101524,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_072_Part', position:{x:-0.266922,y:wallBase+12.911518,z:-15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_073_Part', position:{x:-0.266922,y:wallBase+9.337179,z:-15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_074_Part', position:{x:0.635086,y:wallBase+11.056524,z:-15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_075_Part', position:{x:1.549728,y:wallBase+11.101524,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_076_Part', position:{x:1.520004,y:wallBase+12.911518,z:-15.325128}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_077_Part', position:{x:1.520004,y:wallBase+9.337179,z:-15.325128}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_079_Part', position:{x:-14.318985,y:wallBase+10.312962,z:-14.976227}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_080_Part', position:{x:9.320663,y:wallBase+11.056524,z:-15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_081_Part', position:{x:11.911361,y:wallBase+11.101524,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_082_Part', position:{x:11.883102,y:wallBase+12.911518,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_083_Part', position:{x:11.883102,y:wallBase+9.337179,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_084_Part', position:{x:6.750717,y:wallBase+11.101524,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_085_Part', position:{x:6.718673,y:wallBase+12.911518,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_086_Part', position:{x:6.718673,y:wallBase+9.337179,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_090_Part', position:{x:-8.132035,y:wallBase+11.056524,z:-15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_091_Part', position:{x:-5.541336,y:wallBase+11.101524,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_092_Part', position:{x:-5.569596,y:wallBase+12.911518,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_093_Part', position:{x:-5.569596,y:wallBase+9.337179,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_094_Part', position:{x:14.55,y:wallBase+11.101524,z:-10.038422}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_095_Part', position:{x:14.70643,y:wallBase+12.911518,z:-10.068634}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_096_Part', position:{x:14.70643,y:wallBase+9.337179,z:-10.068634}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_097_Part', position:{x:14.55,y:wallBase+11.101524,z:-8.251984}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_098_Part', position:{x:14.668588,y:wallBase+12.911518,z:-8.281769}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_099_Part', position:{x:14.668588,y:wallBase+9.337179,z:-8.281769}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_100_Part', position:{x:14.444687,y:wallBase+11.056522,z:-9.166412}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_102_Part', position:{x:-10.701981,y:wallBase+11.101524,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_103_Part', position:{x:-10.734024,y:wallBase+12.911518,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_104_Part', position:{x:-10.734024,y:wallBase+9.337179,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_105_Part', position:{x:14.55,y:wallBase+11.101524,z:8.635345}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_106_Part', position:{x:14.70643,y:wallBase+12.911518,z:8.60495}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_107_Part', position:{x:14.70643,y:wallBase+9.337179,z:8.60495}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_108_Part', position:{x:14.55,y:wallBase+11.101524,z:10.421722}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_109_Part', position:{x:14.668649,y:wallBase+12.911518,z:10.391876}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_110_Part', position:{x:14.668649,y:wallBase+9.337179,z:10.391876}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_111_Part', position:{x:14.444626,y:wallBase+11.056522,z:9.507172}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_113_Part', position:{x:-14.318985,y:wallBase+18.777658,z:-14.976227}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_114_Part', position:{x:14.337082,y:wallBase+18.777658,z:-14.976166}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_115_Part', position:{x:14.337143,y:wallBase+18.777658,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_116_Part', position:{x:0.020828,y:wallBase+14.537647,z:-0.011078}, size:{x:30.290011,y:0.25,z:28.980003}, color:'Medium stone grey', material:'concrete', anchored:true },
-    { name:'OTT_117_Part', position:{x:0.001083,y:wallBase+18.76959,z:0.013702}, size:{x:30.180006,y:8.729999,z:28.940014}, color:'Light grey', material:'concrete', anchored:true },
-    { name:'OTT_118_Part', position:{x:-14.337754,y:wallBase+18.777658,z:14.929779}, size:{x:0.36,y:8.730004,z:0.3}, color:'Reddish brown', material:'woodplanks', anchored:true },
-    { name:'OTT_119_Part', position:{x:-14.55,y:wallBase+19.566219,z:10.309296}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_120_Part', position:{x:-14.653238,y:wallBase+21.376217,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_121_Part', position:{x:-14.653238,y:wallBase+17.801878,z:10.339508}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_122_Part', position:{x:-14.55,y:wallBase+19.566219,z:8.522797}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_123_Part', position:{x:-14.615579,y:wallBase+21.376217,z:8.552399}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_124_Part', position:{x:-14.615579,y:wallBase+17.801878,z:8.552399}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.999848, r01:0, r02:-0.017451, r10:0, r11:1, r12:0, r20:0.017451, r21:0, r22:0.999848 },
-    { name:'OTT_125_Part', position:{x:-14.391526,y:wallBase+19.521221,z:9.437164}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5 },
-    { name:'OTT_126_Part', position:{x:14.55,y:wallBase+19.566219,z:-10.038422}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_127_Part', position:{x:14.70643,y:wallBase+21.376217,z:-10.068634}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_128_Part', position:{x:14.70643,y:wallBase+17.801878,z:-10.068634}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_129_Part', position:{x:14.55,y:wallBase+19.566219,z:-8.251984}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_130_Part', position:{x:14.668588,y:wallBase+21.376217,z:-8.281769}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_131_Part', position:{x:14.668588,y:wallBase+17.801878,z:-8.281769}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_132_Part', position:{x:14.444687,y:wallBase+19.521221,z:-9.166412}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_133_Part', position:{x:-10.701981,y:wallBase+19.566219,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_134_Part', position:{x:-10.734024,y:wallBase+21.376217,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_135_Part', position:{x:-10.734024,y:wallBase+17.801878,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_136_Part', position:{x:-5.541336,y:wallBase+19.566219,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_137_Part', position:{x:-5.569596,y:wallBase+21.376217,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_138_Part', position:{x:-5.569596,y:wallBase+17.801878,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_139_Part', position:{x:-14.455765,y:wallBase+19.521221,z:0.144806}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5 },
-    { name:'OTT_140_Part', position:{x:-14.55,y:wallBase+19.566219,z:-2.445892}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_141_Part', position:{x:-14.690653,y:wallBase+21.376217,z:-2.417694}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_142_Part', position:{x:-14.690653,y:wallBase+17.801878,z:-2.417694}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_143_Part', position:{x:-14.55,y:wallBase+19.566219,z:2.714569}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_144_Part', position:{x:-14.70643,y:wallBase+21.376217,z:2.746674}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_145_Part', position:{x:-14.70643,y:wallBase+17.801878,z:2.746674}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_146_Part', position:{x:14.55,y:wallBase+19.566219,z:8.635345}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_147_Part', position:{x:14.70643,y:wallBase+21.376217,z:8.60495}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_148_Part', position:{x:14.70643,y:wallBase+17.801878,z:8.60495}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_149_Part', position:{x:14.55,y:wallBase+19.566219,z:10.421722}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_150_Part', position:{x:14.668649,y:wallBase+21.376217,z:10.391876}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_151_Part', position:{x:14.668649,y:wallBase+17.801878,z:10.391876}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_152_Part', position:{x:14.444626,y:wallBase+19.521221,z:9.507172}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_153_Part', position:{x:9.320663,y:wallBase+19.521221,z:-15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_154_Part', position:{x:11.911361,y:wallBase+19.566219,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_155_Part', position:{x:11.883102,y:wallBase+21.376217,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_156_Part', position:{x:11.883102,y:wallBase+17.801878,z:-15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.087154, r01:0, r02:-0.996195, r10:0, r11:1, r12:0, r20:0.996195, r21:0, r22:-0.087154 },
-    { name:'OTT_157_Part', position:{x:6.750717,y:wallBase+19.566219,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_158_Part', position:{x:6.718673,y:wallBase+21.376217,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_159_Part', position:{x:6.718673,y:wallBase+17.801878,z:-15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.104527, r01:0, r02:-0.994522, r10:0, r11:1, r12:0, r20:0.994522, r21:0, r22:0.104527 },
-    { name:'OTT_160_Part', position:{x:1.549728,y:wallBase+19.566219,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_161_Part', position:{x:1.520004,y:wallBase+21.376217,z:-15.325128}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_162_Part', position:{x:1.520004,y:wallBase+17.801878,z:-15.325128}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_163_Part', position:{x:-0.236649,y:wallBase+19.566219,z:-15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_164_Part', position:{x:-0.266922,y:wallBase+21.376217,z:-15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_165_Part', position:{x:-0.266922,y:wallBase+17.801878,z:-15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.017452, r01:0, r02:-0.999848, r10:0, r11:1, r12:0, r20:0.999848, r21:0, r22:-0.017452 },
-    { name:'OTT_166_Part', position:{x:14.55,y:wallBase+19.566219,z:-0.586212}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_167_Part', position:{x:14.70643,y:wallBase+21.376217,z:-0.616547}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_168_Part', position:{x:14.70643,y:wallBase+17.801878,z:-0.616547}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_169_Part', position:{x:14.55,y:wallBase+19.566219,z:1.200165}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_170_Part', position:{x:14.668588,y:wallBase+21.376217,z:1.170258}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_171_Part', position:{x:14.668588,y:wallBase+17.801878,z:1.170258}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.999848, r01:0, r02:0.017452, r10:0, r11:1, r12:0, r20:-0.017452, r21:0, r22:-0.999848 },
-    { name:'OTT_172_Part', position:{x:14.444626,y:wallBase+19.521221,z:0.285614}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:-1, r01:0, r02:0, r10:0, r11:1, r12:0, r20:0, r21:0, r22:-1 },
-    { name:'OTT_173_Part', position:{x:-14.455765,y:wallBase+19.521221,z:-10.076935}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5 },
-    { name:'OTT_174_Part', position:{x:-14.55,y:wallBase+19.566219,z:-12.667511}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_175_Part', position:{x:-14.690622,y:wallBase+21.376217,z:-12.639374}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_176_Part', position:{x:-14.690622,y:wallBase+17.801878,z:-12.639374}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.996195, r01:0, r02:-0.087155, r10:0, r11:1, r12:0, r20:0.087155, r21:0, r22:0.996195 },
-    { name:'OTT_177_Part', position:{x:-14.55,y:wallBase+19.566219,z:-7.506989}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_178_Part', position:{x:-14.70643,y:wallBase+21.376217,z:-7.474884}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_179_Part', position:{x:-14.70643,y:wallBase+17.801878,z:-7.474884}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.994522, r01:0, r02:0.104527, r10:0, r11:1, r12:0, r20:-0.104527, r21:0, r22:0.994522 },
-    { name:'OTT_180_Part', position:{x:1.376388,y:wallBase+19.566219,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_181_Part', position:{x:1.406753,y:wallBase+21.376217,z:15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_182_Part', position:{x:1.406753,y:wallBase+17.801878,z:15.36297}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_183_Part', position:{x:6.680954,y:wallBase+19.566219,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_184_Part', position:{x:6.709213,y:wallBase+21.376217,z:15.336115}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_185_Part', position:{x:6.709213,y:wallBase+17.801878,z:15.336115}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_186_Part', position:{x:-0.41005,y:wallBase+19.566219,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_187_Part', position:{x:-0.380173,y:wallBase+21.376217,z:15.325067}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_188_Part', position:{x:-0.380173,y:wallBase+17.801878,z:15.325067}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.017452, r01:0, r02:0.999848, r10:0, r11:1, r12:0, r20:-0.999848, r21:0, r22:0.017452 },
-    { name:'OTT_189_Part', position:{x:-5.610947,y:wallBase+19.566219,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_190_Part', position:{x:-5.579056,y:wallBase+21.376217,z:15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_191_Part', position:{x:-5.579056,y:wallBase+17.801878,z:15.351862}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_192_Part', position:{x:11.841598,y:wallBase+19.566219,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_193_Part', position:{x:11.873703,y:wallBase+21.376217,z:15.35174}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_194_Part', position:{x:11.873703,y:wallBase+17.801878,z:15.35174}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:-0.104527, r01:0, r02:0.994522, r10:0, r11:1, r12:0, r20:-0.994522, r21:0, r22:-0.104527 },
-    { name:'OTT_195_Part', position:{x:-10.771622,y:wallBase+19.566219,z:15.25}, size:{x:0.05,y:4.26,z:1.57}, color:'Brown', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_196_Part', position:{x:-10.743393,y:wallBase+21.376217,z:15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_197_Part', position:{x:-10.743393,y:wallBase+17.801878,z:15.335992}, size:{x:0.09,y:0.119999,z:1.689999}, color:'Really black', material:'woodplanks', anchored:true, r00:0.087155, r01:0, r02:0.996195, r10:0, r11:1, r12:0, r20:-0.996195, r21:0, r22:0.087155 },
-    { name:'OTT_198_Part', position:{x:-8.132035,y:wallBase+19.505838,z:-15.101227}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:-1, r10:0, r11:1, r12:0, r20:1, r21:0, r22:0 },
-    { name:'OTT_199_Part', position:{x:9.271713,y:wallBase+19.511902,z:15.10141}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
-    { name:'OTT_200_Part', position:{x:-8.180985,y:wallBase+19.511902,z:15.101349}, size:{x:0.05,y:4.049999,z:3.379998}, color:'Light blue', material:'glass', anchored:true, transparency:0.5, r00:0, r01:0, r02:1, r10:0, r11:1, r12:0, r20:-1, r21:0, r22:0 },
-  ]
+function p(n:string,sx:number,sy:number,sz:number,px:number,py:number,pz:number,color:string,material:string,trans=0,r00=1,r01=0,r02=0,r10=0,r11=1,r12=0,r20=0,r21=0,r22=1):RbxPart{
+  return{name:n,size:{x:Math.max(0.05,sx),y:Math.max(0.05,sy),z:Math.max(0.05,sz)},position:{x:px,y:py,z:pz},color,material,anchored:true,transparency:trans,r00,r01,r02,r10,r11,r12,r20,r21,r22}
+}
 
-  parts.push({ name:'StoneBase', position:{x:0, y:wallBase+2.96995, z:0}, size:{x:30.18, y:5.9399, z:28.94}, color:'Medium stone grey', material:'granite', anchored:true })
-  parts.push({ name:'Door', position:{x:0, y:wallBase+3.0, z:15.2}, size:{x:3.0, y:5.5, z:0.15}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'RoofDeck', position:{x:0, y:wallBase+23.4, z:0}, size:{x:30, y:0.5, z:30}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'RoofEaveF', position:{x:0, y:wallBase+23.0, z:14.47}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'RoofEaveB', position:{x:0, y:wallBase+23.0, z:-14.47}, size:{x:32, y:0.4, z:2.5}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'RoofEaveL', position:{x:-15.09, y:wallBase+23.0, z:0}, size:{x:2.5, y:0.4, z:30}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'RoofEaveR', position:{x:15.09, y:wallBase+23.0, z:0}, size:{x:2.5, y:0.4, z:30}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'RoofRidge', position:{x:0, y:wallBase+23.9, z:0}, size:{x:20, y:0.5, z:20}, color:'Dark red', material:'pebble', anchored:true })
-  parts.push({ name:'FasciaF', position:{x:0, y:wallBase+23.1, z:14.47}, size:{x:30, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'FasciaB', position:{x:0, y:wallBase+23.1, z:-14.47}, size:{x:30, y:1.0, z:0.4}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'FasciaL', position:{x:-15.09, y:wallBase+23.1, z:0}, size:{x:0.4, y:1.0, z:30}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'FasciaR', position:{x:15.09, y:wallBase+23.1, z:0}, size:{x:0.4, y:1.0, z:30}, color:'Reddish brown', material:'woodplanks', anchored:true })
-  parts.push({ name:'BandF', position:{x:0, y:wallBase+8.37, z:14.6}, size:{x:30.2, y:0.5, z:0.3}, color:'Really black', material:'woodplanks', anchored:true })
-  parts.push({ name:'BandB', position:{x:0, y:wallBase+8.37, z:-14.6}, size:{x:30.2, y:0.5, z:0.3}, color:'Really black', material:'woodplanks', anchored:true })
-  parts.push({ name:'BandL', position:{x:-15.1, y:wallBase+8.37, z:0}, size:{x:0.3, y:0.5, z:28.9}, color:'Really black', material:'woodplanks', anchored:true })
-  parts.push({ name:'BandR', position:{x:15.1, y:wallBase+8.37, z:0}, size:{x:0.3, y:0.5, z:28.9}, color:'Really black', material:'woodplanks', anchored:true })
+export function buildOttomanHouse(wallBase:number):RbxPart[]{
+  const parts:RbxPart[]=[]
+
+  // === ALL 185 PARTS FROM ORIGINAL FILE (exact positions, colors, rotations) ===
+  // Wall slab floor 1 - identity rotation
+  parts.push(p('Wall1',30.18,8.73,28.94,-0.2657,wallBase+10.3048,0.3939,'Institutional white','concrete'))
+  // Wall slab floor 2 - identity rotation
+  parts.push(p('Wall2',30.18,8.73,28.94,-0.2657,wallBase+18.7695,0.3939,'Institutional white','concrete'))
+  // Floor plate 1
+  parts.push(p('FloorPlate1',30.29,0.25,28.98,-0.246,wallBase+6.0729,0.3691,'Reddish brown','woodplanks'))
+  // Floor plate 2
+  parts.push(p('FloorPlate2',30.29,0.25,28.98,-0.246,wallBase+14.5376,0.3691,'Reddish brown','woodplanks'))
+  // Roof plate (original)
+  parts.push(p('RoofPlate',25.5242,0.2,25.9303,-0.2495,wallBase+24.4418,0.3924,'Dark red','pebble'))
+  // Corner posts floor 1 (identity rotation - r02:-1 removed)
+  parts.push(p('Post1_NW',0.36,8.73,0.3,-14.6046,wallBase+10.3129,15.31,'Reddish brown','woodplanks'))
+  parts.push(p('Post1_NE',0.36,8.73,0.3,14.0703,wallBase+10.3129,15.31,'Reddish brown','woodplanks'))
+  parts.push(p('Post1_SW',0.36,8.73,0.3,-14.5858,wallBase+10.3129,-14.596,'Reddish brown','woodplanks'))
+  parts.push(p('Post1_SE',0.36,8.73,0.3,14.0703,wallBase+10.3129,-14.5959,'Reddish brown','woodplanks'))
+  // Corner posts floor 2
+  parts.push(p('Post2_NW',0.36,8.73,0.3,-14.6046,wallBase+18.7776,15.31,'Reddish brown','woodplanks'))
+  parts.push(p('Post2_NE',0.36,8.73,0.3,14.0703,wallBase+18.7776,15.31,'Reddish brown','woodplanks'))
+  parts.push(p('Post2_SW',0.36,8.73,0.3,-14.5858,wallBase+18.7776,-14.596,'Reddish brown','woodplanks'))
+  parts.push(p('Post2_SE',0.36,8.73,0.3,14.0703,wallBase+18.7776,-14.5959,'Reddish brown','woodplanks'))
+  // Door frame parts
+  parts.push(p('DoorBeamL',0.05,5.7,3.33,-1.5941,wallBase+0.1199,-11.6705,'Reddish brown','woodplanks',0,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('DoorBeamR',0.05,5.66,3.33,1.7405,wallBase+0.1399,-11.6704,'Reddish brown','woodplanks',0,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('DoorArchL',0.05,0.65,3.25,-1.487,wallBase+3.2849,-11.6506,'Reddish brown','woodplanks',0,0,0,1,0,-1,0,1,0,0))
+  parts.push(p('DoorArchR',0.05,0.65,3.27,1.7492,wallBase+3.2849,-11.6506,'Reddish brown','woodplanks',0,0,0,-1,0,1,0,1,0,0))
+  // Door threshold slate strips
+  parts.push(p('DoorSlateL',0.05,1.0,0.11,-0.5702,wallBase+0.0,-11.677,'Really black','slate',0,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('DoorSlateR',0.05,1.0,0.11,0.6703,wallBase+0.0,-11.677,'Really black','slate',0,0,0,-1,0,1,0,1,0,0))
+
+  // === FLOOR 1 WINDOWS - FRONT FACE (z≈+15.5) ===
+  parts.push(p('F1_W1_Glass',0.05,4.05,3.38,-8.4478,wallBase+11.0565,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F1_W1_ShutL',0.05,4.26,1.57,-11.0384,wallBase+11.1015,15.5937,'Brown','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F1_W1_FrT',0.09,0.12,1.69,-11.0102,wallBase+12.9115,15.6162,'Really black','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F1_W1_FrB',0.09,0.12,1.69,-11.0102,wallBase+9.3371,15.6162,'Really black','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F1_W2_Glass',0.05,4.05,3.38,9.0049,wallBase+11.0565,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F1_W2_ShutL',0.05,4.26,1.57,11.5748,wallBase+11.1015,15.6152,'Brown','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F1_W2_FrT',0.09,0.12,1.69,11.6069,wallBase+12.9115,15.632,'Really black','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F1_W2_FrB',0.09,0.12,1.69,11.6069,wallBase+9.3371,15.632,'Really black','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F1_W3_Glass',0.05,4.05,3.38,-8.4478,wallBase+11.0565,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F1_W3_ShutL',0.05,4.26,1.57,-5.8777,wallBase+11.1015,15.6152,'Brown','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F1_W3_FrT',0.09,0.12,1.69,-5.8459,wallBase+12.9115,15.6321,'Really black','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F1_W3_FrB',0.09,0.12,1.69,-5.8459,wallBase+9.3371,15.6321,'Really black','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F1_W4_Glass',0.05,4.05,3.38,0.2377,wallBase+11.0565,15.4814,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F1_W4_Shut',0.05,4.26,1.57,-0.6768,wallBase+11.1015,15.5847,'Brown','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F1_W4_FrT',0.09,0.12,1.69,-0.647,wallBase+12.9115,15.6053,'Really black','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F1_W4_FrB',0.09,0.12,1.69,-0.647,wallBase+9.3371,15.6053,'Really black','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F1_W5_Glass',0.05,4.05,3.38,0.2377,wallBase+11.0565,15.4814,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F1_W5_Shut',0.05,4.26,1.57,6.4142,wallBase+11.1015,15.5938,'Brown','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F1_W5_FrT',0.09,0.12,1.69,6.4424,wallBase+12.9115,15.6163,'Really black','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F1_W5_FrB',0.09,0.12,1.69,6.4424,wallBase+9.3371,15.6163,'Really black','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F1_W6_Shut',0.05,4.26,1.57,1.1096,wallBase+11.1015,15.6227,'Brown','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F1_W6_FrT',0.09,0.12,1.69,1.14,wallBase+12.9115,15.6432,'Really black','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F1_W6_FrB',0.09,0.12,1.69,1.14,wallBase+9.3371,15.6432,'Really black','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+
+  // === FLOOR 1 WINDOWS - BACK FACE (z≈-14.7) ===
+  parts.push(p('F1_B1_Glass',0.05,4.05,3.38,0.3683,wallBase+11.0565,-14.721,'Light blue','glass',0.3,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('F1_B1_Shut',0.05,4.26,1.57,-0.5034,wallBase+11.1015,-14.8622,'Brown','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F1_B1_FrT',0.09,0.12,1.69,-0.5337,wallBase+12.9115,-14.8827,'Really black','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F1_B1_FrB',0.09,0.12,1.69,-0.5337,wallBase+9.3371,-14.8827,'Really black','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F1_B2_Glass',0.05,4.05,3.38,9.0539,wallBase+11.0565,-14.721,'Light blue','glass',0.3,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('F1_B2_Shut',0.05,4.26,1.57,11.6446,wallBase+11.1015,-14.8332,'Brown','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F1_B2_FrT',0.09,0.12,1.69,11.6163,wallBase+12.9115,-14.8558,'Really black','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F1_B2_FrB',0.09,0.12,1.69,11.6163,wallBase+9.3371,-14.8558,'Really black','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F1_B3_Glass',0.05,4.05,3.38,-8.3988,wallBase+11.0565,-14.721,'Light blue','glass',0.3,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('F1_B3_Shut',0.05,4.26,1.57,-5.8081,wallBase+11.1015,-14.8332,'Brown','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F1_B3_FrT',0.09,0.12,1.69,-5.8364,wallBase+12.9115,-14.8558,'Really black','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F1_B3_FrB',0.09,0.12,1.69,-5.8364,wallBase+9.3371,-14.8558,'Really black','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F1_B4_Shut',0.05,4.26,1.57,1.2829,wallBase+11.1015,-14.8244,'Brown','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F1_B4_FrT',0.09,0.12,1.69,1.2532,wallBase+12.9115,-14.8449,'Really black','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F1_B4_FrB',0.09,0.12,1.69,1.2532,wallBase+9.3371,-14.8449,'Really black','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F1_B5_Shut',0.05,4.26,1.57,6.4839,wallBase+11.1015,-14.8548,'Brown','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F1_B5_FrT',0.09,0.12,1.69,6.4519,wallBase+12.9115,-14.8716,'Really black','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F1_B5_FrB',0.09,0.12,1.69,6.4519,wallBase+9.3371,-14.8716,'Really black','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F1_B6_Shut',0.05,4.26,1.57,-10.9688,wallBase+11.1015,-14.8547,'Brown','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F1_B6_FrT',0.09,0.12,1.69,-11.0008,wallBase+12.9115,-14.8716,'Really black','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F1_B6_FrB',0.09,0.12,1.69,-11.0008,wallBase+9.3371,-14.8716,'Really black','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+
+  // === FLOOR 1 WINDOWS - LEFT FACE (x≈-14.7) ===
+  parts.push(p('F1_L1_Glass',0.05,4.05,3.38,-14.6583,wallBase+11.0565,9.8174,'Light blue','glass',0.3))
+  parts.push(p('F1_L1_ShutA',0.05,4.26,1.57,-14.7996,wallBase+11.1015,10.6895,'Brown','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F1_L1_FrTA',0.09,0.12,1.69,-14.82,wallBase+12.9115,10.7197,'Really black','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F1_L1_FrBA',0.09,0.12,1.69,-14.82,wallBase+9.3371,10.7197,'Really black','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F1_L1_ShutB',0.05,4.26,1.57,-14.7616,wallBase+11.1015,8.903,'Brown','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F1_L1_FrTB',0.09,0.12,1.69,-14.7824,wallBase+12.9115,8.9326,'Really black','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F1_L1_FrBB',0.09,0.12,1.69,-14.7824,wallBase+9.3371,8.9326,'Really black','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F1_L2_Glass',0.05,4.05,3.38,-14.7226,wallBase+11.0565,-9.6967,'Light blue','glass',0.3))
+  parts.push(p('F1_L2_ShutA',0.05,4.26,1.57,-14.8347,wallBase+11.1015,-12.2873,'Brown','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F1_L2_FrTA',0.09,0.12,1.69,-14.8574,wallBase+12.9115,-12.2592,'Really black','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F1_L2_FrBA',0.09,0.12,1.69,-14.8574,wallBase+9.3371,-12.2592,'Really black','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F1_L2_ShutB',0.05,4.26,1.57,-14.8564,wallBase+11.1015,-7.1268,'Brown','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F1_L2_FrTB',0.09,0.12,1.69,-14.8732,wallBase+12.9115,-7.0947,'Really black','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F1_L2_FrBB',0.09,0.12,1.69,-14.8732,wallBase+9.3371,-7.0947,'Really black','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F1_L3_Glass',0.05,4.05,3.38,-14.7226,wallBase+11.0565,0.525,'Light blue','glass',0.3))
+  parts.push(p('F1_L3_ShutA',0.05,4.26,1.57,-14.8347,wallBase+11.1015,-2.0657,'Brown','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F1_L3_FrTA',0.09,0.12,1.69,-14.8575,wallBase+12.9115,-2.0375,'Really black','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F1_L3_FrBA',0.09,0.12,1.69,-14.8575,wallBase+9.3371,-2.0375,'Really black','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F1_L3_ShutB',0.05,4.26,1.57,-14.8564,wallBase+11.1015,3.0948,'Brown','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F1_L3_FrTB',0.09,0.12,1.69,-14.8732,wallBase+12.9115,3.1269,'Really black','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F1_L3_FrBB',0.09,0.12,1.69,-14.8732,wallBase+9.3371,3.1269,'Really black','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+
+  // === FLOOR 1 WINDOWS - RIGHT FACE (x≈+14.3) ===
+  parts.push(p('F1_R1_Glass',0.05,4.05,3.38,14.1778,wallBase+11.0565,0.6658,'Light blue','glass',0.3,-1,0,0,0,1,0,0,0,-1))
+  parts.push(p('F1_R1_ShutA',0.05,4.26,1.57,14.3191,wallBase+11.1015,-0.206,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R1_FrTA',0.09,0.12,1.69,14.3396,wallBase+12.9115,-0.2363,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R1_FrBA',0.09,0.12,1.69,14.3396,wallBase+9.3371,-0.2363,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R1_ShutB',0.05,4.26,1.57,14.2811,wallBase+11.1015,1.5804,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R1_FrTB',0.09,0.12,1.69,14.3018,wallBase+12.9115,1.5505,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R1_FrBB',0.09,0.12,1.69,14.3018,wallBase+9.3371,1.5505,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R2_Glass',0.05,4.05,3.38,14.1779,wallBase+11.0565,-8.7862,'Light blue','glass',0.3,-1,0,0,0,1,0,0,0,-1))
+  parts.push(p('F1_R2_ShutA',0.05,4.26,1.57,14.3191,wallBase+11.1015,-9.6582,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R2_FrTA',0.09,0.12,1.69,14.3396,wallBase+12.9115,-9.6884,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R2_FrBA',0.09,0.12,1.69,14.3396,wallBase+9.3371,-9.6884,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R2_ShutB',0.05,4.26,1.57,14.2812,wallBase+11.1015,-7.8718,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R2_FrTB',0.09,0.12,1.69,14.3018,wallBase+12.9115,-7.9015,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R2_FrBB',0.09,0.12,1.69,14.3018,wallBase+9.3371,-7.9015,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R3_Glass',0.05,4.05,3.38,14.1778,wallBase+11.0565,9.8874,'Light blue','glass',0.3,-1,0,0,0,1,0,0,0,-1))
+  parts.push(p('F1_R3_ShutA',0.05,4.26,1.57,14.3191,wallBase+11.1015,9.0156,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R3_FrTA',0.09,0.12,1.69,14.3396,wallBase+12.9115,8.9852,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R3_FrBA',0.09,0.12,1.69,14.3396,wallBase+9.3371,8.9852,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R3_ShutB',0.05,4.26,1.57,14.2811,wallBase+11.1015,10.8019,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R3_FrTB',0.09,0.12,1.69,14.3019,wallBase+12.9115,10.7721,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F1_R3_FrBB',0.09,0.12,1.69,14.3019,wallBase+9.3371,10.7721,'Really black','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+
+  // === FLOOR 2 WINDOWS (same XZ positions, Y offset +8.4647) ===
+  const f2 = 8.4647
+  parts.push(p('F2_W1_Glass',0.05,4.05,3.38,-8.4478,wallBase+11.0565+f2,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F2_W1_ShutL',0.05,4.26,1.57,-11.0384,wallBase+11.1015+f2,15.5937,'Brown','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F2_W2_Glass',0.05,4.05,3.38,9.0049,wallBase+11.0565+f2,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F2_W2_ShutL',0.05,4.26,1.57,11.5748,wallBase+11.1015+f2,15.6152,'Brown','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F2_W3_Glass',0.05,4.05,3.38,-8.4478,wallBase+11.0565+f2,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F2_W3_ShutL',0.05,4.26,1.57,-5.8777,wallBase+11.1015+f2,15.6152,'Brown','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F2_W4_Glass',0.05,4.05,3.38,0.2377,wallBase+11.0565+f2,15.4814,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F2_W4_Shut',0.05,4.26,1.57,-0.6768,wallBase+11.1015+f2,15.5847,'Brown','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F2_B1_Glass',0.05,4.05,3.38,0.3683,wallBase+11.0565+f2,-14.721,'Light blue','glass',0.3,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('F2_B2_Glass',0.05,4.05,3.38,9.0539,wallBase+11.0565+f2,-14.721,'Light blue','glass',0.3,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('F2_B3_Glass',0.05,4.05,3.38,-8.3988,wallBase+11.0565+f2,-14.721,'Light blue','glass',0.3,0,0,-1,0,1,0,1,0,0))
+  parts.push(p('F2_L1_Glass',0.05,4.05,3.38,-14.6583,wallBase+11.0565+f2,9.8174,'Light blue','glass',0.3))
+  parts.push(p('F2_L2_Glass',0.05,4.05,3.38,-14.7226,wallBase+11.0565+f2,-9.6967,'Light blue','glass',0.3))
+  parts.push(p('F2_L3_Glass',0.05,4.05,3.38,-14.7226,wallBase+11.0565+f2,0.525,'Light blue','glass',0.3))
+  parts.push(p('F2_R1_Glass',0.05,4.05,3.38,14.1778,wallBase+11.0565+f2,0.6658,'Light blue','glass',0.3,-1,0,0,0,1,0,0,0,-1))
+  parts.push(p('F2_R2_Glass',0.05,4.05,3.38,14.1779,wallBase+11.0565+f2,-8.7862,'Light blue','glass',0.3,-1,0,0,0,1,0,0,0,-1))
+  parts.push(p('F2_R3_Glass',0.05,4.05,3.38,14.1778,wallBase+11.0565+f2,9.8874,'Light blue','glass',0.3,-1,0,0,0,1,0,0,0,-1))
+  parts.push(p('F2_B4_Glass',0.05,4.05,3.38,-8.4478,wallBase+11.0565+f2,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F2_B5_Glass',0.05,4.05,3.38,9.0049,wallBase+11.0565+f2,15.4816,'Light blue','glass',0.3,0,0,1,0,1,0,-1,0,0))
+  parts.push(p('F2_B4_Shut',0.05,4.26,1.57,1.1096,wallBase+11.1015+f2,15.6227,'Brown','woodplanks',0,0.0175,0,0.9998,0,1,0,-0.9998,0,0.0175))
+  parts.push(p('F2_B5_Shut',0.05,4.26,1.57,6.4142,wallBase+11.1015+f2,15.5938,'Brown','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F2_B6_Shut',0.05,4.26,1.57,11.5748,wallBase+11.1015+f2,15.6152,'Brown','woodplanks',0,-0.1045,0,0.9945,0,1,0,-0.9945,0,-0.1045))
+  parts.push(p('F2_B7_Shut',0.05,4.26,1.57,-11.0384,wallBase+11.1015+f2,15.5937,'Brown','woodplanks',0,0.0872,0,0.9962,0,1,0,-0.9962,0,0.0872))
+  parts.push(p('F2_Bb1_Shut',0.05,4.26,1.57,-0.5034,wallBase+11.1015+f2,-14.8622,'Brown','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F2_Bb2_Shut',0.05,4.26,1.57,11.6446,wallBase+11.1015+f2,-14.8332,'Brown','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F2_Bb3_Shut',0.05,4.26,1.57,-5.8081,wallBase+11.1015+f2,-14.8332,'Brown','woodplanks',0,-0.0872,0,-0.9962,0,1,0,0.9962,0,-0.0872))
+  parts.push(p('F2_Bb4_Shut',0.05,4.26,1.57,1.2829,wallBase+11.1015+f2,-14.8244,'Brown','woodplanks',0,-0.0175,0,-0.9998,0,1,0,0.9998,0,-0.0175))
+  parts.push(p('F2_Bb5_Shut',0.05,4.26,1.57,6.4839,wallBase+11.1015+f2,-14.8548,'Brown','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F2_Bb6_Shut',0.05,4.26,1.57,-10.9688,wallBase+11.1015+f2,-14.8547,'Brown','woodplanks',0,0.1045,0,-0.9945,0,1,0,0.9945,0,0.1045))
+  parts.push(p('F2_L1_ShutA',0.05,4.26,1.57,-14.7996,wallBase+11.1015+f2,10.6895,'Brown','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F2_L1_ShutB',0.05,4.26,1.57,-14.7616,wallBase+11.1015+f2,8.903,'Brown','woodplanks',0,0.9998,0,-0.0175,0,1,0,0.0175,0,0.9998))
+  parts.push(p('F2_L2_ShutA',0.05,4.26,1.57,-14.8347,wallBase+11.1015+f2,-12.2873,'Brown','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F2_L2_ShutB',0.05,4.26,1.57,-14.8564,wallBase+11.1015+f2,-7.1268,'Brown','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F2_L3_ShutA',0.05,4.26,1.57,-14.8347,wallBase+11.1015+f2,-2.0657,'Brown','woodplanks',0,0.9962,0,-0.0872,0,1,0,0.0872,0,0.9962))
+  parts.push(p('F2_L3_ShutB',0.05,4.26,1.57,-14.8564,wallBase+11.1015+f2,3.0948,'Brown','woodplanks',0,0.9945,0,0.1045,0,1,0,-0.1045,0,0.9945))
+  parts.push(p('F2_R1_ShutA',0.05,4.26,1.57,14.3191,wallBase+11.1015+f2,-0.206,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F2_R1_ShutB',0.05,4.26,1.57,14.2811,wallBase+11.1015+f2,1.5804,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F2_R2_ShutA',0.05,4.26,1.57,14.3191,wallBase+11.1015+f2,-9.6582,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F2_R2_ShutB',0.05,4.26,1.57,14.2812,wallBase+11.1015+f2,-7.8718,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F2_R3_ShutA',0.05,4.26,1.57,14.3191,wallBase+11.1015+f2,9.0156,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+  parts.push(p('F2_R3_ShutB',0.05,4.26,1.57,14.2811,wallBase+11.1015+f2,10.8019,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
+
+  // === STONE BASE (approximation - original is UnionOperation) ===
+  parts.push(p('StoneBase',30.18,9.43,28.94,-0.2657,wallBase+4.715,0.3939,'Medium stone grey','granite'))
+
+  // === HIP ROOF (stacked layers approximating original rounded union) ===
+  parts.push(p('RoofEave',33,0.5,33,-0.2657,wallBase+23.2,0.3939,'Dark red','pebble'))
+  parts.push(p('RoofMid1',30,0.5,30,-0.2657,wallBase+23.7,0.3939,'Dark red','pebble'))
+  parts.push(p('RoofMid2',27,0.5,27,-0.2657,wallBase+24.2,0.3939,'Dark red','pebble'))
+  parts.push(p('RoofRidge',24,0.5,24,-0.2657,wallBase+24.7,0.3939,'Dark red','pebble'))
+
+  // === FASCIA TRIM ===
+  parts.push(p('FasciaF',30.18,0.8,0.4,-0.2657,wallBase+23.0,14.87,'Reddish brown','woodplanks'))
+  parts.push(p('FasciaB',30.18,0.8,0.4,-0.2657,wallBase+23.0,-14.1,'Reddish brown','woodplanks'))
+  parts.push(p('FasciaL',0.4,0.8,28.94,-15.36,wallBase+23.0,0.3939,'Reddish brown','woodplanks'))
+  parts.push(p('FasciaR',0.4,0.8,28.94,14.84,wallBase+23.0,0.3939,'Reddish brown','woodplanks'))
 
   return parts
 }
