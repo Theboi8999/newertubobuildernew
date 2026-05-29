@@ -9,9 +9,9 @@ export function buildOttomanHouse(wallBase:number):RbxPart[]{
 
   // === ALL 185 PARTS FROM ORIGINAL FILE (exact positions, colors, rotations) ===
   // Wall slab floor 1 - identity rotation
-  parts.push(p('Wall1',30.18,8.73,28.94,-0.2657,wallBase+10.3048,0.3939,'Institutional white','concrete'))
+  parts.push(p('Wall1',30.18,8.73,28.94,-0.2657,wallBase+10.3048,0.3939,'Medium stone grey','concrete'))
   // Wall slab floor 2 - identity rotation
-  parts.push(p('Wall2',30.18,8.73,28.94,-0.2657,wallBase+18.7695,0.3939,'Institutional white','concrete'))
+  parts.push(p('Wall2',30.18,8.73,28.94,-0.2657,wallBase+18.7695,0.3939,'Medium stone grey','concrete'))
   // Floor plate 1
   parts.push(p('FloorPlate1',30.29,0.25,28.98,-0.246,wallBase+6.0729,0.3691,'Reddish brown','woodplanks'))
   // Floor plate 2
@@ -176,7 +176,7 @@ export function buildOttomanHouse(wallBase:number):RbxPart[]{
   parts.push(p('F2_R3_ShutB',0.05,4.26,1.57,14.2811,wallBase+11.1015+f2,10.8019,'Brown','woodplanks',0,-0.9998,0,0.0175,0,1,0,-0.0175,0,-0.9998))
 
   // === STONE BASE (approximation - original is UnionOperation) ===
-  parts.push(p('StoneBase',30.18,9.43,28.94,-0.2657,wallBase+4.715,0.3939,'Medium stone grey','granite'))
+  parts.push(p('StoneBase',30.18,5.9398,28.94,-0.2657,wallBase+2.9699,0.3939,'Medium stone grey','granite'))
 
   // === HIP ROOF (stacked layers approximating original rounded union) ===
   parts.push(p('RoofEave',33,0.5,33,-0.2657,wallBase+23.2,0.3939,'Dark red','pebble'))
