@@ -131,6 +131,7 @@ export const generateFunction = inngest.createFunction(
         if (result.luaScript) {
           try {
             console.log('[lua] script length:', result.luaScript?.length)
+            console.log('[lua-save] script preview:', result.luaScript?.substring(0, 100))
             await supabase
               .from('generations')
               .update({ lua_script: result.luaScript })

@@ -329,11 +329,14 @@ export async function generateAsset(
 
     const outputUrl = await uploadRbxmx(generationId, rbxmxFinal)
 
+    // generateLuaScript is called last so allParts is fully resolved after all retries
     let luaScript: string | undefined
     if (researchResult) {
       try {
+        console.log('[generator] generating lua, buildingType:', buildingType, 'allParts:', allParts.length)
         const { generateLuaScript } = await import('./lua-generator')
         luaScript = generateLuaScript(researchResult, allParts)
+        console.log('[generator] lua generated, length:', luaScript?.length)
       } catch (e) {
         console.error('[generator] lua generation error:', e)
       }
