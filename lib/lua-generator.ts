@@ -57,40 +57,36 @@ const OTTOMAN_REPLACED_NAMES = new Set([
   'FasciaF', 'FasciaB', 'FasciaL', 'FasciaR', 'StoneBase',
 ])
 
-// Part_1 and Part_101 are the two main concrete wall blocks — override to Sand blue
-// so they render as the correct blue-grey Ottoman plaster color in Roblox
-const OTTOMAN_WALL_COLOR_OVERRIDES = new Set(['Part_1', 'Part_101'])
-
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   {
     name: 'StoneBase', size: { x: 30.18, y: 5.94, z: 28.94 },
     position: { x: -0.266, y: 2.97, z: 0.394 },
-    color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
+    color: 'Fossil', material: 'granite', anchored: true, transparency: 0,
   },
   {
-    name: 'RoofF', size: { x: 28, y: 2.5, z: 3 },
-    position: { x: 0, y: 23.2, z: 14.47 },
+    name: 'RoofF', size: { x: 28, y: 2.5, z: 4 },
+    position: { x: 0, y: 23.2, z: 13.5 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 1, r01: 0, r02: 0, r10: 0, r11: 1, r12: 0, r20: 0, r21: 0, r22: 1,
   },
   {
-    name: 'RoofB', size: { x: 28, y: 2.5, z: 3 },
-    position: { x: 0, y: 23.2, z: -14.47 },
+    name: 'RoofB', size: { x: 28, y: 2.5, z: 4 },
+    position: { x: 0, y: 23.2, z: -13.5 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: -1, r01: 0, r02: 0, r10: 0, r11: 1, r12: 0, r20: 0, r21: 0, r22: -1,
   },
   {
-    name: 'RoofL', size: { x: 3, y: 2.5, z: 26 },
-    position: { x: -15.09, y: 23.2, z: 0 },
+    name: 'RoofL', size: { x: 4, y: 2.5, z: 26 },
+    position: { x: -14.5, y: 23.2, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 0, r01: 0, r02: 1, r10: 0, r11: 1, r12: 0, r20: -1, r21: 0, r22: 0,
   },
   {
-    name: 'RoofR', size: { x: 3, y: 2.5, z: 26 },
-    position: { x: 15.09, y: 23.2, z: 0 },
+    name: 'RoofR', size: { x: 4, y: 2.5, z: 26 },
+    position: { x: 14.5, y: 23.2, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 0, r01: 0, r02: -1, r10: 0, r11: 1, r12: 0, r20: 1, r21: 0, r22: 0,
@@ -109,7 +105,6 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
     const ottomanParts = buildOttomanHouse(0)
     const wallParts = ottomanParts
       .filter(p => !OTTOMAN_REPLACED_NAMES.has(p.name))
-      .map(p => OTTOMAN_WALL_COLOR_OVERRIDES.has(p.name) ? { ...p, color: 'Sand blue' } : p)
     finalParts = [...wallParts, ...OTTOMAN_EXTRA_PARTS]
   } else {
     finalParts = parts
