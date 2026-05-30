@@ -74,13 +74,13 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Exact roof plate from Part_27, corrected to identity rotation
   {
     name: 'RoofPlate', size: { x: 25.52, y: 0.2, z: 25.93 },
-    position: { x: 0, y: 24.44, z: 0 },
+    position: { x: 0, y: 23.735, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
   },
   // Broad flat roof slab sitting below the plate
   {
     name: 'RoofMain', size: { x: 33, y: 0.5, z: 31 },
-    position: { x: 0, y: 23.8, z: 0 },
+    position: { x: 0, y: 23.385, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
   },
   // Fascia trim around roof perimeter
@@ -147,17 +147,13 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
   const header = `-- TurboBuilder: ${researchResult.buildingType} (${finalParts.length} parts)`
 
   const terrainAlignSnippet = `
--- Move entire model to sit on terrain
-local minY = math.huge
-for _, part in pairs(_TB_MODEL:GetDescendants()) do
-    if part:IsA("BasePart") then
-        local bottom = part.Position.Y - part.Size.Y/2
-        if bottom < minY then minY = bottom end
-    end
-end
-local terrainY = workspace.Terrain:GetHeight(Vector3.new(0,0,0)) or 3
-local offset = terrainY - minY
-_TB_MODEL:PivotTo(_TB_MODEL:GetPivot() * CFrame.new(0, offset, 0))`
+-- Snap to terrain
+local model = _TB_MODEL
+local cf = model:GetPivot()
+local groundY = workspace.Terrain:GetHeight(Vector3.new(cf.X, 0, cf.Z))
+if groundY and groundY > 0 then
+    model:PivotTo(CFrame.new(cf.X, groundY, cf.Z) * CFrame.Angles(0,0,0))
+end`
 
   return [header, ...finalParts.map(partToLua), terrainAlignSnippet].join('\n')
 }
