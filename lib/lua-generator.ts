@@ -102,7 +102,7 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Front door
   {
     name: 'Door', size: { x: 3.5, y: 5.5, z: 0.2 },
-    position: { x: 0, y: 5.0, z: 12.8 },
+    position: { x: 0, y: 5.0, z: 14.5 },
     color: 'Reddish brown', material: 'woodplanks', anchored: true, transparency: 0,
   },
 ]
@@ -148,7 +148,7 @@ for _, part in pairs(_TB_MODEL:GetDescendants()) do
     end
 end
 local terrainY = workspace.Terrain:GetHeight(Vector3.new(0,0,0)) or 3
-local offset = terrainY - minY + 0.1
+local offset = terrainY - minY
 _TB_MODEL:PivotTo(_TB_MODEL:GetPivot() * CFrame.new(0, offset, 0))`
 
   return [header, ...finalParts.map(partToLua), terrainAlignSnippet].join('\n')
