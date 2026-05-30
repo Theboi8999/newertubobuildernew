@@ -67,8 +67,8 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Stone base — bottom at Y=0 before ground offset is applied
   {
-    name: 'StoneBase', size: { x: 30.18, y: 5.94, z: 28.94 },
-    position: { x: -0.266, y: 2.97, z: 0.394 },
+    name: 'StoneBase', size: { x: 30.18, y: 8.67, z: 28.94 },
+    position: { x: -0.266, y: 4.335, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
   // Exact roof plate from Part_27, corrected to identity rotation
@@ -107,7 +107,7 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Front door
   {
     name: 'Door', size: { x: 3.5, y: 5.5, z: 0.2 },
-    position: { x: 0, y: 5.0, z: 14.5 },
+    position: { x: 0, y: 3.0, z: 14.5 },
     color: 'Reddish brown', material: 'woodplanks', anchored: true, transparency: 0,
   },
 ]
@@ -140,6 +140,9 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
       position: { ...p.position, y: parseFloat((p.position.y + yOffset).toFixed(4)) },
     }))
   }
+
+  const doorPart = finalParts.find(p => p.name === 'Door')
+  console.log('[lua] door part:', JSON.stringify(doorPart))
 
   const header = `-- TurboBuilder: ${researchResult.buildingType} (${finalParts.length} parts)`
 
