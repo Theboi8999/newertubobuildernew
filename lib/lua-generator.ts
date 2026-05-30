@@ -60,10 +60,10 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 ])
 
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
-  // Stone base v2 — sy=5.94 meets wall bottom at 5.9398 exactly
+  // Stone base — bottom at Y=0 before ground offset is applied
   {
-    name: 'StoneBase', size: { x: 26, y: 8.0, z: 25.6 },
-    position: { x: -0.266, y: 4.0, z: 0.394 },
+    name: 'StoneBase', size: { x: 26, y: 5.94, z: 25.6 },
+    position: { x: -0.266, y: 2.97, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
   // Exact roof plate from Part_27, corrected to identity rotation
@@ -122,6 +122,18 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
     finalParts = [...wallParts, ...OTTOMAN_EXTRA_PARTS]
   } else {
     finalParts = parts
+  }
+
+  // Shift all parts up so the lowest part bottom sits exactly at Y=0.
+  // Some ottoman door frames have py≈0.12 with sy=5.66 → bottom≈-2.71.
+  // Without this offset the building would be partially underground.
+  const minBottomY = Math.min(...finalParts.map(p => p.position.y - p.size.y / 2))
+  if (minBottomY < 0) {
+    const yOffset = -minBottomY
+    finalParts = finalParts.map(p => ({
+      ...p,
+      position: { ...p.position, y: parseFloat((p.position.y + yOffset).toFixed(4)) },
+    }))
   }
 
   const header = `-- TurboBuilder: ${researchResult.buildingType} (${finalParts.length} parts)`
