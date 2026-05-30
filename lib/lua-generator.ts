@@ -62,7 +62,7 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Stone base — bottom at Y=0 before ground offset is applied
   {
-    name: 'StoneBase', size: { x: 26, y: 5.94, z: 25.6 },
+    name: 'StoneBase', size: { x: 30.18, y: 5.94, z: 28.94 },
     position: { x: -0.266, y: 2.97, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
@@ -102,7 +102,7 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Front door
   {
     name: 'Door', size: { x: 3.5, y: 5.5, z: 0.2 },
-    position: { x: 0, y: 4.5, z: -12.8 },
+    position: { x: 0, y: 5.0, z: 12.8 },
     color: 'Reddish brown', material: 'woodplanks', anchored: true, transparency: 0,
   },
 ]
