@@ -19,11 +19,14 @@ Then output SPECIFIC code changes needed in this format:
 CHANGE: [what to change] → [exact new value]`
 
 export async function POST(req: NextRequest) {
+  // Debug: expose key prefix so we can identify which account is being used
+  const keyPrefix = (process.env.ANTHROPIC_API_KEY || '').slice(0, 10) || '(not set)'
+
   try {
     const { generatedImage, targetImage } = await req.json()
 
     if (!generatedImage || !targetImage) {
-      return NextResponse.json({ error: 'Both generatedImage and targetImage are required' }, { status: 400 })
+      return NextResponse.json({ error: 'Both generatedImage and targetImage are required', keyPrefix }, { status: 400 })
     }
 
     const response = await anthropic.messages.create({
@@ -55,9 +58,9 @@ export async function POST(req: NextRequest) {
       .filter(l => l.trim().startsWith('CHANGE:'))
       .map(l => l.replace(/^CHANGE:\s*/, '').trim())
 
-    return NextResponse.json({ analysis: text, changes })
+    return NextResponse.json({ analysis: text, changes, keyPrefix })
   } catch (e: any) {
     console.error('[visual-fix]', e)
-    return NextResponse.json({ error: e.message || 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: e.message || 'Internal server error', keyPrefix }, { status: 500 })
   }
 }
