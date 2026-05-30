@@ -107,7 +107,7 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Front door
   {
     name: 'Door', size: { x: 3.5, y: 5.5, z: 0.2 },
-    position: { x: 0, y: 3.0, z: 14.5 },
+    position: { x: 0, y: 5.7, z: 14.5 },
     color: 'Reddish brown', material: 'woodplanks', anchored: true, transparency: 0,
   },
 ]
@@ -121,7 +121,7 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
       .filter(p => !OTTOMAN_REPLACED_NAMES.has(p.name))
       .map(p => {
         if (p.name === 'Part_1' || p.name === 'Part_101') return { ...p, color: 'Medium stone grey', material: 'smoothplastic' }
-        if (p.material === 'glass') return { ...p, transparency: 0.3 }
+        if (p.material === 'glass') return { ...p, transparency: 0.15 }
         return p
       })
     finalParts = [...wallParts, ...OTTOMAN_EXTRA_PARTS]
