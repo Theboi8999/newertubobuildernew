@@ -102,7 +102,7 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Front door
   {
     name: 'Door', size: { x: 3.5, y: 5.5, z: 0.2 },
-    position: { x: 0, y: 3.0, z: -12.0 },
+    position: { x: 0, y: 2.0, z: -12.5 },
     color: 'Reddish brown', material: 'woodplanks', anchored: true, transparency: 0,
   },
 ]
