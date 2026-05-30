@@ -115,7 +115,7 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
     const wallParts = ottomanParts
       .filter(p => !OTTOMAN_REPLACED_NAMES.has(p.name))
       .map(p => {
-        if (p.name === 'Part_1' || p.name === 'Part_101') return { ...p, color: 'Institutional white' }
+        if (p.name === 'Part_1' || p.name === 'Part_101') return { ...p, color: 'Medium stone grey', material: 'smoothplastic' }
         if (p.material === 'glass') return { ...p, transparency: 0.3 }
         return p
       })
