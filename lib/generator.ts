@@ -47,6 +47,8 @@ export interface GenerateResult {
   partCount: number
   roomLayout?: import('./blueprint-compiler').RoomLayoutItem[]
   irlImageUrls?: string[]
+  luaScript?: string
+  buildingType?: string
 }
 
 async function uploadRbxmx(generationId: string, rbxmx: string): Promise<string> {
@@ -327,6 +329,16 @@ export async function generateAsset(
 
     const outputUrl = await uploadRbxmx(generationId, rbxmxFinal)
 
+    let luaScript: string | undefined
+    if (researchResult) {
+      try {
+        const { generateLuaScript } = await import('./lua-generator')
+        luaScript = generateLuaScript(researchResult, allParts)
+      } catch (e) {
+        console.error('[generator] lua generation error:', e)
+      }
+    }
+
     return {
       outputUrl,
       spec: specItems,
@@ -339,6 +351,8 @@ export async function generateAsset(
       partCount: allParts.length,
       roomLayout: compiled?.roomLayout || [],
       irlImageUrls,
+      luaScript,
+      buildingType: buildingType ?? undefined,
     }
   }
 

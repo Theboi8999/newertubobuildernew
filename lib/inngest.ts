@@ -119,11 +119,24 @@ export const generateFunction = inngest.createFunction(
                 qualityChecks: result.qualityChecks || [],
                 suggestions: result.suggestions || [],
                 roomLayout: result.roomLayout || [],
+                buildingType: result.buildingType || '',
               },
             })
             .eq('id', generationId)
         } catch (e) {
           console.error('[inngest] output fields update failed:', e)
+        }
+
+        // Update 3: save Lua script (non-fatal if this fails)
+        if (result.luaScript) {
+          try {
+            await supabase
+              .from('generations')
+              .update({ lua_script: result.luaScript })
+              .eq('id', generationId)
+          } catch (e) {
+            console.error('[inngest] lua_script update failed:', e)
+          }
         }
 
         // Increment user generation count (non-fatal)
