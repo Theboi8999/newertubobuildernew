@@ -137,5 +137,19 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
   }
 
   const header = `-- TurboBuilder: ${researchResult.buildingType} (${finalParts.length} parts)`
-  return [header, ...finalParts.map(partToLua)].join('\n')
+
+  const terrainAlignSnippet = `
+-- Move entire model to sit on terrain
+local minY = math.huge
+for _, part in pairs(_TB_MODEL:GetDescendants()) do
+    if part:IsA("BasePart") then
+        local bottom = part.Position.Y - part.Size.Y/2
+        if bottom < minY then minY = bottom end
+    end
+end
+local terrainY = workspace.Terrain:GetHeight(Vector3.new(0,0,0)) or 3
+local offset = terrainY - minY + 0.1
+_TB_MODEL:PivotTo(_TB_MODEL:GetPivot() * CFrame.new(0, offset, 0))`
+
+  return [header, ...finalParts.map(partToLua), terrainAlignSnippet].join('\n')
 }
