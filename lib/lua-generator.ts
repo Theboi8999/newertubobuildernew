@@ -59,41 +59,41 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   {
-    name: 'StoneBase', size: { x: 30.18, y: 9.43, z: 28.94 },
+    name: 'StoneBase', size: { x: 26, y: 9.43, z: 25.6 },
     position: { x: -0.266, y: 4.715, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
   {
-    name: 'RoofF', size: { x: 32, y: 3, z: 5 },
-    position: { x: 0, y: 23, z: 16 },
+    name: 'RoofF', size: { x: 32, y: 3, z: 4 },
+    position: { x: 0, y: 22.5, z: 15.5 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 1, r01: 0, r02: 0, r10: 0, r11: 1, r12: 0, r20: 0, r21: 0, r22: 1,
   },
   {
-    name: 'RoofB', size: { x: 32, y: 3, z: 5 },
-    position: { x: 0, y: 23, z: -16 },
+    name: 'RoofB', size: { x: 32, y: 3, z: 4 },
+    position: { x: 0, y: 22.5, z: -15.5 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: -1, r01: 0, r02: 0, r10: 0, r11: 1, r12: 0, r20: 0, r21: 0, r22: -1,
   },
   {
-    name: 'RoofL', size: { x: 5, y: 3, z: 30 },
-    position: { x: -16, y: 23, z: 0 },
+    name: 'RoofL', size: { x: 4, y: 3, z: 30 },
+    position: { x: -15.5, y: 22.5, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 0, r01: 0, r02: 1, r10: 0, r11: 1, r12: 0, r20: -1, r21: 0, r22: 0,
   },
   {
-    name: 'RoofR', size: { x: 5, y: 3, z: 30 },
-    position: { x: 16, y: 23, z: 0 },
+    name: 'RoofR', size: { x: 4, y: 3, z: 30 },
+    position: { x: 15.5, y: 22.5, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 0, r01: 0, r02: -1, r10: 0, r11: 1, r12: 0, r20: 1, r21: 0, r22: 0,
   },
   {
     name: 'RoofDeck', size: { x: 28, y: 0.5, z: 28 },
-    position: { x: 0, y: 24.5, z: 0 },
+    position: { x: 0, y: 23.385, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
   },
 ]
