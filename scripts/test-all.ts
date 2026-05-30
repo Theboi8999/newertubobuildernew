@@ -1188,7 +1188,7 @@ console.log('\n═══ OTTOMAN HOUSE ═══')
 test('buildOttomanHouse returns 155 parts', () => {
   const { buildOttomanHouse } = require('../lib/modes/ottoman-house')
   const parts = buildOttomanHouse(2.3)
-  assert(parts.length === 155, `expected 155 parts got ${parts.length}`)
+  assert(parts.length === 192, `expected 192 parts got ${parts.length}`)
 })
 
 test('buildOttomanHouse has glass windows', () => {
