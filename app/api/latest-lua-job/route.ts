@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
+import { generateLuaScript } from '@/lib/lua-generator'
+import { buildOttomanHouse } from '@/lib/modes/ottoman-house'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export async function GET() {
 
     if (!error && data?.lua_script) {
       const buildingType = (data.output_metadata as any)?.buildingType ?? 'ottoman_house'
-      return NextResponse.json({
+      return Response.json({
         script: data.lua_script,
         buildingType,
         partsCount: data.part_count ?? 0,
@@ -27,29 +28,19 @@ export async function GET() {
     }
 
     if (error) {
-      console.warn('[latest-lua-job] DB query failed (column may not exist yet):', error.message)
+      console.warn('[latest-lua-job] DB query error (lua_script column may not exist yet):', error.message)
     }
   } catch (e: any) {
     console.error('[latest-lua-job] DB error:', e)
   }
 
-  // Fallback: generate the ottoman house script on the fly
-  // This works before the lua_script column migration has been applied,
-  // and before any new generations have been run.
-  try {
-    const { buildOttomanHouse } = await import('@/lib/modes/ottoman-house')
-    const { generateLuaScript } = await import('@/lib/lua-generator')
-    const parts = buildOttomanHouse(0)
-    const fakeResearch = { buildingType: 'ottoman_house' } as any
-    const script = generateLuaScript(fakeResearch, parts)
-    return NextResponse.json({
-      script,
-      buildingType: 'ottoman_house',
-      partsCount: parts.length,
-      prompt: 'ottoman house',
-    })
-  } catch (e: any) {
-    console.error('[latest-lua-job] fallback generation failed:', e)
-    return NextResponse.json({ error: 'No lua script available' }, { status: 503 })
-  }
+  // Fallback: generate ottoman house script directly so the endpoint always returns 200
+  const parts = buildOttomanHouse(0)
+  const script = generateLuaScript({ buildingType: 'ottoman_house' } as any, parts)
+  return Response.json({
+    script,
+    buildingType: 'ottoman_house',
+    partsCount: parts.length,
+    prompt: 'ottoman house',
+  })
 }

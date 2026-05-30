@@ -1,5 +1,5 @@
 import { RbxPart } from './rbxmx'
-import { ResearchResult } from './research-agent'
+import type { ResearchResult } from './research-agent'
 import { buildOttomanHouse } from './modes/ottoman-house'
 
 const MAT_LUA: Record<string, string> = {
