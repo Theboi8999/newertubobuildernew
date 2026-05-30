@@ -329,16 +329,44 @@ export async function generateAsset(
 
     const outputUrl = await uploadRbxmx(generationId, rbxmxFinal)
 
-    // generateLuaScript is called last so allParts is fully resolved after all retries
+    // Lua generation: procedural for all types; ottoman_house uses hardcoded parts as fallback
     let luaScript: string | undefined
-    if (researchResult) {
+    if (researchResult && buildingType) {
       try {
-        console.log('[generator] generating lua, buildingType:', buildingType, 'allParts:', allParts.length)
-        const { generateLuaScript } = await import('./lua-generator')
-        luaScript = generateLuaScript(researchResult, allParts)
+        console.log('[generator] generating lua, buildingType:', buildingType)
+        if (buildingType === 'ottoman_house') {
+          // Ottoman house: use precise hardcoded parts derived from the original rbxmx
+          const { generateLuaScript } = await import('./lua-generator')
+          luaScript = generateLuaScript(researchResult, allParts)
+        } else {
+          // All other types: ask Groq to write procedural Lua from the research result
+          const { generateProceduralLua } = await import('./lua-generator')
+          luaScript = await generateProceduralLua(buildingType, {
+            buildingType,
+            architecturalStyle: researchResult.architecturalStyle,
+            floors: researchResult.floorCount,
+            width: researchResult.totalWidth,
+            depth: researchResult.totalDepth,
+            floorHeight: researchResult.floorHeight,
+            exteriorColor: researchResult.exteriorColor,
+            roofColor: researchResult.roofColor,
+            exteriorMaterial: researchResult.exteriorMaterial,
+            accentColor: (researchResult as any).accentColor,
+            roofType: researchResult.roofType,
+            hasColonnade: researchResult.hasColonnade,
+            culturalNotes: researchResult.culturalNotes,
+          })
+        }
         console.log('[generator] lua generated, length:', luaScript?.length)
       } catch (e) {
         console.error('[generator] lua generation error:', e)
+        // Fallback: convert compiled parts directly
+        try {
+          const { generateLuaScript } = await import('./lua-generator')
+          luaScript = generateLuaScript(researchResult, allParts)
+        } catch (e2) {
+          console.error('[generator] lua fallback also failed:', e2)
+        }
       }
     }
 

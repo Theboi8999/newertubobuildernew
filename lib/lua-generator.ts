@@ -1,6 +1,7 @@
 import { RbxPart } from './rbxmx'
 import type { ResearchResult } from './research-agent'
 import { buildOttomanHouse } from './modes/ottoman-house'
+import type { BuildingSpec } from './lua-prompt-builder'
 
 const MAT_LUA: Record<string, string> = {
   concrete: 'Concrete',
@@ -160,4 +161,40 @@ local offset = terrainY - minY
 _TB_MODEL:PivotTo(_TB_MODEL:GetPivot() * CFrame.new(0, offset, 0))`
 
   return [header, ...finalParts.map(partToLua), terrainAlignSnippet].join('\n')
+}
+
+const TERRAIN_ALIGN_LUA = `
+-- Auto-align building to terrain surface
+local minY = math.huge
+for _, p in pairs(_TB_MODEL:GetDescendants()) do
+    if p:IsA("BasePart") then
+        local b = p.Position.Y - p.Size.Y/2
+        if b < minY then minY = b end
+    end
+end
+local terrainY = workspace.Terrain:GetHeight(Vector3.new(0,0,0)) or 3
+_TB_MODEL:PivotTo(_TB_MODEL:GetPivot() * CFrame.new(0, terrainY - minY, 0))`
+
+function cleanLuaOutput(raw: string): string {
+  // Strip markdown fences the model might add despite instructions
+  return raw
+    .replace(/^```(?:lua)?\s*/i, '')
+    .replace(/\s*```\s*$/, '')
+    .trim()
+}
+
+export async function generateProceduralLua(
+  buildingType: string,
+  spec: BuildingSpec
+): Promise<string> {
+  const { buildLuaPrompt } = await import('./lua-prompt-builder')
+  const { groqGenerate } = await import('./groq')
+
+  console.log('[lua-proc] generating procedural Lua for:', buildingType)
+  const { system, user } = buildLuaPrompt({ ...spec, buildingType })
+  const raw = await groqGenerate(system, user, 8000)
+  const luaCode = cleanLuaOutput(raw)
+  console.log('[lua-proc] generated', luaCode.length, 'chars')
+
+  return `-- TurboBuilder procedural: ${buildingType}\n` + luaCode + TERRAIN_ALIGN_LUA
 }
