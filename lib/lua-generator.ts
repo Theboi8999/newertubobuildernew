@@ -60,7 +60,7 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 ])
 
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
-  // Stone base — matches union footprint (sy=8.71 fills gap to first-floor wall bottom)
+  // Stone base v2 — sy=5.94 meets wall bottom at 5.9398 exactly
   {
     name: 'StoneBase', size: { x: 26, y: 5.94, z: 25.6 },
     position: { x: -0.266, y: 2.97, z: 0.394 },
