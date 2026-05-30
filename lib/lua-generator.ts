@@ -63,41 +63,41 @@ const OTTOMAN_WALL_COLOR_OVERRIDES = new Set(['Part_1', 'Part_101'])
 
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   {
-    name: 'StoneBase', size: { x: 30.18, y: 5.43, z: 28.94 },
-    position: { x: -0.266, y: 2.715, z: 0.394 },
+    name: 'StoneBase', size: { x: 30.18, y: 5.94, z: 28.94 },
+    position: { x: -0.266, y: 2.97, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
   {
-    name: 'RoofF', size: { x: 30, y: 2.5, z: 3 },
-    position: { x: 0, y: 22.2, z: 16.5 },
+    name: 'RoofF', size: { x: 28, y: 2.5, z: 3 },
+    position: { x: 0, y: 23.2, z: 14.47 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 1, r01: 0, r02: 0, r10: 0, r11: 1, r12: 0, r20: 0, r21: 0, r22: 1,
   },
   {
-    name: 'RoofB', size: { x: 30, y: 2.5, z: 3 },
-    position: { x: 0, y: 22.2, z: -16.5 },
+    name: 'RoofB', size: { x: 28, y: 2.5, z: 3 },
+    position: { x: 0, y: 23.2, z: -14.47 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: -1, r01: 0, r02: 0, r10: 0, r11: 1, r12: 0, r20: 0, r21: 0, r22: -1,
   },
   {
-    name: 'RoofL', size: { x: 3, y: 2.5, z: 28 },
-    position: { x: -16.5, y: 22.2, z: 0 },
+    name: 'RoofL', size: { x: 3, y: 2.5, z: 26 },
+    position: { x: -15.09, y: 23.2, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 0, r01: 0, r02: 1, r10: 0, r11: 1, r12: 0, r20: -1, r21: 0, r22: 0,
   },
   {
-    name: 'RoofR', size: { x: 3, y: 2.5, z: 28 },
-    position: { x: 16.5, y: 22.2, z: 0 },
+    name: 'RoofR', size: { x: 3, y: 2.5, z: 26 },
+    position: { x: 15.09, y: 23.2, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
     partType: 'WedgePart',
     r00: 0, r01: 0, r02: -1, r10: 0, r11: 1, r12: 0, r20: 1, r21: 0, r22: 0,
   },
   {
     name: 'RoofDeck', size: { x: 28, y: 0.5, z: 26 },
-    position: { x: 0, y: 23.4, z: 0 },
+    position: { x: 0, y: 23.6, z: 0 },
     color: 'Dark red', material: 'pebble', anchored: true, transparency: 0,
   },
 ]
