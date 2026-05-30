@@ -62,8 +62,8 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Stone base — matches union footprint (sy=8.71 fills gap to first-floor wall bottom)
   {
-    name: 'StoneBase', size: { x: 26, y: 8.71, z: 25.6 },
-    position: { x: -0.266, y: 4.355, z: 0.394 },
+    name: 'StoneBase', size: { x: 26, y: 5.94, z: 25.6 },
+    position: { x: -0.266, y: 2.97, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
   // Exact roof plate from Part_27, corrected to identity rotation
@@ -114,8 +114,11 @@ export function generateLuaScript(researchResult: ResearchResult, parts: RbxPart
     const ottomanParts = buildOttomanHouse(0)
     const wallParts = ottomanParts
       .filter(p => !OTTOMAN_REPLACED_NAMES.has(p.name))
-      // Glass parts: set transparency=0.5 for see-through windows
-      .map(p => p.material === 'glass' ? { ...p, transparency: 0.5 } : p)
+      .map(p => {
+        if (p.name === 'Part_1' || p.name === 'Part_101') return { ...p, color: 'Institutional white' }
+        if (p.material === 'glass') return { ...p, transparency: 0.3 }
+        return p
+      })
     finalParts = [...wallParts, ...OTTOMAN_EXTRA_PARTS]
   } else {
     finalParts = parts
