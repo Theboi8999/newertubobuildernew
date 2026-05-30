@@ -62,8 +62,8 @@ const OTTOMAN_REPLACED_NAMES = new Set([
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Stone base v2 — sy=5.94 meets wall bottom at 5.9398 exactly
   {
-    name: 'StoneBase', size: { x: 26, y: 5.94, z: 25.6 },
-    position: { x: -0.266, y: 2.97, z: 0.394 },
+    name: 'StoneBase', size: { x: 26, y: 8.0, z: 25.6 },
+    position: { x: -0.266, y: 4.0, z: 0.394 },
     color: 'Medium stone grey', material: 'granite', anchored: true, transparency: 0,
   },
   // Exact roof plate from Part_27, corrected to identity rotation
@@ -102,7 +102,7 @@ const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
   // Front door
   {
     name: 'Door', size: { x: 3.5, y: 5.5, z: 0.2 },
-    position: { x: 0, y: 2.0, z: -12.5 },
+    position: { x: 0, y: 4.5, z: -12.8 },
     color: 'Reddish brown', material: 'woodplanks', anchored: true, transparency: 0,
   },
 ]
