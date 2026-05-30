@@ -1,0 +1,51 @@
+{
+  "name": "Medieval Half-Timber House",
+  "prompts": ["medieval house", "half timber", "tudor house", "medieval home", "timber frame house"],
+  "dimensions": {
+    "width": 18,
+    "depth": 14,
+    "floorHeight": 8,
+    "floors": 2,
+    "totalHeight": 20
+  },
+  "elements": {
+    "walls": {
+      "color": "Brick yellow",
+      "material": "SmoothPlastic",
+      "floors": 2,
+      "notes": "Wattle and daub infill panels between timber frame"
+    },
+    "timberFrame": {
+      "color": "Reddish brown",
+      "material": "WoodPlanks",
+      "notes": "Exposed dark timber structural frame"
+    },
+    "roof": {
+      "style": "pitched_steep",
+      "color": "Dark grey",
+      "material": "Slate",
+      "pitch": 45,
+      "overhang": 1.0
+    },
+    "windows": {
+      "glass_color": "Light blue",
+      "glass_transparency": 0.3,
+      "frame_color": "Reddish brown",
+      "style": "small_leaded"
+    },
+    "base": {
+      "color": "Medium stone grey",
+      "material": "Cobblestone",
+      "height": 2,
+      "notes": "Stone rubble foundation"
+    },
+    "trim": {
+      "color": "Really black",
+      "material": "WoodPlanks"
+    },
+    "chimney": {
+      "color": "Bright red",
+      "material": "Brick"
+    }
+  }
+}

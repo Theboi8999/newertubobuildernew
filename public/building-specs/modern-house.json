@@ -1,0 +1,38 @@
+{
+  "name": "Modern House",
+  "prompts": ["modern house", "contemporary house", "modern home", "modern residential"],
+  "dimensions": {
+    "width": 28,
+    "depth": 22,
+    "floorHeight": 10,
+    "floors": 2,
+    "totalHeight": 22
+  },
+  "elements": {
+    "walls": {
+      "color": "Institutional white",
+      "material": "SmoothPlastic",
+      "floors": 2
+    },
+    "roof": {
+      "style": "flat",
+      "color": "Dark grey",
+      "material": "SmoothPlastic",
+      "overhang": 1.5
+    },
+    "windows": {
+      "glass_color": "Light blue",
+      "glass_transparency": 0.3,
+      "frame_color": "Really black",
+      "style": "floor_to_ceiling"
+    },
+    "trim": {
+      "color": "Really black",
+      "material": "SmoothPlastic"
+    },
+    "accents": {
+      "color": "Dark grey",
+      "material": "Metal"
+    }
+  }
+}

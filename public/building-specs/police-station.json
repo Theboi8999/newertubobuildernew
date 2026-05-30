@@ -1,0 +1,58 @@
+{
+  "name": "Police Station",
+  "prompts": ["police station", "police department", "police hq", "precinct", "law enforcement"],
+  "dimensions": {
+    "width": 36,
+    "depth": 28,
+    "floorHeight": 10,
+    "floors": 2,
+    "totalHeight": 24
+  },
+  "elements": {
+    "walls": {
+      "color": "Light stone grey",
+      "material": "SmoothPlastic",
+      "floors": 2,
+      "notes": "Institutional grey government facade"
+    },
+    "roof": {
+      "style": "flat",
+      "color": "Dark grey",
+      "material": "SmoothPlastic"
+    },
+    "windows": {
+      "glass_color": "Light blue",
+      "glass_transparency": 0.3,
+      "frame_color": "Really black",
+      "style": "narrow_vertical",
+      "notes": "Reinforced narrow windows for security"
+    },
+    "trim": {
+      "color": "Really black",
+      "material": "SmoothPlastic"
+    },
+    "base": {
+      "color": "Medium stone grey",
+      "material": "Concrete",
+      "height": 2
+    },
+    "entrance": {
+      "color": "Really black",
+      "material": "SmoothPlastic",
+      "notes": "Heavy entrance doors with POLICE signage"
+    },
+    "signage": {
+      "color": "Bright blue",
+      "notes": "Blue and white police markings on facade"
+    },
+    "rooms": [
+      "Reception",
+      "Holding Cells",
+      "Briefing Room",
+      "Locker Room",
+      "Evidence Storage",
+      "Chief Office",
+      "Break Room"
+    ]
+  }
+}

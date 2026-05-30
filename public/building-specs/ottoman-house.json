@@ -1,0 +1,40 @@
+{
+  "name": "Ottoman Balkan House",
+  "prompts": ["ottoman", "balkan", "konak", "ottoman house", "balkan house"],
+  "dimensions": {
+    "width": 30.18,
+    "depth": 28.94,
+    "floorHeight": 8.73,
+    "floors": 2,
+    "totalHeight": 27.4
+  },
+  "elements": {
+    "stoneBase": {
+      "height": 5.94,
+      "color": "Medium stone grey",
+      "material": "Granite"
+    },
+    "walls": {
+      "color": "Medium stone grey",
+      "material": "SmoothPlastic",
+      "floors": 2
+    },
+    "roof": {
+      "style": "flat_overhang",
+      "color": "Dark red",
+      "material": "Pebble",
+      "overhang": 2.5
+    },
+    "windows": {
+      "glass_color": "Light blue",
+      "glass_transparency": 0.3,
+      "shutter_color": "Brown",
+      "frame_color": "Really black"
+    },
+    "trim": {
+      "color": "Reddish brown",
+      "material": "WoodPlanks"
+    }
+  },
+  "reference_image": "/references/ottoman-house.jpg"
+}

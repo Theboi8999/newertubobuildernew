@@ -1,0 +1,46 @@
+{
+  "name": "Modern Office Building",
+  "prompts": ["office", "office building", "corporate building", "commercial building", "business building"],
+  "dimensions": {
+    "width": 40,
+    "depth": 30,
+    "floorHeight": 10,
+    "floors": 6,
+    "totalHeight": 65
+  },
+  "elements": {
+    "walls": {
+      "color": "Light stone grey",
+      "material": "SmoothPlastic",
+      "floors": 6
+    },
+    "glazing": {
+      "color": "Light blue",
+      "material": "Glass",
+      "transparency": 0.3,
+      "style": "curtain_wall",
+      "notes": "Alternating glass and concrete bands"
+    },
+    "roof": {
+      "style": "flat",
+      "color": "Dark grey",
+      "material": "SmoothPlastic"
+    },
+    "trim": {
+      "color": "Really black",
+      "material": "Metal",
+      "notes": "Aluminium window mullions and frames"
+    },
+    "base": {
+      "color": "Medium stone grey",
+      "material": "Granite",
+      "floors": 1,
+      "notes": "Stone-clad lobby level"
+    },
+    "entrance": {
+      "color": "Really black",
+      "material": "SmoothPlastic",
+      "style": "glass_canopy"
+    }
+  }
+}

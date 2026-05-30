@@ -1,0 +1,49 @@
+{
+  "brickColors": [
+    {"name": "White", "id": 1, "rgb": [242,243,243], "use": "bright white walls"},
+    {"name": "Grey", "id": 9, "rgb": [161,165,162], "use": "concrete walls"},
+    {"name": "Medium stone grey", "id": 194, "rgb": [163,162,165], "use": "plaster walls stone"},
+    {"name": "Institutional white", "id": 199, "rgb": [248,248,248], "use": "light plaster walls"},
+    {"name": "Reddish brown", "id": 192, "rgb": [105,64,40], "use": "wood trim doors frames"},
+    {"name": "Brown", "id": 217, "rgb": [87,57,36], "use": "shutters wood furniture"},
+    {"name": "Really black", "id": 26, "rgb": [17,17,17], "use": "window frames metal"},
+    {"name": "Dark red", "id": 154, "rgb": [123,46,47], "use": "roof tiles"},
+    {"name": "Light blue", "id": 23, "rgb": [13,105,172], "use": "glass windows"},
+    {"name": "Sand green", "id": 48, "rgb": [120,144,130], "use": "aged copper roofs"},
+    {"name": "Fossil", "id": 168, "rgb": [124,156,107], "use": "rough stone base"},
+    {"name": "Grime", "id": 153, "rgb": [127,142,100], "use": "dirty concrete"},
+    {"name": "Brick yellow", "id": 5, "rgb": [215,197,154], "use": "sandstone brick"},
+    {"name": "Bright red", "id": 21, "rgb": [196,40,28], "use": "red brick"},
+    {"name": "Sand red", "id": 58, "rgb": [149,121,119], "use": "old brick walls"},
+    {"name": "Warm yellowish orange", "id": 105, "rgb": [222,172,102], "use": "wood planks floors"},
+    {"name": "Bright orange", "id": 25, "rgb": [255,112,0], "use": "accent details"},
+    {"name": "Bright blue", "id": 23, "rgb": [13,105,172], "use": "sky blue accents"},
+    {"name": "Dark orange", "id": 68, "rgb": [218,133,65], "use": "terracotta roof"},
+    {"name": "Black", "id": 26, "rgb": [27,42,52], "use": "iron metal dark trim"}
+  ],
+  "materials": [
+    {"name": "SmoothPlastic", "enum": 256, "use": "clean walls painted surfaces"},
+    {"name": "Concrete", "enum": 816, "use": "raw concrete adds blue tint avoid for walls"},
+    {"name": "WoodPlanks", "enum": 528, "use": "wooden floors doors shutters trim"},
+    {"name": "Pebble", "enum": 848, "use": "roof tiles stone paths"},
+    {"name": "Granite", "enum": 880, "use": "rough stone base walls"},
+    {"name": "Slate", "enum": 800, "use": "flat stone floors dark stone"},
+    {"name": "Brick", "enum": 1040, "use": "brick walls"},
+    {"name": "Glass", "enum": 1568, "use": "windows set transparency 0.3"},
+    {"name": "Wood", "enum": 512, "use": "natural wood rounded beams"},
+    {"name": "Cobblestone", "enum": 1120, "use": "old roads paths cobble"},
+    {"name": "Sandstone", "enum": 1361, "use": "desert middle eastern buildings"},
+    {"name": "Marble", "enum": 784, "use": "luxury floors columns"},
+    {"name": "Metal", "enum": 1040, "use": "industrial metal pipes"},
+    {"name": "DiamondPlate", "enum": 272, "use": "metal floors grating"}
+  ],
+  "rules": [
+    "NEVER use Concrete material for visible walls - it adds blue tint",
+    "ALWAYS use SmoothPlastic for plaster walls",
+    "Glass transparency should be 0.3 not 0 or 0.5",
+    "Roof tiles use Dark red + Pebble material",
+    "Stone base use Medium stone grey + Granite material",
+    "Wood trim use Reddish brown + WoodPlanks material",
+    "Window frames use Really black + WoodPlanks material"
+  ]
+}

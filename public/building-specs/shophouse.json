@@ -1,0 +1,48 @@
+{
+  "name": "Peranakan Shophouse",
+  "prompts": ["shophouse", "peranakan", "singapore shophouse", "chinese shophouse", "straits shophouse"],
+  "dimensions": {
+    "width": 10,
+    "depth": 30,
+    "floorHeight": 9,
+    "floors": 3,
+    "totalHeight": 30
+  },
+  "elements": {
+    "walls": {
+      "color": "Sand yellow",
+      "material": "SmoothPlastic",
+      "floors": 3,
+      "notes": "Pastel facade typical of Peranakan style"
+    },
+    "roof": {
+      "style": "pitched",
+      "color": "Dark red",
+      "material": "Pebble",
+      "overhang": 1.5
+    },
+    "colonnade": {
+      "enabled": true,
+      "color": "White",
+      "material": "SmoothPlastic",
+      "style": "five_foot_way"
+    },
+    "windows": {
+      "glass_color": "Light blue",
+      "glass_transparency": 0.3,
+      "shutter_color": "Dark green",
+      "frame_color": "Reddish brown",
+      "style": "louvred_shutters"
+    },
+    "trim": {
+      "color": "White",
+      "material": "SmoothPlastic",
+      "notes": "Ornate plaster mouldings on facade"
+    },
+    "groundFloor": {
+      "use": "commercial",
+      "color": "White",
+      "material": "SmoothPlastic"
+    }
+  }
+}

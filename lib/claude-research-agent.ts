@@ -1,9 +1,27 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { ResearchResult } from './research-agent'
+import fs from 'fs'
+import path from 'path'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 })
+
+// Load roblox reference rules once at startup
+let _refRules = ''
+try {
+  const ref = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public', 'roblox-reference.json'), 'utf-8'))
+  _refRules = (ref.rules as string[]).map((r, i) => `${i + 1}. ${r}`).join('\n')
+} catch {}
+
+function loadBuildingSpec(buildingType: string): any {
+  try {
+    const key = buildingType.replace(/_/g, '-')
+    return JSON.parse(fs.readFileSync(path.join(process.cwd(), 'public', 'building-specs', `${key}.json`), 'utf-8'))
+  } catch {
+    return null
+  }
+}
 
 const RESEARCH_SYSTEM_PROMPT = `You are an expert architectural
 researcher for a Roblox building generator called TurboBuilder.
@@ -101,6 +119,21 @@ IMPORTANT RULES:
 9. Victorian buildings: exteriorMaterial='brick',
    exteriorColor='Reddish brown'`
 
+  // Inject reference rules and building spec if available
+  const spec = loadBuildingSpec(buildingType)
+  const specHint = spec ? `
+REFERENCE SPEC for ${spec.name}:
+- Walls: color="${spec.elements?.walls?.color}", material="${spec.elements?.walls?.material}"
+- Roof: color="${spec.elements?.roof?.color}", material="${spec.elements?.roof?.material}", style="${spec.elements?.roof?.style}"
+- Trim: color="${spec.elements?.trim?.color}", material="${spec.elements?.trim?.material}"
+- Windows: glass_color="${spec.elements?.windows?.glass_color}", transparency=${spec.elements?.windows?.glass_transparency}, frame_color="${spec.elements?.windows?.frame_color}"
+- Dimensions: width=${spec.dimensions?.width}, depth=${spec.dimensions?.depth}, floors=${spec.dimensions?.floors}
+Use these exact values in your response.` : ''
+
+  const rulesHint = _refRules ? `\nMATERIAL RULES (CRITICAL):\n${_refRules}` : ''
+
+  const fullUserPrompt = userPrompt + specHint + rulesHint
+
   // Build message content
   const messageContent: Anthropic.MessageParam['content'] = []
 
@@ -123,14 +156,14 @@ IMPORTANT RULES:
       })
       messageContent.push({
         type: 'text',
-        text: userPrompt + '\n\nAnalyse the reference image above and use it to inform your color, material, and style choices.'
+        text: fullUserPrompt + '\n\nAnalyse the reference image above and use it to inform your color, material, and style choices.'
       })
     } catch (e) {
       console.error('[claude-research] failed to load reference image:', e)
-      messageContent.push({ type: 'text', text: userPrompt })
+      messageContent.push({ type: 'text', text: fullUserPrompt })
     }
   } else {
-    messageContent.push({ type: 'text', text: userPrompt })
+    messageContent.push({ type: 'text', text: fullUserPrompt })
   }
 
   console.log('[claude-research] calling Claude for:', buildingType)
