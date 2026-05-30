@@ -51,12 +51,17 @@ function partToLua(part: RbxPart): string {
   return `makePart({${fields.join(',')}})`
 }
 
-// Parts from buildOttomanHouse that we replace with corrected versions below.
-// Part_27 is excluded because it has an upside-down rotation matrix (r11=-1, r22=-1).
+// Parts from buildOttomanHouse that we exclude.
+// Part_27: upside-down rotation matrix (r11=-1, r22=-1).
+// Part_26, Part_86: door frame planks at py≈0.12 sy≈5.7 → bottom≈-2.73, causing wrong yOffset.
+// Part_3, Part_25: tiny 0.05×1.0×0.11 slate threshold pieces at py=0 → bottom=-0.5.
+// Removing all four gives minBottomY=0 (StoneBase bottom) so yOffset=0 and terrain alignment is exact.
 const OTTOMAN_REPLACED_NAMES = new Set([
   'RoofEave', 'RoofMid1', 'RoofMid2', 'RoofRidge',
   'FasciaF', 'FasciaB', 'FasciaL', 'FasciaR', 'StoneBase',
   'Part_27',
+  'Part_26', 'Part_86',
+  'Part_3', 'Part_25',
 ])
 
 const OTTOMAN_EXTRA_PARTS: RbxPart[] = [
