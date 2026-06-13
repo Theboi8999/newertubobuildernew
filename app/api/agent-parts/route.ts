@@ -30,13 +30,14 @@ export async function GET(request: NextRequest) {
       .update({ processed: true })
       .eq('id', row.id)
 
-    // If it's a __clear sentinel, also wipe all other unprocessed rows for this session
+    // If it's a __clear sentinel, wipe only rows queued *before* this clear (not rows added after)
     if (row.part_json && row.part_json.__clear) {
       await supabase
         .from('agent_parts')
         .update({ processed: true })
         .eq('session_id', session_id)
         .eq('processed', false)
+        .lt('id', row.id)
     }
 
     return Response.json({ part: row.part_json })
